@@ -4,13 +4,25 @@ document.addEventListener("DOMContentLoaded", function () {
     const mainContent = document.querySelector(".main");
     const pageTitle = document.getElementById("page-title");
 
-    // Live Database Array for Cash Book
-    let cashTransactions = [
-        { id: 100201, date: "2026-07-19", type: "credit", amount: 5500, note: "Daily Stationery Sale" },
-        { id: 100202, date: "2026-07-18", type: "debit", amount: 900, note: "Shop Electric Bill" },
-        { id: 100203, date: "2026-07-10", type: "credit", amount: 4200, note: "Photocopy Bulk Order" },
-        { id: 100204, date: "2026-06-15", type: "debit", amount: 1500, note: "Paper Rim Purchase" },
-        { id: 100205, date: "2025-12-25", type: "credit", amount: 8000, note: "Year End Special Sale" }
+    // --- LIVE DATABASE ENGINE (INTEGRATED WITH LOCALSTORAGE) ---
+    let cashBookData = JSON.parse(localStorage.getItem('cashBookData')) || [
+        { date: '2026-07-19', type: 'Sales', amount: 5000, remarks: 'Daily regular shop sales' },
+        { date: '2026-07-19', type: 'Purchase', amount: 2000, remarks: 'Paper and Ink purchase' }
+    ];
+
+    // --- EXPENSE MANAGEMENT DATABASE ENGINE ---
+    let expenseData = JSON.parse(localStorage.getItem('expenseData')) || [
+        { id: 6001, date: '2026-07-19', category: 'Electricity Bill', amount: 1500, note: 'Shop monthly bill' }
+    ];
+
+    // --- DAILY SALES SYSTEM ENGINE DATA INITIALIZATION ---
+    let dailySalesData = JSON.parse(localStorage.getItem('dailySalesData')) || [
+        { id: 5001, date: '2026-07-19', purpose: 'Book Binding & Papers', stationery: 2000, profit: 500, note: 'Initial System Entry' }
+    ];
+
+    // --- PURCHASE MANAGEMENT DATABASE ENGINE ---
+    let purchaseData = JSON.parse(localStorage.getItem('purchaseData')) || [
+        { id: 4001, date: '2026-07-19', item: 'A4 Size Paper Box & Pilot Pens', amount: 2000, note: 'Supplier Market Entry' }
     ];
 
     // Photocopy Service Array Database (With Expense Breakdown)
@@ -70,6 +82,21 @@ document.addEventListener("DOMContentLoaded", function () {
         if (targetViewId === "mini-summary") {
             renderMiniSummaryTable();
         }
+        if (targetViewId === "daily-sale" || targetViewId === "daily-report") {
+            renderDailySalesTable();
+        }
+        if (targetViewId === "purchase") {
+            renderPurchaseTable();
+        }
+        if (targetViewId === "expense-management") {
+            renderExpenseTable();
+        }
+        if (targetViewId === "cash-book") {
+            updateCashBookUI();
+        }
+        if (targetViewId === "photocopy-service") {
+            updatePhotocopyServiceUI();
+        }
     }
 
     // Navigation System for Sidebar
@@ -99,7 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
         link.addEventListener("click", function (e) {
             e.preventDefault();
             const card = this.closest(".card");
-            if (card.classList.contains("expense-card")) switchPage("mini-summary", "Mini Summary");
+            if (card.classList.contains("expense-card")) switchPage("expense-management", "Expense Management");
             else if (card.classList.contains("profit-card")) switchPage("photocopy-service", "Photocopy Service");
             else if (card.classList.contains("cash-card")) switchPage("cash-book", "Cash Book");
         });
@@ -339,7 +366,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const summaryHtml = `
             <div class="print-summary-box">
                 <div class="print-summary-row"><span>Total Copies:</span><span>${totalCopies.toLocaleString()} Pcs</span></div>
-                <div class="print-summary-row"><span>Gross Volume:</span><span>৳ ${totalGross.toLocaleString()}</span></div>
+                <div class="print-summary-row"><span>Total Volume:</span><span>৳ ${totalGross.toLocaleString()}</span></div>
                 <div class="print-summary-row"><span>Total Rim Cost (-):</span><span>৳ ${totalRimCost.toLocaleString()}</span></div>
                 <div class="print-summary-row"><span>Service Expenses (-):</span><span>৳ ${totalExp.toLocaleString()}</span></div>
                 <div class="print-summary-row" style="font-weight: bold; background: #e2e8f0;"><span>Total Net Profit:</span><span>৳ ${totalProfit.toLocaleString()}</span></div>
@@ -354,65 +381,89 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("ps-filter-year")?.addEventListener("change", updatePhotocopyServiceUI);
 
 
-    // --- CASH BOOK ENGINE & DASHBOARD ENGINE (Shorasori Gear Integrated) ---
+    // --- CASH BOOK ENGINE & DASHBOARD ENGINE ---
     function updateCashBookUI() {
-        const mainTableBody = document.querySelector("#main-cashbook-table tbody");
+        const mainTableBody = document.querySelector("#main-cashbook-table tbody") || document.querySelector("#main-cb-table tbody");
         const dashTableBody = document.querySelector("#dash-cashbook-table tbody");
-        const selectedMonth = document.getElementById("filter-month")?.value || "all";
-        const selectedYear = document.getElementById("filter-year")?.value || "all";
+        const selectedMonth = (document.getElementById("filter-month") || document.getElementById("cb-filter-month"))?.value || "all";
+        const selectedYear = (document.getElementById("filter-year") || document.getElementById("cb-filter-year"))?.value || "all";
 
-        let totalDebit = 0, totalCredit = 0, ledgerSl = 1, recentSl = 0;
+        let totalPurchase = 0;
+        let totalSales = 0;
+        let totalProfit = 0;
+        let ledgerSl = 1;
+        let recentSl = 0;
 
         if (mainTableBody) mainTableBody.innerHTML = "";
         if (dashTableBody) dashTableBody.innerHTML = "";
 
-        // ১. ক্যাশ বুকের ট্রানজেকশনগুলো হিসাব করা
-        cashTransactions.forEach((tx) => {
-            const txYear = tx.date.substring(0, 4);
-            const txMonth = tx.date.substring(5, 7);
+        cashBookData.forEach((entry, index) => {
+            const txYear = entry.date.substring(0, 4);
+            const txMonth = entry.date.substring(5, 7);
             const isMatch = (selectedMonth === "all" || txMonth === selectedMonth) && 
                             (selectedYear === "all" || txYear === selectedYear);
 
-            const formattedDate = formatFinancialDate(tx.date);
-            const isCredit = tx.type === "credit";
-
             if (isMatch) {
-                if (isCredit) totalCredit += tx.amount;
-                else totalDebit += tx.amount;
+                let purchaseVal = 0;
+                let salesVal = 0;
+                let profitVal = 0;
+
+                if (entry.type === "Purchase" || entry.type === "debit") {
+                    purchaseVal = entry.amount;
+                    totalPurchase += purchaseVal;
+                } else if (entry.type === "Sales" || entry.type === "credit") {
+                    salesVal = entry.amount;
+                    
+                    if (entry.remarks && entry.remarks.includes("[Daily Sale]")) {
+                        const match = dailySalesData.find(d => entry.remarks.includes(`Stat: ৳${d.stationery}`) && d.date === entry.date);
+                        profitVal = match ? match.profit : (salesVal * 0.25);
+                    } else {
+                        profitVal = salesVal * 0.25; 
+                    }
+                    
+                    totalSales += salesVal;
+                    totalProfit += profitVal;
+                }
 
                 if (mainTableBody) {
                     const tr = document.createElement("tr");
+                    tr.style.borderBottom = "1px solid #cbd5e1";
                     tr.innerHTML = `
-                        <td>${ledgerSl}</td><td>${formattedDate}</td>
-                        <td class="${!isCredit ? 'text-red font-semibold' : ''}">${!isCredit ? '৳ ' + tx.amount.toLocaleString() : '-'}</td>
-                        <td class="${isCredit ? 'text-green font-semibold' : ''}">${isCredit ? '৳ ' + tx.amount.toLocaleString() : '-'}</td>
-                        <td>${tx.note}</td>
-                        <td>
-                            <div class="action-cell">
-                                <button class="btn-print-row btn-print-cash-single" data-id="${tx.id}"><i class="fas fa-print"></i></button>
-                                <button class="btn-delete-row btn-delete-cash" data-id="${tx.id}"><i class="fas fa-trash-can"></i></button>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center;">${ledgerSl}</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center;">${formatFinancialDate(entry.date)}</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right; color: #dc2626;">${purchaseVal > 0 ? '৳ ' + purchaseVal.toLocaleString() : '-'}</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right; color: #16a34a;">${salesVal > 0 ? '৳ ' + salesVal.toLocaleString() : '-'}</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right; color: #2563eb; font-weight: 600;">${profitVal > 0 ? '৳ ' + Math.round(profitVal).toLocaleString() : '-'}</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1;">${entry.remarks || entry.note || ''}</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center;">
+                            <div class="action-cell" style="justify-content: center;">
+                                <button type="button" class="btn-print-row btn-print-cash-single" data-index="${index}" style="border: none; background: transparent; color: #2563eb; cursor: pointer; margin-right: 8px;">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                                <button type="button" class="btn-delete-cb btn-delete-cash" data-index="${index}" style="border: none; background: transparent; color: #ef4444; cursor: pointer;">
+                                    <i class="fas fa-trash-can"></i>
+                                </button>
                             </div>
                         </td>
                     `;
                     mainTableBody.appendChild(tr);
                     ledgerSl++;
                 }
-            }
 
-            if (dashTableBody && recentSl < 5) {
-                const trDash = document.createElement("tr");
-                trDash.innerHTML = `
-                    <td>${formattedDate}</td>
-                    <td class="${!isCredit ? 'text-red' : ''}">${!isCredit ? '৳ ' + tx.amount.toLocaleString() : '-'}</td>
-                    <td class="${isCredit ? 'text-green' : ''}">${isCredit ? '৳ ' + tx.amount.toLocaleString() : '-'}</td>
-                    <td>${tx.note}</td>
-                `;
-                dashTableBody.appendChild(trDash);
-                recentSl++;
+                if (dashTableBody && recentSl < 5) {
+                    const trDash = document.createElement("tr");
+                    trDash.innerHTML = `
+                        <td>${formatFinancialDate(entry.date)}</td>
+                        <td class="text-red">${purchaseVal > 0 ? '৳ ' + purchaseVal.toLocaleString() : '-'}</td>
+                        <td class="text-green">${salesVal > 0 ? '৳ ' + salesVal.toLocaleString() : '-'}</td>
+                        <td>${entry.remarks || entry.note || ''}</td>
+                    `;
+                    dashTableBody.appendChild(trDash);
+                    recentSl++;
+                }
             }
         });
 
-        // ২. [GEAR ADDED] Mini Summary থেকে ফিল্টার করা খরচগুলো মোট ডেবিট বা এক্সপেন্সে যুক্ত করা
         miniSummaryData.forEach((entry) => {
             const dateParts = entry.date.split('-');
             const entryYear = dateParts[0];
@@ -422,43 +473,64 @@ document.addEventListener("DOMContentLoaded", function () {
             const matchYear = (selectedYear === 'all' || selectedYear === entryYear);
             
             if (matchMonth && matchYear) {
-                totalDebit += entry.amount; // খরচ মোট ডেবিটে লাইভ যুক্ত হচ্ছে
+                totalPurchase += entry.amount; 
             }
         });
 
-        const cashInHand = totalCredit - totalDebit; 
-        if(document.getElementById("total-debit")) document.getElementById("total-debit").innerText = `৳ ${totalDebit.toLocaleString()}`;
-        if(document.getElementById("total-credit")) document.getElementById("total-credit").innerText = `৳ ${totalCredit.toLocaleString()}`;
+        const cashInHand = totalSales - totalPurchase;
+
+        if(document.getElementById("cb-total-purchase")) document.getElementById("cb-total-purchase").innerText = "৳ " + totalPurchase.toLocaleString();
+        if(document.getElementById("cb-total-sales")) document.getElementById("cb-total-sales").innerText = "৳ " + totalSales.toLocaleString();
+        if(document.getElementById("cb-total-profit")) document.getElementById("cb-total-profit").innerText = "৳ " + Math.round(totalProfit).toLocaleString();
+
+        if(document.getElementById("total-debit")) document.getElementById("total-debit").innerText = `৳ ${totalPurchase.toLocaleString()}`;
+        if(document.getElementById("total-credit")) document.getElementById("total-credit").innerText = `৳ ${totalSales.toLocaleString()}`;
         if(document.getElementById("net-balance")) document.getElementById("net-balance").innerText = `৳ ${cashInHand.toLocaleString()}`;
 
-        if(document.getElementById("dash-sale")) document.getElementById("dash-sale").innerText = `৳ ${totalCredit.toLocaleString()}`;
-        if(document.getElementById("dash-expense")) document.getElementById("dash-expense").innerText = `৳ ${totalDebit.toLocaleString()}`;
+        if(document.getElementById("dash-sale")) document.getElementById("dash-sale").innerText = `৳ ${totalSales.toLocaleString()}`;
+        if(document.getElementById("dash-expense")) document.getElementById("dash-expense").innerText = `৳ ${totalPurchase.toLocaleString()}`;
         if(document.getElementById("dash-cash")) document.getElementById("dash-cash").innerText = `৳ ${cashInHand.toLocaleString()}`;
-
-        const calculatedProfit = cashInHand * 0.25;
-        if(document.getElementById("dash-profit")) {
-            document.getElementById("dash-profit").innerText = `৳ ${Math.round(calculatedProfit).toLocaleString()}`;
-        }
+        if(document.getElementById("dash-profit")) document.getElementById("dash-profit").innerText = `৳ ${Math.round(totalProfit).toLocaleString()}`;
     }
 
-    document.getElementById("main-cashbook-table")?.addEventListener("click", function(e) {
+    (document.getElementById("cashbook-form"))?.addEventListener("submit", function(e) {
+        e.preventDefault();
+        
+        const date = document.getElementById("input-date").value;
+        const type = document.getElementById("input-type").value;
+        const amount = parseFloat(document.getElementById("input-amount").value) || 0;
+        const remarks = document.getElementById("input-note").value;
+
+        if (amount <= 0) return alert("সঠিক অ্যামাউন্ট ইনপুট দিন।");
+
+        cashBookData.unshift({ date, type: (type === 'credit' ? 'Sales' : (type === 'debit' ? 'Purchase' : type)), amount, remarks });
+        localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
+        
+        updateCashBookUI();
+        this.reset();
+        if(document.getElementById("input-date")) document.getElementById("input-date").value = "2026-07-19";
+    });
+
+    const cbTableSelector = document.getElementById("main-cashbook-table");
+    cbTableSelector?.addEventListener("click", function(e) {
         const deleteBtn = e.target.closest(".btn-delete-cash");
         const printBtn = e.target.closest(".btn-print-cash-single");
         
         if (deleteBtn) {
-            const idToDelete = parseInt(deleteBtn.getAttribute("data-id"));
-            if (confirm("আপনি কি নিশ্চিতভাবে এই ক্যাশ বুক রেকর্ডটি ডিলিট করতে চান?")) {
-                cashTransactions = cashTransactions.filter(r => r.id !== idToDelete);
+            const index = parseInt(deleteBtn.getAttribute("data-index"));
+            if (confirm("আপনি কি নিশ্চিতভাবে এই রেকর্ডটি ডিলিট করতে চান?")) {
+                cashBookData.splice(index, 1);
+                localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
                 updateCashBookUI();
             }
         }
 
         if (printBtn) {
-            const idToPrint = parseInt(printBtn.getAttribute("data-id"));
-            const tx = cashTransactions.find(r => r.id === idToPrint);
+            const index = parseInt(printBtn.getAttribute("data-index"));
+            const tx = cashBookData[index];
             if (tx) {
                 document.getElementById("print-title-main").innerText = "SINGLE TRANSACTION VOUCHER";
-                document.getElementById("print-subtitle-main").innerText = `Voucher ID: #${tx.id}`;
+                document.getElementById("print-subtitle-main").innerText = `Log ID: #CB-${index + 1000}`;
                 document.getElementById("print-meta-area").innerHTML = `<p><strong>Date:</strong> ${formatFinancialDate(tx.date)}</p><p><strong>Type:</strong> ${tx.type.toUpperCase()}</p>`;
                 
                 let tableHtml = `
@@ -471,7 +543,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         </thead>
                         <tbody>
                             <tr>
-                                <td>${tx.note}</td>
+                                <td>${tx.remarks || tx.note || 'N/A'}</td>
                                 <td>৳ ${tx.amount.toLocaleString()}</td>
                             </tr>
                         </tbody>
@@ -484,8 +556,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.getElementById("btn-print-ledger")?.addEventListener("click", function() {
-        const mText = document.getElementById("filter-month").options[document.getElementById("filter-month").selectedIndex].text;
-        const yText = document.getElementById("filter-year").options[document.getElementById("filter-year").selectedIndex].text;
+        const filterM = document.getElementById("filter-month");
+        const filterY = document.getElementById("filter-year");
+        const mText = filterM.options[filterM.selectedIndex].text;
+        const yText = filterY.options[filterY.selectedIndex].text;
 
         document.getElementById("print-title-main").innerText = "CASH BOOK LEDGER STATEMENT";
         document.getElementById("print-subtitle-main").innerText = `Statement Period: ${mText} - ${yText}`;
@@ -506,23 +580,24 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         let totalDebit = 0, totalCredit = 0, sl = 1;
-        const selectedMonth = document.getElementById("filter-month").value;
-        const selectedYear = document.getElementById("filter-year").value;
+        const selectedMonth = filterM.value;
+        const selectedYear = filterY.value;
 
-        cashTransactions.forEach(tx => {
+        cashBookData.forEach(tx => {
             const txYear = tx.date.substring(0, 4);
             const txMonth = tx.date.substring(5, 7);
             if ((selectedMonth === "all" || txMonth === selectedMonth) && (selectedYear === "all" || txYear === selectedYear)) {
-                if (tx.type === "credit") totalCredit += tx.amount;
-                else totalDebit += tx.amount;
+                let isCredit = (tx.type === "Sales" || tx.type === "credit");
+                if (!isCredit) totalDebit += tx.amount;
+                else totalCredit += tx.amount;
 
                 tableHtml += `
                     <tr>
                         <td>${sl}</td>
                         <td>${formatFinancialDate(tx.date)}</td>
-                        <td>${tx.type === 'debit' ? '৳ ' + tx.amount.toLocaleString() : '-'}</td>
-                        <td>${tx.type === 'credit' ? '৳ ' + tx.amount.toLocaleString() : '-'}</td>
-                        <td>${tx.note}</td>
+                        <td>${!isCredit ? '৳ ' + tx.amount.toLocaleString() : '-'}</td>
+                        <td>${isCredit ? '৳ ' + tx.amount.toLocaleString() : '-'}</td>
+                        <td>${tx.remarks || tx.note || ''}</td>
                     </tr>
                 `;
                 sl++;
@@ -532,8 +607,8 @@ document.addEventListener("DOMContentLoaded", function () {
         tableHtml += `</tbody></table>`;
         const summaryHtml = `
             <div class="print-summary-box">
-                <div class="print-summary-row"><span>Total Debit (Expense):</span><span>৳ ${totalDebit.toLocaleString()}</span></div>
-                <div class="print-summary-row"><span>Total Credit (Income):</span><span>৳ ${totalCredit.toLocaleString()}</span></div>
+                <div class="print-summary-row"><span>Total Expense (Debit):</span><span>৳ ${totalDebit.toLocaleString()}</span></div>
+                <div class="print-summary-row"><span>Total Income (Credit):</span><span>৳ ${totalCredit.toLocaleString()}</span></div>
                 <div class="print-summary-row" style="font-weight: bold; background: #e2e8f0;"><span>Net Balance:</span><span>৳ ${(totalCredit - totalDebit).toLocaleString()}</span></div>
             </div>
         `;
@@ -545,18 +620,678 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("filter-month")?.addEventListener("change", updateCashBookUI);
     document.getElementById("filter-year")?.addEventListener("change", updateCashBookUI);
 
-    document.getElementById("cashbook-form")?.addEventListener("submit", function (e) {
-        e.preventDefault();
-        const dateVal = document.getElementById("input-date").value;
-        const typeVal = document.getElementById("input-type").value;
-        const amountVal = parseFloat(document.getElementById("input-amount").value);
-        const noteVal = document.getElementById("input-note").value;
 
-        const newTx = { id: Math.floor(100000 + Math.random() * 900000), date: dateVal, type: typeVal, amount: amountVal, note: noteVal };
-        cashTransactions.unshift(newTx);
-        updateCashBookUI();
-        this.reset();
-        document.getElementById("input-date").value = "2026-07-19";
+    // --- EXPENSE MANAGEMENT CORE ENGINE SYSTEM ---
+    const expenseForm = document.getElementById('expense-form');
+    const expDateInput = document.getElementById('expense-date');
+    const expCategoryInput = document.getElementById('expense-category');
+    const expAmountInput = document.getElementById('expense-amount');
+    const expNoteInput = document.getElementById('expense-note');
+    const expTableBody = document.querySelector('#main-expense-table tbody');
+    const txtTotalExpense = document.getElementById('total-expense-amount');
+
+    if (expenseForm) {
+        expenseForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const dateVal = expDateInput.value;
+            const categoryVal = expCategoryInput.value;
+            const amountVal = parseFloat(expAmountInput.value) || 0;
+            const noteVal = expNoteInput.value.trim();
+
+            if (amountVal <= 0) {
+                alert("দয়া করে সঠিক খরচের পরিমাণ ইনপুট দিন।");
+                return;
+            }
+
+            const newExpenseRecord = {
+                id: Math.floor(6000 + Math.random() * 2000),
+                date: dateVal,
+                category: categoryVal,
+                amount: amountVal,
+                note: noteVal || 'General Expense'
+            };
+
+            expenseData.unshift(newExpenseRecord);
+            localStorage.setItem('expenseData', JSON.stringify(expenseData));
+
+            cashBookData.unshift({
+                date: dateVal,
+                type: 'Purchase',
+                amount: amountVal,
+                remarks: `[Expense] ${categoryVal} | Note: ${noteVal}`
+            });
+            localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
+
+            renderExpenseTable();
+            updateCashBookUI();
+            this.reset();
+
+            if (expDateInput) expDateInput.value = "2026-07-19";
+            alert("খরচের হিসাব সফলভাবে সেভ এবং ক্যাশ বুকে যুক্ত করা হয়েছে!");
+        });
+    }
+
+    document.getElementById('expense-filter-month')?.addEventListener('change', renderExpenseTable);
+    document.getElementById('expense-filter-year')?.addEventListener('change', renderExpenseTable);
+
+    function renderExpenseTable() {
+        if (!expTableBody) return;
+        expTableBody.innerHTML = '';
+
+        const selectedMonth = document.getElementById('expense-filter-month')?.value || 'all';
+        const selectedYear = document.getElementById('expense-filter-year')?.value || 'all';
+
+        let totalExpenseSum = 0;
+        let serial = 1;
+
+        expenseData.forEach((entry, index) => {
+            const dateParts = entry.date.split('-');
+            const entryYear = dateParts[0];
+            const entryMonth = dateParts[1];
+
+            const matchMonth = (selectedMonth === 'all' || selectedMonth === entryMonth);
+            const matchYear = (selectedYear === 'all' || selectedYear === entryYear);
+
+            if (matchMonth && matchYear) {
+                totalExpenseSum += entry.amount;
+
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = "1px solid #cbd5e1";
+                tr.innerHTML = `
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">${serial++}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">${formatFinancialDate(entry.date)}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; font-weight: 500;">${entry.category}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; font-weight: 600; color: #dc2626;">৳ ${entry.amount.toLocaleString()}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">${entry.note || '-'}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">
+                        <div class="action-cell" style="justify-content: center; display: flex; gap: 10px;">
+                            <button type="button" class="btn-print-row btn-print-exp" data-id="${entry.id}" style="border: none; background: transparent; color: #2563eb; cursor: pointer;">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button type="button" class="btn-delete-row btn-delete-exp" data-index="${index}" style="border: none; background: transparent; color: #ef4444; cursor: pointer;">
+                                <i class="fas fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                expTableBody.appendChild(tr);
+            }
+        });
+
+        if (txtTotalExpense) txtTotalExpense.innerHTML = `৳ ${totalExpenseSum.toLocaleString()}`;
+    }
+
+    expTableBody?.addEventListener('click', function (e) {
+        const deleteBtn = e.target.closest('.btn-delete-exp');
+        const printBtn = e.target.closest('.btn-print-exp');
+
+        if (deleteBtn) {
+            const index = parseInt(deleteBtn.getAttribute('data-index'));
+            if (confirm('আপনি কি এই খরচের রেকর্ডটি মুছে ফেলতে চান?')) {
+                expenseData.splice(index, 1);
+                localStorage.setItem('expenseData', JSON.stringify(expenseData));
+                renderExpenseTable();
+                updateCashBookUI();
+            }
+        }
+
+        if (printBtn) {
+            const idToPrint = parseInt(printBtn.getAttribute("data-id"));
+            const rec = expenseData.find(r => r.id === idToPrint);
+            if (rec) {
+                document.getElementById("print-title-main").innerText = "EXPENSE TRANSACTION VOUCHER";
+                document.getElementById("print-subtitle-main").innerText = `Voucher ID: #EXP-${rec.id}`;
+                document.getElementById("print-meta-area").innerHTML = `<p><strong>Date:</strong> ${formatFinancialDate(rec.date)}</p><p><strong>Category:</strong> ${rec.category}</p>`;
+
+                let tableHtml = `
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th>Expense Category</th>
+                                <th>Particulars / Description</th>
+                                <th>Total Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${rec.category}</td>
+                                <td>${rec.note || 'N/A'}</td>
+                                <td style="font-weight: bold; color: #dc2626;">৳ ${rec.amount.toLocaleString()}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml;
+                window.print();
+            }
+        }
+    });
+
+    document.getElementById("btn-print-expense-report")?.addEventListener("click", function () {
+        const filterM = document.getElementById("expense-filter-month");
+        const filterY = document.getElementById("expense-filter-year");
+        const mText = filterM.options[filterM.selectedIndex].text;
+        const yText = filterY.options[filterY.selectedIndex].text;
+
+        document.getElementById("print-title-main").innerText = "OFFICE EXPENSE STATEMENT REPORT";
+        document.getElementById("print-subtitle-main").innerText = `Report Period: ${mText} - ${yText}`;
+        document.getElementById("print-meta-area").innerHTML = `<p><strong>Report Type:</strong> Debit Ledger Summary</p><p><strong>Generated Date:</strong> 19 Jul 2026</p>`;
+
+        let tableHtml = `
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">SL</th>
+                        <th style="width: 15%;">Date</th>
+                        <th>Expense Category</th>
+                        <th style="text-align: right; width: 25%;">Amount (৳)</th>
+                        <th>Description / Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        let totalExpense = 0, sl = 1;
+        const selectedMonth = filterM.value;
+        const selectedYear = filterY.value;
+
+        expenseData.forEach(entry => {
+            const dateParts = entry.date.split('-');
+            const txYear = dateParts[0];
+            const txMonth = dateParts[1];
+
+            if ((selectedMonth === "all" || txMonth === selectedMonth) && (selectedYear === "all" || txYear === selectedYear)) {
+                totalExpense += entry.amount;
+                tableHtml += `
+                    <tr>
+                        <td style="text-align: center;">${sl++}</td>
+                        <td style="text-align: center;">${formatFinancialDate(entry.date)}</td>
+                        <td style="font-weight: 500;">${entry.category}</td>
+                        <td style="text-align: right; color: red;">৳ ${entry.amount.toLocaleString()}</td>
+                        <td>${entry.note || '-'}</td>
+                    </tr>
+                `;
+            }
+        });
+
+        tableHtml += `</tbody></table>`;
+        const summaryHtml = `
+            <div class="print-summary-box" style="margin-left: auto; width: 350px; margin-top: 20px;">
+                <div class="print-summary-row" style="font-weight: bold; background: #f8fafc;">
+                    <span>Total Net Expenses:</span>
+                    <span style="color: red;">৳ ${totalExpense.toLocaleString()}</span>
+                </div>
+            </div>
+        `;
+
+        document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml + summaryHtml;
+        window.print();
+    });
+
+
+    // --- DAILY SALES CORE ENGINE SYSTEM ---
+    const dsForm = document.getElementById('dailysale-form');
+    const dsDateInput = document.getElementById('sale-date');
+    const dsPurposeInput = document.getElementById('sale-purpose');
+    const dsStationeryInput = document.getElementById('sale-stationery');
+    const dsNoteInput = document.getElementById('sale-note');
+
+    const dsTableBody = document.querySelector('#main-dailysale-table tbody');
+    
+    // HTML-এ আইডি sale-filter বা daily-report-filter যেকোনো একটি হতে পারে, তাই উভয় চেক রাখা হলো
+    const dsFilterMonth = document.getElementById('sale-filter-month') || document.getElementById('daily-report-filter-month');
+    const dsFilterYear = document.getElementById('sale-filter-year') || document.getElementById('daily-report-filter-year');
+
+    const txtTotalStationery = document.getElementById('total-stationery-sales');
+    const txtEstimatedProfit = document.getElementById('profit-revenue-sales');
+
+    const dashSaleTableBody = document.querySelector("#dash-sale-table tbody");
+
+    if (dsForm) {
+        dsForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            
+            const dateVal = dsDateInput.value;
+            const purposeVal = dsPurposeInput.value.trim();
+            const stationeryVal = parseFloat(dsStationeryInput.value) || 0;
+            const noteVal = dsNoteInput.value.trim();
+
+            if (stationeryVal <= 0) {
+                alert("দয়া করে সঠিক বিক্রয় মূল্য ইনপুট দিন।");
+                return;
+            }
+
+            const profitVal = stationeryVal * 0.25;
+
+            const newSaleRecord = {
+                id: Math.floor(5000 + Math.random() * 2000),
+                date: dateVal,
+                purpose: purposeVal,
+                stationery: stationeryVal,
+                profit: Math.round(profitVal),
+                note: noteVal || 'Daily Entry'
+            };
+
+            dailySalesData.unshift(newSaleRecord);
+            localStorage.setItem('dailySalesData', JSON.stringify(dailySalesData));
+
+            cashBookData.unshift({
+                date: dateVal,
+                type: 'Sales',
+                amount: stationeryVal,
+                remarks: `[Daily Sale] ${purposeVal} | Stat: ৳${stationeryVal} | ${noteVal}`
+            });
+            localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
+
+            renderDailySalesTable();
+            updateCashBookUI();
+            this.reset();
+            
+            if (dsDateInput) dsDateInput.value = "2026-07-19";
+            alert("ডেইলি সেলস ডেটা সফলভাবে সেভ এবং ক্যাশ বুকে যুক্ত করা হয়েছে!");
+        });
+    }
+
+    if (dsFilterMonth) dsFilterMonth.addEventListener('change', renderDailySalesTable);
+    if (dsFilterYear) dsFilterYear.addEventListener('change', renderDailySalesTable);
+
+    function renderDailySalesTable() {
+        if (!dsTableBody) return;
+        dsTableBody.innerHTML = '';
+        if (dashSaleTableBody) dashSaleTableBody.innerHTML = '';
+
+        const selectedMonth = dsFilterMonth?.value || 'all';
+        const selectedYear = dsFilterYear?.value || 'all';
+
+        let totalStatSum = 0;
+        let totalProfitSum = 0;
+        let serial = 1;
+        let dashCount = 0;
+
+        dailySalesData.forEach((entry, index) => {
+            const dateParts = entry.date.split('-');
+            const entryYear = dateParts[0];
+            const entryMonth = dateParts[1];
+
+            const matchMonth = (selectedMonth === 'all' || selectedMonth === entryMonth);
+            const matchYear = (selectedYear === 'all' || selectedYear === entryYear);
+
+            if (matchMonth && matchYear) {
+                totalStatSum += entry.stationery;
+                totalProfitSum += entry.profit;
+
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = "1px solid #cbd5e1"; 
+                tr.innerHTML = `
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; vertical-align: middle;">${serial++}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; vertical-align: middle;">${formatFinancialDate(entry.date)}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; font-weight: 500; vertical-align: middle;">${entry.purpose || 'N/A'}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; font-weight: 600; color: #1e3a8a; vertical-align: middle;">৳ ${entry.stationery.toLocaleString()}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; font-weight: 600; color: #16a34a; vertical-align: middle;">৳ ${entry.profit.toLocaleString()}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; vertical-align: middle;">${entry.note || '-'}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; vertical-align: middle;">
+                        <div class="action-cell" style="justify-content: center; display: flex; gap: 10px;">
+                            <button type="button" class="btn-print-row btn-print-ds" data-id="${entry.id}" style="border: none; background: transparent; color: #2563eb; cursor: pointer; font-size: 14px;">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button type="button" class="btn-delete-row btn-delete-ds" data-index="${index}" style="border: none; background: transparent; color: #ef4444; cursor: pointer; font-size: 14px;">
+                                <i class="fas fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                dsTableBody.appendChild(tr);
+
+                if (dashSaleTableBody && dashCount < 5) {
+                    const trDash = document.createElement('tr');
+                    trDash.innerHTML = `
+                        <td style="text-align: center; padding: 8px;">${formatFinancialDate(entry.date)}</td>
+                        <td style="text-align: center; padding: 8px;">${entry.purpose || 'N/A'}</td>
+                        <td class="text-blue" style="font-weight: 600; text-align: center; padding: 8px;">৳ ${entry.stationery.toLocaleString()}</td>
+                    `;
+                    dashSaleTableBody.appendChild(trDash);
+                    dashCount++;
+                }
+            }
+        });
+
+        if (txtTotalStationery) txtTotalStationery.innerHTML = `৳ ${totalStatSum.toLocaleString()}`;
+        if (txtEstimatedProfit) txtEstimatedProfit.innerHTML = `৳ ${totalProfitSum.toLocaleString()}`;
+    }
+
+    if (dsTableBody) {
+        dsTableBody.addEventListener('click', function (e) {
+            const deleteBtn = e.target.closest('.btn-delete-ds');
+            const printBtn = e.target.closest('.btn-print-ds');
+
+            if (deleteBtn) {
+                const index = parseInt(deleteBtn.getAttribute('data-index'));
+                if (confirm('আপনি কি এই সেলস রেকর্ডটি মুছে ফেলতে চান?')) {
+                    dailySalesData.splice(index, 1);
+                    localStorage.setItem('dailySalesData', JSON.stringify(dailySalesData));
+                    renderDailySalesTable();
+                    updateCashBookUI();
+                }
+            }
+
+            if (printBtn) {
+                const idToPrint = parseInt(printBtn.getAttribute('data-id'));
+                const rec = dailySalesData.find(r => r.id === idToPrint);
+                if (rec) {
+                    document.getElementById("print-title-main").innerText = "DAILY STATIONERY SALE VOUCHER";
+                    document.getElementById("print-subtitle-main").innerText = `Voucher ID: #DS-${rec.id}`;
+                    document.getElementById("print-meta-area").innerHTML = `<p><strong>Date:</strong> ${formatFinancialDate(rec.date)}</p><p><strong>Purpose:</strong> ${rec.purpose || 'N/A'}</p>`;
+                    
+                    let tableHtml = `
+                        <table class="print-table">
+                            <thead>
+                                <tr>
+                                    <th>Purpose / Particulars</th>
+                                    <th>Stationery Sales Amount</th>
+                                    <th>Estimated Net Profit (25%)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>${rec.purpose || 'N/A'}</td>
+                                    <td style="font-weight: bold; color: #1e3a8a;">৳ ${rec.stationery.toLocaleString()}</td>
+                                    <td style="font-weight: bold; color: green;">৳ ${rec.profit.toLocaleString()}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p style="margin-top: 15px; font-size:13px;"><strong>Note:</strong> ${rec.note}</p>
+                    `;
+                    document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml;
+                    window.print();
+                }
+            }
+        });
+    }
+
+    // --- FIXED: 'Print Daily Report' বাটন কাজ করার কোড ---
+    const btnPrintDailyReport = document.getElementById("btn-print-ds-report") || document.getElementById("btn-print-daily-report");
+    btnPrintDailyReport?.addEventListener("click", function() {
+        const filterM = document.getElementById("sale-filter-month") || document.getElementById("daily-report-filter-month");
+        const filterY = document.getElementById("sale-filter-year") || document.getElementById("daily-report-filter-year");
+        
+        const mText = filterM ? filterM.options[filterM.selectedIndex].text : "All";
+        const yText = filterY ? filterY.options[filterY.selectedIndex].text : "All";
+
+        document.getElementById("print-title-main").innerText = "STATIONERY DAILY SALES STATEMENT";
+        document.getElementById("print-subtitle-main").innerText = `Report Period: ${mText} - ${yText}`;
+        document.getElementById("print-meta-area").innerHTML = `
+            <p><strong>Report Type:</strong> Sales Ledger Sheet</p>
+            <p><strong>Generated Date:</strong> 19 Jul 2026</p>
+        `;
+
+        let tableHtml = `
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">SL</th>
+                        <th style="width: 15%;">Date</th>
+                        <th>Purpose / Description</th>
+                        <th style="text-align: right; width: 20%;">Stationery Sale (৳)</th>
+                        <th style="text-align: right; width: 20%;">25% Profit (৳)</th>
+                        <th style="width: 15%;">Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        let totalStationery = 0, totalProfit = 0, sl = 1;
+        const selectedMonth = filterM ? filterM.value : "all";
+        const selectedYear = filterY ? filterY.value : "all";
+
+        dailySalesData.forEach(entry => {
+            const dateParts = entry.date.split('-');
+            const txYear = dateParts[0];
+            const txMonth = dateParts[1];
+            
+            if ((selectedMonth === "all" || txMonth === selectedMonth) && (selectedYear === "all" || txYear === selectedYear)) {
+                totalStationery += entry.stationery;
+                totalProfit += entry.profit;
+
+                tableHtml += `
+                    <tr>
+                        <td style="text-align: center;">${sl}</td>
+                        <td style="text-align: center;">${formatFinancialDate(entry.date)}</td>
+                        <td>${entry.purpose || 'N/A'}</td>
+                        <td style="text-align: right;">৳ ${entry.stationery.toLocaleString()}</td>
+                        <td style="text-align: right; color: green; font-weight: 600;">৳ ${entry.profit.toLocaleString()}</td>
+                        <td>${entry.note || '-'}</td>
+                    </tr>
+                `;
+                sl++;
+            }
+        });
+
+        tableHtml += `</tbody></table>`;
+
+        const summaryHtml = `
+            <div class="print-summary-box" style="margin-left: auto; width: 350px; margin-top: 20px;">
+                <div class="print-summary-row">
+                    <span>Total Stationery Sales:</span>
+                    <strong>৳ ${totalStationery.toLocaleString()}</strong>
+                </div>
+                <div class="print-summary-row" style="font-weight: bold; background: #e2e8f0;">
+                    <span>Total Estimated Profit (25%):</span>
+                    <span style="color: green;">৳ ${totalProfit.toLocaleString()}</span>
+                </div>
+            </div>
+        `;
+
+        document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml + summaryHtml;
+        window.print();
+    });
+
+
+    // --- PURCHASE MANAGEMENT CORE ENGINE SYSTEM ---
+    const purchaseForm = document.getElementById('purchase-form');
+    const purDateInput = document.getElementById('purchase-date');
+    const purItemInput = document.getElementById('purchase-item');
+    const purAmountInput = document.getElementById('purchase-amount');
+    const purNoteInput = document.getElementById('purchase-note');
+    const purTableBody = document.querySelector('#main-purchase-table tbody');
+    const txtTotalPurchase = document.getElementById('total-purchase-amount');
+
+    if (purchaseForm) {
+        purchaseForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const dateVal = purDateInput.value;
+            const itemVal = purItemInput.value.trim();
+            const amountVal = parseFloat(purAmountInput.value) || 0;
+            const noteVal = purNoteInput.value.trim();
+
+            if (amountVal <= 0) {
+                alert("দয়া করে সঠিক ক্রয়ের পরিমাণ ইনপুট দিন।");
+                return;
+            }
+
+            const newPurchaseRecord = {
+                id: Math.floor(4000 + Math.random() * 2000),
+                date: dateVal,
+                item: itemVal,
+                amount: amountVal,
+                note: noteVal || 'Inventory Stock Supply'
+            };
+
+            purchaseData.unshift(newPurchaseRecord);
+            localStorage.setItem('purchaseData', JSON.stringify(purchaseData));
+
+            cashBookData.unshift({
+                date: dateVal,
+                type: 'Purchase',
+                amount: amountVal,
+                remarks: `[Purchase] ${itemVal} | Note: ${noteVal}`
+            });
+            localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
+
+            renderPurchaseTable();
+            updateCashBookUI();
+            this.reset();
+
+            if (purDateInput) purDateInput.value = "2026-07-19";
+            alert("ক্রয়ের হিসাব সফলভাবে সেভ এবং ক্যাশ বুকে ডেবিট হিসেবে যুক্ত করা হয়েছে!");
+        });
+    }
+
+    document.getElementById('purchase-filter-month')?.addEventListener('change', renderPurchaseTable);
+    document.getElementById('purchase-filter-year')?.addEventListener('change', renderPurchaseTable);
+
+    function renderPurchaseTable() {
+        if (!purTableBody) return;
+        purTableBody.innerHTML = '';
+
+        const selectedMonth = document.getElementById('purchase-filter-month')?.value || 'all';
+        const selectedYear = document.getElementById('purchase-filter-year')?.value || 'all';
+
+        let totalPurchaseSum = 0;
+        let serial = 1;
+
+        purchaseData.forEach((entry, index) => {
+            const dateParts = entry.date.split('-');
+            const entryYear = dateParts[0];
+            const entryMonth = dateParts[1];
+
+            const matchMonth = (selectedMonth === 'all' || selectedMonth === entryMonth);
+            const matchYear = (selectedYear === 'all' || selectedYear === entryYear);
+
+            if (matchMonth && matchYear) {
+                totalPurchaseSum += entry.amount;
+
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = "1px solid #cbd5e1";
+                tr.innerHTML = `
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">${serial++}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">${formatFinancialDate(entry.date)}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; font-weight: 500;">${entry.item}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; font-weight: 600; color: #e67e22;">৳ ${entry.amount.toLocaleString()}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">${entry.note || '-'}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">
+                        <div class="action-cell" style="justify-content: center; display: flex; gap: 10px;">
+                            <button type="button" class="btn-print-row btn-print-pur" data-id="${entry.id}" style="border: none; background: transparent; color: #2563eb; cursor: pointer;">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button type="button" class="btn-delete-row btn-delete-pur" data-index="${index}" style="border: none; background: transparent; color: #ef4444; cursor: pointer;">
+                                <i class="fas fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                purTableBody.appendChild(tr);
+            }
+        });
+
+        if (txtTotalPurchase) txtTotalPurchase.innerHTML = `৳ ${totalPurchaseSum.toLocaleString()}`;
+    }
+
+    purTableBody?.addEventListener('click', function (e) {
+        const deleteBtn = e.target.closest('.btn-delete-pur');
+        const printBtn = e.target.closest('.btn-print-pur');
+
+        if (deleteBtn) {
+            const index = parseInt(deleteBtn.getAttribute('data-index'));
+            if (confirm('আপনি কি এই ক্রয়ের রেকর্ডটি মুছে ফেলতে চান?')) {
+                purchaseData.splice(index, 1);
+                localStorage.setItem('purchaseData', JSON.stringify(purchaseData));
+                renderPurchaseTable();
+            }
+        }
+
+        if (printBtn) {
+            const idToPrint = parseInt(printBtn.getAttribute("data-id"));
+            const rec = purchaseData.find(r => r.id === idToPrint);
+            if (rec) {
+                document.getElementById("print-title-main").innerText = "PURCHASE TRANSACTION VOUCHER";
+                document.getElementById("print-subtitle-main").innerText = `Voucher ID: #PUR-${rec.id}`;
+                document.getElementById("print-meta-area").innerHTML = `<p><strong>Date:</strong> ${formatFinancialDate(rec.date)}</p><p><strong>Status:</strong> Completed</p>`;
+
+                let tableHtml = `
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th>Item/Supply Details</th>
+                                <th>Description</th>
+                                <th>Total Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${rec.item}</td>
+                                <td>${rec.note || 'N/A'}</td>
+                                <td style="font-weight: bold; color: #e67e22;">৳ ${rec.amount.toLocaleString()}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml;
+                window.print();
+            }
+        }
+    });
+
+    document.getElementById("btn-print-purchase-report")?.addEventListener("click", function () {
+        const filterM = document.getElementById("purchase-filter-month");
+        const filterY = document.getElementById("purchase-filter-year");
+        const mText = filterM.options[filterM.selectedIndex].text;
+        const yText = filterY.options[filterY.selectedIndex].text;
+
+        document.getElementById("print-title-main").innerText = "INVENTORY PURCHASE SHEET REPORT";
+        document.getElementById("print-subtitle-main").innerText = `Report Period: ${mText} - ${yText}`;
+        document.getElementById("print-meta-area").innerHTML = `<p><strong>Report Type:</strong> Purchase Ledger Summary</p><p><strong>Generated Date:</strong> 19 Jul 2026</p>`;
+
+        let tableHtml = `
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">SL</th>
+                        <th style="width: 15%;">Date</th>
+                        <th>Item Details</th>
+                        <th style="text-align: right; width: 25%;">Amount (৳)</th>
+                        <th>Remarks / Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        let totalPurchase = 0, sl = 1;
+        const selectedMonth = filterM.value;
+        const selectedYear = filterY.value;
+
+        purchaseData.forEach(entry => {
+            const dateParts = entry.date.split('-');
+            const txYear = dateParts[0];
+            const txMonth = dateParts[1];
+
+            if ((selectedMonth === "all" || txMonth === selectedMonth) && (selectedYear === "all" || txYear === selectedYear)) {
+                totalPurchase += entry.amount;
+                tableHtml += `
+                    <tr>
+                        <td style="text-align: center;">${sl++}</td>
+                        <td style="text-align: center;">${formatFinancialDate(entry.date)}</td>
+                        <td style="font-weight: 500;">${entry.item}</td>
+                        <td style="text-align: right; color: #e67e22;">৳ ${entry.amount.toLocaleString()}</td>
+                        <td>${entry.note || '-'}</td>
+                    </tr>
+                `;
+            }
+        });
+
+        tableHtml += `</tbody></table>`;
+        const summaryHtml = `
+            <div class="print-summary-box" style="margin-left: auto; width: 350px; margin-top: 20px;">
+                <div class="print-summary-row" style="font-weight: bold; background: #f8fafc;">
+                    <span>Total Net Purchases:</span>
+                    <span style="color: #e67e22;">৳ ${totalPurchase.toLocaleString()}</span>
+                </div>
+            </div>
+        `;
+
+        document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml + summaryHtml;
+        window.print();
     });
 
 
@@ -676,7 +1411,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const summaryHtml = `
             <div class="print-summary-box">
                 <div class="print-summary-row" style="background:#ede9fe; font-weight:bold;">
-                    <span>100% Total Net Profit:</span><span style="color:#7c3aed;">${fmtBDT(totalProfit)}</span>
+                    <span>100% Total Net Profit:</span><span>${fmtBDT(totalProfit)}</span>
                 </div>
             </div>
         `;
@@ -990,16 +1725,8 @@ document.addEventListener("DOMContentLoaded", function () {
     addOnlineMasterRow('2026-07-02', 'Logo Design & Vector Work', 4000, 0, 0);
     addOnlineMasterRow('2026-07-06', 'T-Shirt Sublimation Printing', 0, 8500, 3200);
 
-    // Run System Setup On Loaded
-    updateCashBookUI();
-    calculatePhotocopyMachine(); 
-    updatePhotocopyServiceUI();
-    calculateOnlineCostAll(); 
 
-
-    // ==========================================================================
-    // --- MINI SUMMARY ENGINE & CODE IMPLEMENTATION ---
-    // ==========================================================================
+    // --- MINI SUMMARY ENGINE ---
     const msForm = document.getElementById('ms-form');
     const msDateInput = document.getElementById('ms-date');
     const msPurposeInput = document.getElementById('ms-purpose');
@@ -1009,6 +1736,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const msFilterMonth = document.getElementById('ms-filter-month');
     const msFilterYear = document.getElementById('ms-filter-year');
     const btnPrintMsReport = document.getElementById('btn-print-ms-report');
+    const btnClearMsData = document.getElementById('btn-clear-ms-data');
 
     if (msForm) {
         msForm.addEventListener('submit', function(e) {
@@ -1022,7 +1750,6 @@ document.addEventListener("DOMContentLoaded", function () {
             miniSummaryData.push(newEntry);
             localStorage.setItem('miniSummaryData', JSON.stringify(miniSummaryData));
             
-            // ডেটা রেন্ডার করা এবং ক্যাশ বুকের টোটাল লাইভ রি-ক্যালকুলেট করা
             renderMiniSummaryTable();
             updateCashBookUI(); 
             
@@ -1086,10 +1813,23 @@ document.addEventListener("DOMContentLoaded", function () {
                 localStorage.setItem('miniSummaryData', JSON.stringify(miniSummaryData));
                 
                 renderMiniSummaryTable();
-                updateCashBookUI(); // ডিলিট করার পর ড্যাশবোর্ড আপডেট
+                updateCashBookUI();
             }
         }
     });
+
+    if (btnClearMsData) {
+        btnClearMsData.addEventListener('click', function() {
+            if (confirm('বসের হুঁশিয়ারি! আপনি কি নিশ্চিতভাবে সমস্ত মিনি সামারি ডাটা মুছে ফেলতে চান? এটি ড্যাশবোর্ডের খরচও আপডেট করে দেবে।')) {
+                miniSummaryData = [];
+                localStorage.removeItem('miniSummaryData');
+                
+                renderMiniSummaryTable();
+                updateCashBookUI();
+                alert('সমস্ত মিনি সামারি রেকর্ড সফলভাবে মুছে ফেলা হয়েছে!');
+            }
+        });
+    }
 
     if (btnPrintMsReport) {
         btnPrintMsReport.addEventListener('click', function() {
@@ -1123,7 +1863,13 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // প্রথমবার লোডের সময় সঠিক হিসাব পুশ করা
+    // --- SETUP BOOTSTRAPPING ON INITIAL LOAD ---
+    calculatePhotocopyMachine(); 
+    updatePhotocopyServiceUI();
+    calculateOnlineCostAll(); 
     renderMiniSummaryTable();
+    renderDailySalesTable();
+    renderPurchaseTable();
+    renderExpenseTable();
     updateCashBookUI();
 });

@@ -27,33 +27,27 @@
 
         <ul>
             <li class="menu-label">MAIN MENU</li>
-            <li class="menu-item active" data-target="dashboard"><i class="fas fa-house"></i> <span>Dashboard</span>
-            </li>
+            <li class="menu-item active" data-target="dashboard"><i class="fas fa-house"></i> <span>Dashboard</span></li>
             <li class="menu-item" data-target="cash-book"><i class="fas fa-book"></i> <span>Cash Book</span></li>
-            <li class="menu-item" data-target="mini-summary"><i class="fas fa-file-lines"></i> <span>Mini Summary</span>
-            </li>
+            <li class="menu-item" data-target="expense-management"><i class="fas fa-wallet"></i> <span>Expense Management</span></li>
+            <li class="menu-item" data-target="daily-sale"><i class="fas fa-cart-shopping"></i> <span>Daily Sale</span></li>
+            <li class="menu-item" data-target="purchase"><i class="fas fa-bag-shopping"></i> <span>Purchase Management</span></li>
+            <li class="menu-item" data-target="mini-summary"><i class="fas fa-file-lines"></i> <span>Mini Summary</span></li>
             <li class="menu-item" data-target="online-cost"><i class="fas fa-globe"></i> <span>Online Cost</span></li>
-            <li class="menu-item" data-target="photocopy-service"><i class="fas fa-copy"></i> <span>Photocopy
-                    Service</span></li>
-            <li class="menu-item" data-target="photocopy-machine"><i class="fas fa-print"></i> <span>Photocopy
-                    Machine</span></li>
-            <li class="menu-item" data-target="mobile-banking"><i class="fas fa-mobile-screen-button"></i> <span>Mobile
-                    Banking</span></li>
+            <li class="menu-item" data-target="photocopy-service"><i class="fas fa-copy"></i> <span>Photocopy Service</span></li>
+            <li class="menu-item" data-target="photocopy-machine"><i class="fas fa-print"></i> <span>Photocopy Machine</span></li>
+            <li class="menu-item" data-target="mobile-banking"><i class="fas fa-mobile-screen-button"></i> <span>Mobile Banking</span></li>
 
             <li class="menu-label">REPORTS</li>
-            <li class="menu-item" data-target="daily-report"><i class="fas fa-file-shield"></i> <span>Daily
-                    Report</span></li>
-            <li class="menu-item" data-target="monthly-report"><i class="fas fa-chart-pie"></i> <span>Monthly
-                    Report</span></li>
-            <li class="menu-item" data-target="yearly-report"><i class="fas fa-chart-column"></i> <span>Yearly
-                    Report</span></li>
+            <li class="menu-item" data-target="daily-report"><i class="fas fa-file-shield"></i> <span>Daily Report</span></li>
+            <li class="menu-item" data-target="monthly-report"><i class="fas fa-chart-pie"></i> <span>Monthly Report</span></li>
+            <li class="menu-item" data-target="yearly-report"><i class="fas fa-chart-column"></i> <span>Yearly Report</span></li>
 
             <li class="menu-label">SETTINGS</li>
             <li class="menu-item" data-target="users"><i class="fas fa-user-gear"></i> <span>Users</span></li>
             <li class="menu-item" data-target="settings"><i class="fas fa-gear"></i> <span>Settings</span></li>
             <li class="menu-item" data-target="backup"><i class="fas fa-cloud-arrow-up"></i> <span>Backup</span></li>
-            <li class="logout-btn menu-item" data-target="logout"><i class="fas fa-right-from-bracket"></i>
-                <span>Logout</span></li>
+            <li class="logout-btn menu-item" data-target="logout"><i class="fas fa-right-from-bracket"></i> <span>Logout</span></li>
         </ul>
     </div>
     <!-- Sidebar End -->
@@ -70,8 +64,7 @@
                 <div class="date-display"><i class="fa-regular fa-calendar-days"></i> <span>19 Jul 2026</span></div>
                 <div class="user-profile">
                     <i class="fas fa-user-circle profile-icon"></i>
-                    <div class="user-info"><span class="username">Admin</span><span class="role">Administrator</span>
-                    </div>
+                    <div class="user-info"><span class="username">Admin</span><span class="role">Administrator</span></div>
                 </div>
             </div>
         </div>
@@ -86,119 +79,87 @@
                     <!-- FIRST ROW: MAIN BUSINESS CARDS -->
                     <div class="cards" style="margin-bottom: 20px;">
                         <div class="card sale-card" style="overflow: hidden;">
-                            <div
-                                style="background: #e6fcf5; padding: 10px 15px; display: flex; align-items: center; color: #0ca678; border-bottom: 1px solid #c3fae8;">
+                            <div style="background: #e6fcf5; padding: 10px 15px; display: flex; align-items: center; color: #0ca678; border-bottom: 1px solid #c3fae8;">
                                 <i class="fas fa-chart-line"></i></div>
                             <div class="card-main" style="padding: 15px;">
                                 <div class="card-info">
                                     <p style="font-size: 13px; color: #64748b; font-weight: 500;">Today's Sale</p>
-                                    <h2 id="dash-sale"
-                                        style="font-size: 24px; color: #0ca678; margin: 5px 0 0 0; font-weight: 700;">৳
-                                        9,700</h2>
+                                    <h2 id="dash-sale" style="font-size: 24px; color: #0ca678; margin: 5px 0 0 0; font-weight: 700;">৳ 9,700</h2>
                                 </div>
                             </div>
-                            <div class="card-footer" style="margin-top: auto;"><a href="#">View Details <i
-                                        class="fas fa-arrow-right"></i></a></div>
+                            <div class="card-footer" style="margin-top: auto;"><a href="#">View Details <i class="fas fa-arrow-right"></i></a></div>
                         </div>
                         <div class="card Red-card expense-card" style="overflow: hidden;">
-                            <div
-                                style="background: #fff5f5; padding: 10px 15px; display: flex; align-items: center; color: #fa5252; border-bottom: 1px solid #ffe3e3;">
+                            <div style="background: #fff5f5; padding: 10px 15px; display: flex; align-items: center; color: #fa5252; border-bottom: 1px solid #ffe3e3;">
                                 <i class="fas fa-arrow-trend-down"></i></div>
                             <div class="card-main" style="padding: 15px;">
                                 <div class="card-info">
                                     <p style="font-size: 13px; color: #64748b; font-weight: 500;">Today's Expense</p>
-                                    <h2 id="dash-expense"
-                                        style="font-size: 24px; color: #fa5252; margin: 5px 0 0 0; font-weight: 700;">৳
-                                        900</h2>
+                                    <h2 id="dash-expense" style="font-size: 24px; color: #fa5252; margin: 5px 0 0 0; font-weight: 700;">৳ 900</h2>
                                 </div>
                             </div>
-                            <div class="card-footer" style="margin-top: auto;"><a href="#">View Details <i
-                                        class="fas fa-arrow-right"></i></a></div>
+                            <div class="card-footer" style="margin-top: auto;"><a href="#">View Details <i class="fas fa-arrow-right"></i></a></div>
                         </div>
                         <div class="card profit-card" style="overflow: hidden;">
-                            <div
-                                style="background: #e7f5ff; padding: 10px 15px; display: flex; align-items: center; color: #228be6; border-bottom: 1px solid #d0ebff;">
+                            <div style="background: #e7f5ff; padding: 10px 15px; display: flex; align-items: center; color: #228be6; border-bottom: 1px solid #d0ebff;">
                                 <i class="fas fa-wallet"></i></div>
                             <div class="card-main" style="padding: 15px;">
                                 <div class="card-info">
                                     <p style="font-size: 13px; color: #64748b; font-weight: 500;">Today's Profit</p>
-                                    <h2 id="dash-profit"
-                                        style="font-size: 24px; color: #228be6; margin: 5px 0 0 0; font-weight: 700;">৳
-                                        2,200</h2>
+                                    <h2 id="dash-profit" style="font-size: 24px; color: #228be6; margin: 5px 0 0 0; font-weight: 700;">৳ 2,200</h2>
                                 </div>
                             </div>
-                            <div class="card-footer" style="margin-top: auto;"><a href="#">View Details <i
-                                        class="fas fa-arrow-right"></i></a></div>
+                            <div class="card-footer" style="margin-top: auto;"><a href="#">View Details <i class="fas fa-arrow-right"></i></a></div>
                         </div>
                         <div class="card cash-card" style="overflow: hidden;">
-                            <div
-                                style="background: #f3f0ff; padding: 10px 15px; display: flex; align-items: center; color: #7950f2; border-bottom: 1px solid #e5dbff;">
+                            <div style="background: #f3f0ff; padding: 10px 15px; display: flex; align-items: center; color: #7950f2; border-bottom: 1px solid #e5dbff;">
                                 <i class="fas fa-money-bill-wave"></i></div>
                             <div class="card-main" style="padding: 15px;">
                                 <div class="card-info">
                                     <p style="font-size: 13px; color: #64748b; font-weight: 500;">Cash in Hand</p>
-                                    <h2 id="dash-cash"
-                                        style="font-size: 24px; color: #7950f2; margin: 5px 0 0 0; font-weight: 700;">৳
-                                        8,800</h2>
+                                    <h2 id="dash-cash" style="font-size: 24px; color: #7950f2; margin: 5px 0 0 0; font-weight: 700;">৳ 8,800</h2>
                                 </div>
                             </div>
-                            <div class="card-footer" style="margin-top: auto;"><a href="#">View Details <i
-                                        class="fas fa-arrow-right"></i></a></div>
+                            <div class="card-footer" style="margin-top: auto;"><a href="#">View Details <i class="fas fa-arrow-right"></i></a></div>
                         </div>
                     </div>
 
                     <!-- SECOND ROW: ONLINE & PRODUCTION LIVE CARDS -->
                     <div class="cards" style="margin-bottom: 30px;">
                         <!-- Online Net -->
-                        <div class="card"
-                            style="padding: 15px; display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: flex-start;">
-                            <div
-                                style="background: #dbeafe; color: #2563eb; width: 45px; height: 45px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 18px; flex-shrink: 0;">
+                        <div class="card" style="padding: 15px; display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: flex-start;">
+                            <div style="background: #dbeafe; color: #2563eb; width: 45px; height: 45px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 18px; flex-shrink: 0;">
                                 <i class="fas fa-sitemap"></i></div>
                             <div>
-                                <span style="font-size: 12px; color: #64748b; font-weight: 500; display: block;">Online
-                                    Net (Work/2)</span>
-                                <span id="dash-online-net" style="font-size: 20px; font-weight: 700; color: #2563eb;">৳
-                                    2,000</span>
+                                <span style="font-size: 12px; color: #64748b; font-weight: 500; display: block;">Online Net (Work/2)</span>
+                                <span id="dash-online-net" style="font-size: 20px; font-weight: 700; color: #2563eb;">৳ 2,000</span>
                             </div>
                         </div>
                         <!-- Print Net -->
-                        <div class="card"
-                            style="padding: 15px; display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: flex-start;">
-                            <div
-                                style="background: #d1fae5; color: #10b981; width: 45px; height: 45px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 18px; flex-shrink: 0;">
+                        <div class="card" style="padding: 15px; display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: flex-start;">
+                            <div style="background: #d1fae5; color: #10b981; width: 45px; height: 45px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 18px; flex-shrink: 0;">
                                 <i class="fas fa-print"></i></div>
                             <div>
-                                <span style="font-size: 12px; color: #64748b; font-weight: 500; display: block;">Print
-                                    Net (Sales - 30%)</span>
-                                <span id="dash-print-net" style="font-size: 20px; font-weight: 700; color: #10b981;">৳
-                                    5,950</span>
+                                <span style="font-size: 12px; color: #64748b; font-weight: 500; display: block;">Print Net (Sales - 30%)</span>
+                                <span id="dash-print-net" style="font-size: 20px; font-weight: 700; color: #10b981;">৳ 5,950</span>
                             </div>
                         </div>
                         <!-- Total Costing -->
-                        <div class="card"
-                            style="padding: 15px; display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: flex-start;">
-                            <div
-                                style="background: #fee2e2; color: #ef4444; width: 45px; height: 45px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 18px; flex-shrink: 0;">
+                        <div class="card" style="padding: 15px; display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: flex-start;">
+                            <div style="background: #fee2e2; color: #ef4444; width: 45px; height: 45px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 18px; flex-shrink: 0;">
                                 <i class="fas fa-scissors"></i></div>
                             <div>
-                                <span style="font-size: 12px; color: #64748b; font-weight: 500; display: block;">Total
-                                    Costing</span>
-                                <span id="dash-total-costing"
-                                    style="font-size: 20px; font-weight: 700; color: #ef4444;">৳ 3,200</span>
+                                <span style="font-size: 12px; color: #64748b; font-weight: 500; display: block;">Total Costing</span>
+                                <span id="dash-total-costing" style="font-size: 20px; font-weight: 700; color: #ef4444;">৳ 3,200</span>
                             </div>
                         </div>
                         <!-- Final Net Income -->
-                        <div class="card"
-                            style="padding: 15px; display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: flex-start;">
-                            <div
-                                style="background: #ede9fe; color: #8b5cf6; width: 45px; height: 45px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 18px; flex-shrink: 0;">
+                        <div class="card" style="padding: 15px; display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: flex-start;">
+                            <div style="background: #ede9fe; color: #8b5cf6; width: 45px; height: 45px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 18px; flex-shrink: 0;">
                                 <i class="fas fa-wallet"></i></div>
                             <div>
-                                <span style="font-size: 12px; color: #64748b; font-weight: 500; display: block;">Final
-                                    Net Income</span>
-                                <span id="dash-final-net" style="font-size: 20px; font-weight: 700; color: #8b5cf6;">৳
-                                    4,750</span>
+                                <span style="font-size: 12px; color: #64748b; font-weight: 500; display: block;">Final Net Income</span>
+                                <span id="dash-final-net" style="font-size: 20px; font-weight: 700; color: #8b5cf6;">৳ 4,750</span>
                             </div>
                         </div>
                     </div>
@@ -234,9 +195,8 @@
                                     <thead>
                                         <tr>
                                             <th>Date</th>
+                                            <th>Purpose</th>
                                             <th>Stationery (৳)</th>
-                                            <th>Print/Copy (৳)</th>
-                                            <th>Total (৳)</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
@@ -277,8 +237,7 @@
                         </div>
                         <form id="cashbook-form">
                             <div class="form-row-grid">
-                                <div class="input-block"><label>Date</label><input type="date" id="input-date" required
-                                        value="2026-07-19"></div>
+                                <div class="input-block"><label>Date</label><input type="date" id="input-date" required value="2026-07-19"></div>
                                 <div class="input-block">
                                     <label>Type</label>
                                     <select id="input-type">
@@ -286,12 +245,9 @@
                                         <option value="debit">Debit / Cash Out (Expense)</option>
                                     </select>
                                 </div>
-                                <div class="input-block"><label>Amount (৳)</label><input type="number" id="input-amount"
-                                        placeholder="0.00" required></div>
-                                <div class="input-block"><label>Note / Remarks</label><input type="text" id="input-note"
-                                        placeholder="Remarks" required></div>
-                                <div class="input-block"><button type="submit" class="btn-submit-form"><i
-                                            class="fas fa-save"></i> Save Record</button></div>
+                                <div class="input-block"><label>Amount (৳)</label><input type="number" id="input-amount" placeholder="0.00" required></div>
+                                <div class="input-block"><label>Note / Remarks</label><input type="text" id="input-note" placeholder="Remarks" required></div>
+                                <div class="input-block"><button type="submit" class="btn-submit-form"><i class="fas fa-save"></i> Save Record</button></div>
                             </div>
                         </form>
                     </div>
@@ -321,8 +277,7 @@
                                     <option value="2026" selected>2026</option>
                                     <option value="2027">2027</option>
                                 </select>
-                                <button type="button" id="btn-print-ledger" class="btn-print-main"><i
-                                        class="fas fa-print"></i> Print Report</button>
+                                <button type="button" id="btn-print-ledger" class="btn-print-main"><i class="fas fa-print"></i> Print Report</button>
                             </div>
                         </div>
 
@@ -330,24 +285,119 @@
                             <table id="main-cashbook-table">
                                 <thead>
                                     <tr>
-                                        <th>SL</th>
-                                        <th>Date</th>
-                                        <th>Debit (Out ৳)</th>
-                                        <th>Credit (In ৳)</th>
-                                        <th>Note / Particulars</th>
-                                        <th>Action</th>
+                                        <th style="text-align: center; width: 6%;">SL</th>
+                                        <th style="text-align: center; width: 12%;">Date</th>
+                                        <th style="text-align: right; width: 14%;">Debit (Out ৳)</th>
+                                        <th style="text-align: right; width: 14%;">Credit (In ৳)</th>
+                                        <th style="text-align: right; width: 14%;">Profit (৳)</th>
+                                        <th style="text-align: left; width: 28%;">Note / Particulars</th>
+                                        <th style="text-align: center; width: 12%;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
                             </table>
                         </div>
                         <div class="table-summary-row cashbook-summary full-summary-box">
-                            <div class="summary-item"><span>Total Debit</span><strong class="text-red"
-                                    id="total-debit">৳ 0</strong></div>
-                            <div class="summary-item"><span>Total Credit</span><strong class="text-green"
-                                    id="total-credit">৳ 0</strong></div>
-                            <div class="summary-item"><span>Net Balance</span><strong class="text-blue"
-                                    id="net-balance">৳ 0</strong></div>
+                            <div class="summary-item"><span>Total Debit</span><strong class="text-red" id="total-debit">৳ 0</strong></div>
+                            <div class="summary-item"><span>Total Credit</span><strong class="text-green" id="total-credit">৳ 0</strong></div>
+                            <div class="summary-item"><span>Net Balance</span><strong class="text-blue" id="net-balance">৳ 0</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: EXPENSE MANAGEMENT VIEW -->
+                <div id="view-expense-management" class="page-view">
+                    <div class="box mb-25">
+                        <div class="box-header">
+                            <h3><i class="fas fa-plus-circle text-red"></i> Add New Expense Entry</h3>
+                        </div>
+                        <form id="expense-form">
+                            <div class="form-row-grid" style="grid-template-columns: 1fr 1fr 1fr 1.5fr auto;">
+                                <div class="input-block">
+                                    <label>Date</label>
+                                    <input type="date" id="expense-date" required value="2026-07-19">
+                                </div>
+                                <div class="input-block">
+                                    <label>Category</label>
+                                    <select id="expense-category" required>
+                                        <option value="Shop Rent">Shop Rent</option>
+                                        <option value="Electricity Bill">Electricity Bill</option>
+                                        <option value="Employee Salary">Salary</option>
+                                        <option value="Employee Salary">DPS </option>
+                                        <option value="Stationery Inventory">Stationery Inventory</option>
+                                        <option value="Entertainment / Tea">Entertainment / Tea</option>
+                                        <option value="Others">Others</option>
+                                    </select>
+                                </div>
+                                <div class="input-block">
+                                    <label>Amount (৳)</label>
+                                    <input type="number" id="expense-amount" placeholder="0.00" required>
+                                </div>
+                                <div class="input-block">
+                                    <label>Description / Note</label>
+                                    <input type="text" id="expense-note" placeholder="Optional details">
+                                </div>
+                                <div class="input-block">
+                                    <button type="submit" class="btn-submit-form" style="background-color: var(--color-red); height: 40px;">
+                                        <i class="fas fa-save"></i> Save Expense
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="box">
+                        <div class="box-header">
+                            <h3><i class="fas fa-list-check text-red"></i> Expense History Ledger</h3>
+                            <div class="filter-wrapper">
+                                <select id="expense-filter-month">
+                                    <option value="all">All Months</option>
+                                    <option value="01">January</option>
+                                    <option value="02">February</option>
+                                    <option value="03">March</option>
+                                    <option value="04">April</option>
+                                    <option value="05">May</option>
+                                    <option value="06">June</option>
+                                    <option value="07" selected>July</option>
+                                    <option value="08">August</option>
+                                    <option value="09">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                                <select id="expense-filter-year">
+                                    <option value="all">All Years</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2026" selected>2026</option>
+                                    <option value="2027">2027</option>
+                                </select>
+                                <button type="button" id="btn-print-expense-report" class="btn-print-main" style="background-color: var(--color-red);">
+                                    <i class="fas fa-print"></i> Print Report
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table id="main-expense-table" style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                                <thead>
+                                    <tr style="background-color: #f8fafc; color: #334155;">
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">SL</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Date</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Category</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Amount (৳)</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Description</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                        <div class="table-summary-row cashbook-summary full-summary-box" style="border-top-color: var(--color-red-light); justify-content: flex-end; margin-top: 20px;">
+                            <div class="summary-item" style="background: #fff5f5; padding: 8px 20px; border-radius: 8px; border: 1px solid #fa5252;">
+                                <span>Total Expenses</span>
+                                <strong class="text-red" id="total-expense-amount" style="font-size: 18px;">৳ 0</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -359,18 +409,13 @@
                             <h3><i class="fas fa-cart-plus text-purple"></i> Add New Daily Sale Entry</h3>
                         </div>
                         <form id="dailysale-form">
-                            <div class="form-row-grid">
-                                <div class="input-block"><label>Date</label><input type="date" id="sale-date" required
-                                        value="2026-07-19"></div>
-                                <div class="input-block"><label>Stationery Sale (৳)</label><input type="number"
-                                        id="sale-stationery" placeholder="0.00" required></div>
-                                <div class="input-block"><label>Print/Photocopy Sale (৳)</label><input type="number"
-                                        id="sale-print" placeholder="0.00" required></div>
-                                <div class="input-block"><label>Remarks / Note</label><input type="text" id="sale-note"
-                                        placeholder="Optional notes"></div>
+                            <div class="form-row-grid" style="grid-template-columns: 1fr 1.5fr 1fr 1.5fr auto;">
+                                <div class="input-block"><label>Date</label><input type="date" id="sale-date" required value="2026-07-19"></div>
+                                <div class="input-block"><label>Purpose</label><input type="text" id="sale-purpose" placeholder="e.g. Pen, Book, Binding" required></div>
+                                <div class="input-block"><label>Stationery Sale (৳)</label><input type="number" id="sale-stationery" placeholder="0.00" required></div>
+                                <div class="input-block"><label>Remarks / Note</label><input type="text" id="sale-note" placeholder="Optional notes"></div>
                                 <div class="input-block">
-                                    <button type="submit" class="btn-submit-form"
-                                        style="background-color: var(--color-purple);">
+                                    <button type="submit" class="btn-submit-form" style="background-color: var(--color-purple); height: 40px;">
                                         <i class="fas fa-check-double"></i> Save Entry
                                     </button>
                                 </div>
@@ -403,52 +448,120 @@
                                     <option value="2026" selected>2026</option>
                                     <option value="2027">2027</option>
                                 </select>
+                                <button type="button" id="btn-print-ds-report" class="btn-print-main" style="background-color: var(--color-purple);">
+                                    <i class="fas fa-print"></i> Print Report
+                                </button>
                             </div>
                         </div>
 
                         <div class="table-container">
-                            <table id="main-dailysale-table">
+                            <table id="main-dailysale-table" style="width: 100%; border-collapse: collapse; margin-top: 15px;">
                                 <thead>
-                                    <tr>
-                                        <th>SL</th>
-                                        <th>Date</th>
-                                        <th>Stationery Sale (৳)</th>
-                                        <th>Print/Photocopy (৳)</th>
-                                        <th>Total Daily Sale (৳)</th>
-                                        <th>25% Profit (৳)</th>
-                                        <th>Note</th>
-                                        <th>Action</th>
+                                    <tr style="background-color: #f8fafc; color: #334155;">
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">SL</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Date</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Purpose</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Stationery Sale (৳)</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">25% Profit (৳)</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Remarks / Note</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
                             </table>
                         </div>
 
-                        <div class="table-summary-row cashbook-summary full-summary-box"
-                            style="border-top-color: var(--color-purple-light);">
-                            <div class="summary-item"><span>Total Stationery</span><strong class="text-purple"
-                                    id="total-stationery-sales">৳ 0</strong></div>
-                            <div class="summary-item"><span>Total Print/Copy</span><strong class="text-blue"
-                                    id="total-print-sales">৳ 0</strong></div>
-                            <div class="summary-item"><span>Gross Revenue</span><strong class="text-green"
-                                    id="gross-revenue-sales">৳ 0</strong></div>
-                            <div class="summary-item"><span>Estimated Profit (25%)</span><strong class="text-red"
-                                    id="profit-revenue-sales">৳ 0</strong></div>
+                        <div class="table-summary-row cashbook-summary full-summary-box" style="border-top-color: var(--color-purple-light);">
+                            <div class="summary-item"><span>Total Stationery</span><strong class="text-purple" id="total-stationery-sales">৳ 0</strong></div>
+                            <div class="summary-item"><span>Estimated Profit (25%)</span><strong class="text-green" id="profit-revenue-sales">৳ 0</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: PURCHASE MANAGEMENT VIEW -->
+                <div id="view-purchase" class="page-view">
+                    <div class="box mb-25">
+                        <div class="box-header">
+                            <h3><i class="fas fa-cart-arrow-down" style="color: #e67e22;"></i> Add New Purchase Entry</h3>
+                        </div>
+                        <form id="purchase-form">
+                            <div class="form-row-grid" style="grid-template-columns: 1fr 1.5fr 1fr 1.5fr auto;">
+                                <div class="input-block"><label>Date</label><input type="date" id="purchase-date" required value="2026-07-19"></div>
+                                <div class="input-block"><label>Item / Supplier Details</label><input type="text" id="purchase-item" placeholder="e.g. Paper Rim, Pilot Pen, File" required></div>
+                                <div class="input-block"><label>Purchase Cost (৳)</label><input type="number" id="purchase-amount" placeholder="0.00" required></div>
+                                <div class="input-block"><label>Remarks / Note</label><input type="text" id="purchase-note" placeholder="Optional notes"></div>
+                                <div class="input-block">
+                                    <button type="submit" class="btn-submit-form" style="background-color: #e67e22; height: 40px; color: white;">
+                                        <i class="fas fa-save"></i> Save Purchase
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="box">
+                        <div class="box-header">
+                            <h3><i class="fas fa-history" style="color: #e67e22;"></i> Purchase History Log</h3>
+                            <div class="filter-wrapper">
+                                <select id="purchase-filter-month">
+                                    <option value="all">All Months</option>
+                                    <option value="01">January</option>
+                                    <option value="02">February</option>
+                                    <option value="03">March</option>
+                                    <option value="04">April</option>
+                                    <option value="05">May</option>
+                                    <option value="06">June</option>
+                                    <option value="07" selected>July</option>
+                                    <option value="08">August</option>
+                                    <option value="09">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                                <select id="purchase-filter-year">
+                                    <option value="all">All Years</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2026" selected>2026</option>
+                                    <option value="2027">2027</option>
+                                </select>
+                                <button type="button" id="btn-print-purchase-report" class="btn-print-main" style="background-color: #e67e22;">
+                                    <i class="fas fa-print"></i> Print Sheet
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table id="main-purchase-table" style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                                <thead>
+                                    <tr style="background-color: #f8fafc; color: #334155;">
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">SL</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Date</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Item Details</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Amount (৳)</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Remarks</th>
+                                        <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                        <div class="table-summary-row cashbook-summary full-summary-box" style="border-top-color: #f39c12; justify-content: flex-end; margin-top: 20px;">
+                            <div class="summary-item" style="background: #fff9f2; padding: 8px 20px; border-radius: 8px; border: 1px solid #e67e22;">
+                                <span>Total Purchases</span>
+                                <strong style="font-size: 18px; color: #e67e22;" id="total-purchase-amount">৳ 0</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- 5. ONLINE COST VIEW -->
                 <div id="view-online-cost" class="page-view">
-                    <div class="box mb-25"
-                        style="border-bottom: 2px solid #1e3a8a; padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                        <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); margin: 0;">Online &
-                            Print Production Tracker</h2>
+                    <div class="box mb-25" style="border-bottom: 2px solid #1e3a8a; padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); margin: 0;">Online & Print Production Tracker</h2>
 
                         <div class="filter-wrapper" style="display: flex; gap: 10px; align-items: center;">
-                            <select id="oc-filter-month"
-                                style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none;"
-                                onchange="calculateOnlineCostAll()">
+                            <select id="oc-filter-month" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none;">
                                 <option value="all">All Months</option>
                                 <option value="01">January</option>
                                 <option value="02">February</option>
@@ -463,16 +576,13 @@
                                 <option value="11">November</option>
                                 <option value="12">December</option>
                             </select>
-                            <select id="oc-filter-year"
-                                style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none;"
-                                onchange="calculateOnlineCostAll()">
+                            <select id="oc-filter-year" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none;">
                                 <option value="all">All Years</option>
                                 <option value="2025">2025</option>
                                 <option value="2026" selected>2026</option>
                                 <option value="2027">2027</option>
                             </select>
-                            <button type="button" id="btn-print-oc-monthly" class="btn-print-main"
-                                style="background: #2563eb; color: white; padding: 8px 14px; border-radius: 6px; border: none; font-size: 13px; cursor: pointer; font-weight: 600;">
+                            <button type="button" id="btn-print-oc-monthly" class="btn-print-main" style="background: #2563eb; color: white; padding: 8px 14px; border-radius: 6px; border: none; font-size: 13px; cursor: pointer; font-weight: 600;">
                                 <i class="fas fa-print"></i> Print Report
                             </button>
                         </div>
@@ -480,67 +590,51 @@
 
                     <div class="cards" style="margin-bottom: 25px;">
                         <div class="card profit-card">
-                            <div class="card-main"
-                                style="padding: 15px; display: flex; align-items: center; gap: 15px;">
-                                <div class="icon-wrapper"
-                                    style="background: var(--color-blue-light); color: var(--color-blue); padding: 12px; border-radius: 8px; font-size: 20px;">
+                            <div class="card-main" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                                <div class="icon-wrapper" style="background: var(--color-blue-light); color: var(--color-blue); padding: 12px; border-radius: 8px; font-size: 20px;">
                                     <i class="fas fa-network-wired"></i></div>
                                 <div class="card-info">
                                     <p style="font-size: 12px; color: var(--text-muted);">Online Net (Work/2)</p>
-                                    <h2 id="oc-kpi-online-net"
-                                        style="font-size: 20px; font-weight: 700; color: var(--color-blue);">৳ 0</h2>
+                                    <h2 id="oc-kpi-online-net" style="font-size: 20px; font-weight: 700; color: var(--color-blue);">৳ 0</h2>
                                 </div>
                             </div>
                         </div>
                         <div class="card sale-card">
-                            <div class="card-main"
-                                style="padding: 15px; display: flex; align-items: center; gap: 15px;">
-                                <div class="icon-wrapper"
-                                    style="background: var(--color-green-light); color: var(--color-green); padding: 12px; border-radius: 8px; font-size: 20px;">
+                            <div class="card-main" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                                <div class="icon-wrapper" style="background: var(--color-green-light); color: var(--color-green); padding: 12px; border-radius: 8px; font-size: 20px;">
                                     <i class="fas fa-print"></i></div>
                                 <div class="card-info">
                                     <p style="font-size: 12px; color: var(--text-muted);">Print Net (Sales - 30%)</p>
-                                    <h2 id="oc-kpi-print-net"
-                                        style="font-size: 20px; font-weight: 700; color: var(--color-green);">৳ 0</h2>
+                                    <h2 id="oc-kpi-print-net" style="font-size: 20px; font-weight: 700; color: var(--color-green);">৳ 0</h2>
                                 </div>
                             </div>
                         </div>
                         <div class="card expense-card">
-                            <div class="card-main"
-                                style="padding: 15px; display: flex; align-items: center; gap: 15px;">
-                                <div class="icon-wrapper"
-                                    style="background: var(--color-red-light); color: var(--color-red); padding: 12px; border-radius: 8px; font-size: 20px;">
+                            <div class="card-main" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                                <div class="icon-wrapper" style="background: var(--color-red-light); color: var(--color-red); padding: 12px; border-radius: 8px; font-size: 20px;">
                                     <i class="fas fa-scissors"></i></div>
                                 <div class="card-info">
                                     <p style="font-size: 12px; color: var(--text-muted);">Total Costing</p>
-                                    <h2 id="oc-kpi-prod-cost"
-                                        style="font-size: 20px; font-weight: 700; color: var(--color-red);">৳ 0</h2>
+                                    <h2 id="oc-kpi-prod-cost" style="font-size: 20px; font-weight: 700; color: var(--color-red);">৳ 0</h2>
                                 </div>
                             </div>
                         </div>
                         <div class="card cash-card">
-                            <div class="card-main"
-                                style="padding: 15px; display: flex; align-items: center; gap: 15px;">
-                                <div class="icon-wrapper"
-                                    style="background: var(--color-purple-light); color: var(--color-purple); padding: 12px; border-radius: 8px; font-size: 20px;">
+                            <div class="card-main" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                                <div class="icon-wrapper" style="background: var(--color-purple-light); color: var(--color-purple); padding: 12px; border-radius: 8px; font-size: 20px;">
                                     <i class="fas fa-wallet"></i></div>
                                 <div class="card-info">
                                     <p style="font-size: 12px; color: var(--text-muted);">Final Net Income</p>
-                                    <h2 id="oc-kpi-final-profit"
-                                        style="font-size: 20px; font-weight: 700; color: var(--color-purple);">৳ 0</h2>
+                                    <h2 id="oc-kpi-final-profit" style="font-size: 20px; font-weight: 700; color: var(--color-purple);">৳ 0</h2>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="box" style="padding: 0; overflow: hidden; border: 1px solid #cbd5e1;">
-                        <div
-                            style="background: #1e3a8a; padding: 14px 20px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
-                            <h3 style="font-size: 14px; font-weight: 600; margin: 0; color: #fff;"><i
-                                    class="fas fa-calculator" style="margin-right: 8px;"></i> Online & Production
-                                Calculator Ledger</h3>
-                            <button type="button" id="btn-add-oc-row"
-                                style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                        <div style="background: #1e3a8a; padding: 14px 20px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="font-size: 14px; font-weight: 600; margin: 0; color: #fff;"><i class="fas fa-calculator" style="margin-right: 8px;"></i> Online & Production Calculator Ledger</h3>
+                            <button type="button" id="btn-add-oc-row" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
                                 <i class="fas fa-plus-circle"></i> Add New Row Line
                             </button>
                         </div>
@@ -549,70 +643,45 @@
                             <table style="width:100%; border-collapse: collapse;">
                                 <thead>
                                     <tr style="background: #f8fafc; text-align: center;">
-                                        <th style="width: 12%; padding: 10px; border-bottom: 2px solid #cbd5e1;">Date
-                                        </th>
-                                        <th style="width: 24%; padding: 10px; border-bottom: 2px solid #cbd5e1;">
-                                            Particulars / Description</th>
-                                        <th
-                                            style="width: 13%; padding: 10px; text-align: right; border-bottom: 2px solid #cbd5e1; background: #f0fdf4;">
-                                            Online Work (৳)</th>
-                                        <th
-                                            style="width: 13%; padding: 10px; text-align: right; border-bottom: 2px solid #cbd5e1; background: #eff6ff;">
-                                            Print Sales (৳)</th>
-                                        <th
-                                            style="width: 13%; padding: 10px; text-align: right; border-bottom: 2px solid #cbd5e1; background: #fff1f2;">
-                                            Print Cost (৳)</th>
-                                        <th
-                                            style="width: 13%; padding: 10px; text-align: right; border-bottom: 2px solid #cbd5e1;">
-                                            Row Margin (৳)</th>
-                                        <th style="width: 12%; padding: 10px; border-bottom: 2px solid #cbd5e1;">Action
-                                        </th>
+                                        <th style="width: 12%; padding: 10px; border-bottom: 2px solid #cbd5e1;">Date</th>
+                                        <th style="width: 24%; padding: 10px; border-bottom: 2px solid #cbd5e1;">Particulars / Description</th>
+                                        <th style="width: 13%; padding: 10px; text-align: right; border-bottom: 2px solid #cbd5e1; background: #f0fdf4;">Online Work (৳)</th>
+                                        <th style="width: 13%; padding: 10px; text-align: right; border-bottom: 2px solid #cbd5e1; background: #eff6ff;">Print Sales (৳)</th>
+                                        <th style="width: 13%; padding: 10px; text-align: right; border-bottom: 2px solid #cbd5e1; background: #fff1f2;">Print Cost (৳)</th>
+                                        <th style="width: 13%; padding: 10px; text-align: right; border-bottom: 2px solid #cbd5e1;">Row Margin (৳)</th>
+                                        <th style="width: 12%; padding: 10px; border-bottom: 2px solid #cbd5e1;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="oc-master-tbody"></tbody>
                                 <tfoot>
                                     <tr style="background: #f1f5f9; font-weight: 700; border-top: 2px solid #cbd5e1;">
-                                        <td colspan="2" style="padding: 12px; text-align: center;">Gross Sum Total
-                                            Inputs</td>
-                                        <td id="oc-tot-online-raw"
-                                            style="padding: 12px; text-align: right; background: #f0fdf4;">৳ 0</td>
-                                        <td id="oc-tot-print-raw"
-                                            style="padding: 12px; text-align: right; background: #eff6ff;">৳ 0</td>
-                                        <td id="oc-tot-cost-raw"
-                                            style="padding: 12px; text-align: right; background: #fff1f2; color: var(--color-red);">
-                                            ৳ 0</td>
-                                        <td id="oc-tot-margin-net"
-                                            style="padding: 12px; text-align: right; color: var(--color-purple); font-size: 14px;">
-                                            ৳ 0</td>
+                                        <td colspan="2" style="padding: 12px; text-align: center;">Gross Sum Total Inputs</td>
+                                        <td id="oc-tot-online-raw" style="padding: 12px; text-align: right; background: #f0fdf4;">৳ 0</td>
+                                        <td id="oc-tot-print-raw" style="padding: 12px; text-align: right; background: #eff6ff;">৳ 0</td>
+                                        <td id="oc-tot-cost-raw" style="padding: 12px; text-align: right; background: #fff1f2; color: var(--color-red);">৳ 0</td>
+                                        <td id="oc-tot-margin-net" style="padding: 12px; text-align: right; color: var(--color-purple); font-size: 14px;">৳ 0</td>
                                         <td></td>
                                     </tr>
                                 </tfoot>
                             </table>
                         </div>
 
-                        <div
-                            style="background: #f8fafc; padding: 20px; border-top: 2px solid #cbd5e1; font-size: 13px; line-height: 2;">
-                            <div
-                                style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0;">
-                                <span>Online Work Share Revenue <strong style="color: #2563eb;">(Divided by 2 /
-                                        50%)</strong>:</span>
+                        <div style="background: #f8fafc; padding: 20px; border-top: 2px solid #cbd5e1; font-size: 13px; line-height: 2;">
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0;">
+                                <span>Online Work Share Revenue <strong style="color: #2563eb;">(Divided by 2 / 50%)</strong>:</span>
                                 <span class="font-semibold" id="oc-formula-online">৳ 0</span>
                             </div>
-                            <div
-                                style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0;">
-                                <span>Print Sales Revenue <strong style="color: #16a34a;">(After 30% Deduction / 70%
-                                        Left)</strong>:</span>
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0;">
+                                <span>Print Sales Revenue <strong style="color: #16a34a;">(After 30% Deduction / 70% Left)</strong>:</span>
                                 <span class="font-semibold" id="oc-formula-print">৳ 0</span>
                             </div>
 
-                            <div
-                                style="background: #fff1f2; padding: 5px 10px; border-radius: 4px; display: flex; justify-content: space-between; border-bottom: 1px dashed #fecdd3; color: var(--color-red); margin: 5px 0; font-weight: 600;">
+                            <div style="background: #fff1f2; padding: 5px 10px; border-radius: 4px; display: flex; justify-content: space-between; border-bottom: 1px dashed #fecdd3; color: var(--color-red); margin: 5px 0; font-weight: 600;">
                                 <span>(-) Total Separated Costing (Print Cost):</span>
                                 <span id="oc-formula-cost">- ৳ 0</span>
                             </div>
 
-                            <div
-                                style="display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 2px solid #1e3a8a; font-size: 16px; font-weight: 700; color: #1e3a8a;">
+                            <div style="display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 2px solid #1e3a8a; font-size: 16px; font-weight: 700; color: #1e3a8a;">
                                 <span>Calculated Net Final Earnings:</span>
                                 <span id="oc-formula-final">৳ 0</span>
                             </div>
@@ -627,22 +696,11 @@
                             <h3><i class="fas fa-folder-plus text-blue"></i> Save Photocopy Service Record</h3>
                         </div>
                         <div class="form-row-grid" style="grid-template-columns: repeat(4, 1fr) auto;">
-                            <div class="input-block"><label>Date Status (Auto)</label><input type="date"
-                                    id="ps-entry-date" value="2026-07-19" readonly
-                                    style="background: #f1f5f9; cursor: not-allowed; font-weight: bold; color: #1e293b;">
-                            </div>
-                            <div class="input-block"><label>Total Count Status</label><input type="number"
-                                    id="ps-entry-count" placeholder="Loading..." readonly
-                                    style="background: #f1f5f9; cursor: not-allowed; font-weight: bold;"></div>
-                            <div class="input-block"><label>Avge.PCS Status</label><input type="number"
-                                    id="ps-entry-avg" placeholder="Loading..." readonly
-                                    style="background: #f1f5f9; cursor: not-allowed; font-weight: bold;"></div>
-                            <div class="input-block"><label>Extra Service Cost (৳)</label><input type="number"
-                                    id="ps-entry-service" placeholder="Loading..." readonly
-                                    style="background: #f1f5f9; cursor: not-allowed; font-weight: bold; color: var(--color-blue);">
-                            </div>
-                            <div class="input-block"><button type="button" id="btn-save-ps-record"
-                                    class="btn-submit-form"><i class="fas fa-floppy-disk"></i> Add Record</button></div>
+                            <div class="input-block"><label>Date Status (Auto)</label><input type="date" id="ps-entry-date" value="2026-07-19" readonly style="background: #f1f5f9; cursor: not-allowed; font-weight: bold; color: #1e293b;"></div>
+                            <div class="input-block"><label>Total Count Status</label><input type="number" id="ps-entry-count" placeholder="Loading..." readonly style="background: #f1f5f9; cursor: not-allowed; font-weight: bold;"></div>
+                            <div class="input-block"><label>Avge.PCS Status</label><input type="number" id="ps-entry-avg" placeholder="Loading..." readonly style="background: #f1f5f9; cursor: not-allowed; font-weight: bold;"></div>
+                            <div class="input-block"><label>Extra Service Cost (৳)</label><input type="number" id="ps-entry-service" placeholder="Loading..." readonly style="background: #f1f5f9; cursor: not-allowed; font-weight: bold; color: var(--color-blue);"></div>
+                            <div class="input-block"><button type="button" id="btn-save-ps-record" class="btn-submit-form"><i class="fas fa-floppy-disk"></i> Add Record</button></div>
                         </div>
                     </div>
 
@@ -671,8 +729,7 @@
                                     <option value="2026" selected>2026</option>
                                     <option value="2027">2027</option>
                                 </select>
-                                <button type="button" id="btn-print-ps-report" class="btn-print-main"><i
-                                        class="fas fa-print"></i> Print Report</button>
+                                <button type="button" id="btn-print-ps-report" class="btn-print-main"><i class="fas fa-print"></i> Print Report</button>
                             </div>
                         </div>
                         <div class="table-container">
@@ -694,7 +751,6 @@
                                 <tbody></tbody>
                             </table>
                         </div>
-                        <!-- Dynamic Total Net Profit Summary Box Section Added here -->
                         <div class="table-summary-row cashbook-summary full-summary-box" style="justify-content: flex-end; margin-top: 20px;">
                             <div class="summary-item" style="background: #e6fcf5; padding: 8px 20px; border-radius: 8px; border: 1px solid #10b981;">
                                 <span>Total Net Profit</span>
@@ -707,137 +763,80 @@
                 <!-- 7. PHOTOCOPY MACHINE CONFIGURATION VIEW -->
                 <div id="view-photocopy-machine" class="page-view">
                     <div class="box">
-                        <div class="box-header"
-                            style="border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 25px;">
+                        <div class="box-header" style="border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 25px;">
                             <h2 style="font-size: 22px; font-weight: 700; color: #1e293b;">Photocopy Machine</h2>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start;">
                             <div>
-                                <table class="photo-machine-table"
-                                    style="width: 100%; border-collapse: collapse; font-size: 14px; border: 1px solid #cbd5e1;">
+                                <table class="photo-machine-table" style="width: 100%; border-collapse: collapse; font-size: 14px; border: 1px solid #cbd5e1;">
                                     <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 600;">Date
-                                        </td>
-                                        <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="date"
-                                                id="pm-date" value="2026-07-19"
-                                                style="width: 100%; padding: 12px; border: none; background: #fef9c3; outline: none; font-weight: 600;">
-                                        </td>
+                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 600;">Date</td>
+                                        <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="date" id="pm-date" value="2026-07-19" style="width: 100%; padding: 12px; border: none; background: #fef9c3; outline: none; font-weight: 600;"></td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 500;">Total
-                                            Count</td>
-                                        <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number"
-                                                id="pm-total-count" value="12000"
-                                                style="width: 100%; padding: 12px; border: none; background: #f1f5f9; outline: none; font-weight: bold;">
-                                        </td>
+                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 500;">Total Count</td>
+                                        <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number" id="pm-total-count" value="12000" style="width: 100%; padding: 12px; border: none; background: #f1f5f9; outline: none; font-weight: bold;"></td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 500;">Avge.PCS
-                                        </td>
-                                        <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number"
-                                                id="pm-avge-pcs" value="5000"
-                                                style="width: 100%; padding: 12px; border: none; background: #f1f5f9; outline: none; font-weight: bold;">
-                                        </td>
+                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 500;">Avge.PCS</td>
+                                        <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number" id="pm-avge-pcs" value="5000" style="width: 100%; padding: 12px; border: none; background: #f1f5f9; outline: none; font-weight: bold;"></td>
                                     </tr>
                                     <tr>
-                                        <td
-                                            style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700; color: red;">
-                                            Total Copy</td>
-                                        <td id="pm-total-copy"
-                                            style="padding: 12px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: red;">
-                                            7,000</td>
+                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700; color: red;">Total Copy</td>
+                                        <td id="pm-total-copy" style="padding: 12px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: red;">7,000</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 500;">Total
-                                            Amount</td>
-                                        <td id="pm-total-amount"
-                                            style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">৳
-                                            14,000</td>
+                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 500;">Total Amount</td>
+                                        <td id="pm-total-amount" style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">৳ 14,000</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 500;">Total
-                                            Rim</td>
-                                        <td id="pm-total-rim"
-                                            style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">15.56
-                                        </td>
+                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 500;">Total Rim</td>
+                                        <td id="pm-total-rim" style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">15.56</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 500;">Total
-                                            Rim Tk</td>
-                                        <td id="pm-total-rim-tk"
-                                            style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">৳
-                                            5,444</td>
+                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 500;">Total Rim Tk</td>
+                                        <td id="pm-total-rim-tk" style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">৳ 5,444</td>
                                     </tr>
                                     <tr>
-                                        <td
-                                            style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700; color: red;">
-                                            Net Amount</td>
-                                        <td id="pm-net-amount"
-                                            style="padding: 12px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: red;">
-                                            ৳ 8,556</td>
+                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700; color: red;">Net Amount</td>
+                                        <td id="pm-net-amount" style="padding: 12px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: red;">৳ 8,556</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700;">Service
-                                            Cost</td>
-                                        <td id="pm-service-cost"
-                                            style="padding: 12px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: var(--color-blue); background: #eff6ff;">
-                                            0</td>
+                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700;">Service Cost</td>
+                                        <td id="pm-service-cost" style="padding: 12px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: var(--color-blue); background: #eff6ff;">0</td>
                                     </tr>
                                     <tr>
-                                        <td
-                                            style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700; color: red;">
-                                            Total Amount</td>
-                                        <td id="pm-final-total"
-                                            style="padding: 12px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: red; font-size: 16px;">
-                                            ৳ 8,556</td>
+                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700; color: red;">Total Amount</td>
+                                        <td id="pm-final-total" style="padding: 12px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: red; font-size: 16px;">৳ 8,556</td>
                                     </tr>
                                 </table>
                             </div>
 
                             <div>
-                                <table
-                                    style="width: 100%; border-collapse: collapse; font-size: 14px; border: 1px solid #cbd5e1; margin-bottom: 20px;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 14px; border: 1px solid #cbd5e1; margin-bottom: 20px;">
                                     <tr>
-                                        <td
-                                            style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700; width: 50%;">
-                                            Rim Per PCS</td>
-                                        <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number"
-                                                id="rate-rim-pcs" value="450"
-                                                style="width: 100%; padding: 12px; border: none; outline: none; text-align: center; font-weight: bold;">
-                                        </td>
+                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700; width: 50%;">Rim Per PCS</td>
+                                        <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number" id="rate-rim-pcs" value="450" style="width: 100%; padding: 12px; border: none; outline: none; text-align: center; font-weight: bold;"></td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700;">Rim Per
-                                            Tk</td>
-                                        <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number"
-                                                id="rate-rim-tk" value="350"
-                                                style="width: 100%; padding: 12px; border: none; outline: none; text-align: center; font-weight: bold;">
-                                        </td>
+                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700;">Rim Per Tk</td>
+                                        <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number" id="rate-rim-tk" value="350" style="width: 100%; padding: 12px; border: none; outline: none; text-align: center; font-weight: bold;"></td>
                                     </tr>
                                 </table>
 
                                 <div style="border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden;">
-                                    <div
-                                        style="background: #f8fafc; padding: 10px 15px; font-weight: 700; font-size: 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1;">
+                                    <div style="background: #f8fafc; padding: 10px 15px; font-weight: 700; font-size: 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1;">
                                         <span>Photocopy Machine Service Expense</span>
-                                        <button type="button" id="btn-add-pm-expense"
-                                            style="background: var(--color-blue); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer;">+
-                                            Add Line</button>
+                                        <button type="button" id="btn-add-pm-expense" style="background: var(--color-blue); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer;">+ Add Line</button>
                                     </div>
                                     <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                                         <tbody id="pm-expense-tbody">
                                             <tr>
-                                                <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="text"
-                                                        class="pm-expense-title" placeholder="Expense Title"
-                                                        style="width: 100%; padding: 8px 12px; border: none; outline: none;">
-                                                </td>
+                                                <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="text" class="pm-expense-title" placeholder="Expense Title" style="width: 100%; padding: 8px 12px; border: none; outline: none;"></td>
                                                 <td style="border: 1px solid #cbd5e1; padding: 0;">
                                                     <div style="display: flex; align-items: center;">
-                                                        <input type="number" class="pm-expense-amt" placeholder="Amount"
-                                                            style="width: 100%; padding: 8px 12px; border: none; outline: none; text-align: right;">
-                                                        <button type="button" class="btn-remove-pm-exp"
-                                                            style="border: none; background: #fff1f2; color: #e11d48; padding: 8px 10px; cursor: pointer;"><i
-                                                                class="fas fa-trash-can"></i></button>
+                                                        <input type="number" class="pm-expense-amt" placeholder="Amount" style="width: 100%; padding: 8px 12px; border: none; outline: none; text-align: right;">
+                                                        <button type="button" class="btn-remove-pm-exp" style="border: none; background: #fff1f2; color: #e11d48; padding: 8px 10px; cursor: pointer;"><i class="fas fa-trash-can"></i></button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -849,24 +848,18 @@
                     </div>
                 </div>
 
-                <!-- 8. MOBILE BANKING VIEW (Hwubhu Screen-shot Layout Update) -->
+                <!-- 8. MOBILE BANKING VIEW -->
                 <div id="view-mobile-banking" class="page-view">
                     <div class="box mb-25">
                         <div class="box-header">
-                            <h3><i class="fas fa-mobile-screen-button text-purple"></i> Mobile Banking Transaction Entry
-                            </h3>
+                            <h3><i class="fas fa-mobile-screen-button text-purple"></i> Mobile Banking Transaction Entry</h3>
                         </div>
                         <form id="mb-form">
                             <div class="form-row-grid" style="grid-template-columns: 1fr 2fr 1fr auto;">
-                                <div class="input-block"><label>Date</label><input type="date" id="mb-date" required
-                                        value="2026-07-19"></div>
-                                <div class="input-block"><label>Mobile banking</label><input type="text" id="mb-details"
-                                        placeholder="যেমন: bKash Cash In 5000 বা বিবরণ লিখুন" required></div>
-                                <div class="input-block"><label>Commission/Profit (৳)</label><input type="number"
-                                        id="mb-commission" placeholder="0.00" required></div>
-                                <div class="input-block"><button type="submit" class="btn-submit-form"
-                                        style="background:#f43f5e;"><i class="fas fa-save"></i> Save
-                                        Transaction</button></div>
+                                <div class="input-block"><label>Date</label><input type="date" id="mb-date" required value="2026-07-19"></div>
+                                <div class="input-block"><label>Mobile banking</label><input type="text" id="mb-details" placeholder="যেমন: bKash Cash In 5000 বা বিবরণ লিখুন" required></div>
+                                <div class="input-block"><label>Commission/Profit (৳)</label><input type="number" id="mb-commission" placeholder="0.00" required></div>
+                                <div class="input-block"><button type="submit" class="btn-submit-form" style="background:#f43f5e;"><i class="fas fa-save"></i> Save Transaction</button></div>
                             </div>
                         </form>
                     </div>
@@ -896,8 +889,7 @@
                                     <option value="2026" selected>2026</option>
                                     <option value="2027">2027</option>
                                 </select>
-                                <button type="button" id="btn-print-mb-report" class="btn-print-main"
-                                    style="background: #e11d48;"><i class="fas fa-print"></i> Print Sheet</button>
+                                <button type="button" id="btn-print-mb-report" class="btn-print-main" style="background: #e11d48;"><i class="fas fa-print"></i> Print Sheet</button>
                             </div>
                         </div>
                         <div class="table-container">
@@ -914,18 +906,15 @@
                                 <tbody></tbody>
                             </table>
                         </div>
-                        <div class="table-summary-row cashbook-summary full-summary-box"
-                            style="justify-content: flex-end;">
-                            <div class="summary-item"
-                                style="background: #ede9fe; padding: 8px 20px; border-radius: 8px; border: 1px solid #c084fc;">
-                                <span>100% Total Net Profit</span><strong class="text-purple" id="mb-total-commission"
-                                    style="font-size:18px;">৳ 0</strong>
+                        <div class="table-summary-row cashbook-summary full-summary-box" style="justify-content: flex-end;">
+                            <div class="summary-item" style="background: #ede9fe; padding: 8px 20px; border-radius: 8px; border: 1px solid #c084fc;">
+                                <span>100% Total Net Profit</span><strong class="text-purple" id="mb-total-commission" style="font-size:18px;">৳ 0</strong>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 9. MINI SUMMARY VIEW (Updated with full implementation) -->
+                <!-- 9. MINI SUMMARY VIEW -->
                 <div id="view-mini-summary" class="page-view">
                     <div class="box mb-25">
                         <div class="box-header">
@@ -1007,12 +996,76 @@
                     </div>
                 </div>
 
-                <!-- Empty Placeholder Views -->
+                <!-- Empty Placeholder Views & UPDATED DETAILED DAILY REPORT VIEW -->
                 <div id="view-daily-report" class="page-view">
+                    <div class="box mb-25">
+                        <div class="box-header">
+                            <h3><i class="fa-solid fa-calendar-check text-blue"></i> Generate Daily Statement</h3>
+                            <div class="filter-wrapper" style="display: flex; gap: 15px; align-items: center;">
+                                <label style="font-weight: 600; color: #334155;">Select Date:</label>
+                                <input type="date" id="dr-select-date" value="2026-07-19" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 600;">
+                                <button type="button" id="btn-print-dr" class="btn-print-main" style="background-color: #2563eb;">
+                                    <i class="fas fa-print"></i> Print Daily Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DAILY KPI SUMMARY CARDS -->
+                    <div class="cards" style="margin-bottom: 25px;">
+                        <div class="card sale-card">
+                            <div class="card-main" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                                <div style="background: #e6fcf5; color: #0ca678; padding: 12px; border-radius: 8px; font-size: 20px;"><i class="fas fa-basket-shopping"></i></div>
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b; display: block;">Total Revenue (Inflow)</span>
+                                    <h2 id="dr-card-revenue" style="font-size: 20px; font-weight: 700; color: #0ca678;">৳ 0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card Red-card">
+                            <div class="card-main" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                                <div style="background: #fff5f5; color: #fa5252; padding: 12px; border-radius: 8px; font-size: 20px;"><i class="fas fa-file-invoice-dollar"></i></div>
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b; display: block;">Total Cost & Expenses</span>
+                                    <h2 id="dr-card-expenses" style="font-size: 20px; font-weight: 700; color: #fa5252;">৳ 0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card profit-card">
+                            <div class="card-main" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                                <div style="background: #e7f5ff; color: #228be6; padding: 12px; border-radius: 8px; font-size: 20px;"><i class="fas fa-money-bill-trend-up"></i></div>
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b; display: block;">Calculated Net Profit</span>
+                                    <h2 id="dr-card-profit" style="font-size: 20px; font-weight: 700; color: #228be6;">৳ 0</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DETAILED BREAKDOWN SHEET -->
                     <div class="box">
-                        <h2>Daily Report Screen</h2>
+                        <div class="box-header" style="border-bottom: 2px solid #cbd5e1; padding-bottom: 10px;">
+                            <h3><i class="fas fa-chart-pie text-blue"></i> Section-Wise Financial Breakdown</h3>
+                        </div>
+                        
+                        <div class="table-container" style="margin-top: 15px;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                                <thead>
+                                    <tr style="background-color: #f8fafc; color: #334155; border-bottom: 2px solid #cbd5e1;">
+                                        <th style="padding: 12px; text-align: left;">Business Sector Module</th>
+                                        <th style="padding: 12px; text-align: right;">Gross Cash In / Revenue (৳)</th>
+                                        <th style="padding: 12px; text-align: right;">Cost / Expense Out (৳)</th>
+                                        <th style="padding: 12px; text-align: right;">Net Profit Generated (৳)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dr-breakdown-tbody">
+                                    <!-- Dynamic Data Injection via JS -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
+
                 <div id="view-monthly-report" class="page-view">
                     <div class="box">
                         <h2>Monthly Report Screen</h2>

@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
+/* Global Variables & Reset */
 :root {
     --bg-main: #f4f7fc;
     --sidebar-bg: #1e293b;
@@ -32,6 +33,7 @@ body{
     overflow-x: hidden;
 }
 
+/* Helper Utilities */
 .page-view { display: none; }
 .page-view.active-view { display: block !important; }
 .mb-25 { margin-bottom: 25px; }
@@ -62,12 +64,15 @@ body{
 .menu-label { font-size: 11px !important; font-weight: 600; color: #475569 !important; padding: 20px 25px 5px 25px !important; cursor: default !important; }
 .logout-btn { margin-top: 30px; color: #ef4444 !important; }
 
-/* Mobile Banking Icon Hover Custom Color Style */
+/* Mobile Banking & Expense Icon Hover Custom Color Style */
 .sidebar ul li[data-target="mobile-banking"]:hover i {
     color: #f43f5e;
 }
+.sidebar ul li[data-target="expense-management"]:hover i {
+    color: var(--color-red);
+}
 
-/* Main Section */
+/* Main Section & Navbar */
 .main { margin-left: 260px; min-height: 100vh; display: flex; flex-direction: column; }
 .navbar { height: 70px; background: #fff; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 90; }
 .navbar .left { display: flex; align-items: center; gap: 15px; }
@@ -98,6 +103,7 @@ body{
 .cash-card .icon-wrapper { background: var(--color-purple-light); color: var(--color-purple); }
 .cash-card h2 { color: var(--color-purple); }
 
+/* Dashboard Layout & Tables */
 .dashboard-grid { display: grid; gap: 25px; margin-bottom: 25px; }
 .layout-3-col { grid-template-columns: repeat(3, 1fr); }
 
@@ -128,6 +134,7 @@ body{
 .btn-delete-row { background: none; border: none; color: var(--color-red); cursor: pointer; }
 .btn-print-row { background: none; border: none; color: var(--color-blue); cursor: pointer; }
 
+/* Summary & Footer */
 .table-summary-row { margin-top: 20px; padding-top: 15px; border-top: 1px solid #e2e8f0; display: flex; font-size: 13px; }
 .cashbook-summary { justify-content: space-between; }
 .full-summary-box { background: #f8fafc; padding: 15px 20px; border-radius: 8px; border: 1px solid #e2e8f0; }
@@ -139,7 +146,7 @@ body{
 .text-purple { color: var(--color-purple); }
 .main-footer { text-align: center; padding: 20px 0; border-top: 1px solid #e2e8f0; font-size: 12px; color: var(--text-muted); }
 
-/* ONLINE COST TABLE INPUTS & DROPDOWN ACTION MODULE UI */
+/* Online Cost Table Inputs & Dropdown Action Module UI */
 #view-online-cost table input, #view-mobile-banking table select, #view-mobile-banking table input {
     width: 100%;
     padding: 6px 8px;
@@ -174,7 +181,7 @@ body{
 }
 
 .oc-btn-row-print:hover {
-    background: #dcfce7;
+    background: #bbf7d0;
 }
 
 .oc-dropdown-content {
@@ -231,7 +238,7 @@ body{
 /* Hide Print Area on Screen */
 #invoice-print-section { display: none; }
 
-/* Responsive Grid */
+/* Responsive Grid (Media Queries) */
 @media screen and (max-width: 1200px) {
     .cards, .layout-3-col { grid-template-columns: repeat(2, 1fr); }
     .form-row-grid { grid-template-columns: repeat(3, 1fr); }
@@ -267,9 +274,7 @@ body{
     .signature { text-align: center; font-size: 12px; }
 }
 
-/* ==========================================================================
-   ADDED: MINI SUMMARY VIEW CUSTOM STYLES
-   ========================================================================== */
+/* Mini Summary View Custom Styles */
 #view-mini-summary .box {
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -308,3 +313,14 @@ body{
 #main-ms-table th, #main-ms-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
 #main-ms-table th { background: #f8fafc; color: #475569; font-weight: 600; }
 #main-ms-table tbody tr:hover { background: #f8fafc; }
+
+/* Custom Cash Book Visual Enhancements */
+#main-cashbook-table {
+    border: 1px solid #cbd5e1 !important;
+}
+#main-cashbook-table th {
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+    font-weight: 600;
+    border-bottom: 2px solid #cbd5e1 !important;
+}
