@@ -266,3 +266,45 @@ body{
     .print-footer { display: flex; justify-content: space-between; margin-top: 80px; }
     .signature { text-align: center; font-size: 12px; }
 }
+
+/* ==========================================================================
+   ADDED: MINI SUMMARY VIEW CUSTOM STYLES
+   ========================================================================== */
+#view-mini-summary .box {
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background: #fff;
+    overflow: hidden;
+}
+#view-mini-summary .btn-submit-form {
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+    height: 40px;
+    margin-top: 22px;
+}
+#view-mini-summary .btn-submit-form:hover { opacity: 0.9; }
+#view-mini-summary .btn-delete-ms {
+    background: #fff1f2;
+    color: #e11d48;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+#view-mini-summary .btn-delete-ms:hover {
+    background: #ffe4e6;
+    color: #be123c;
+}
+#main-ms-table { width: 100%; border-collapse: collapse; }
+#main-ms-table th, #main-ms-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+#main-ms-table th { background: #f8fafc; color: #475569; font-weight: 600; }
+#main-ms-table tbody tr:hover { background: #f8fafc; }

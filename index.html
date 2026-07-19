@@ -709,8 +709,7 @@
                     <div class="box">
                         <div class="box-header"
                             style="border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 25px;">
-                            <h2 style="font-size: 22px; font-weight: 700; color: #1e293b;">Photocopy Machine
-                                Configuration</h2>
+                            <h2 style="font-size: 22px; font-weight: 700; color: #1e293b;">Photocopy Machine</h2>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start;">
                             <div>
@@ -926,12 +925,89 @@
                     </div>
                 </div>
 
-                <!-- Empty Placeholder Views -->
+                <!-- 9. MINI SUMMARY VIEW (Updated with full implementation) -->
                 <div id="view-mini-summary" class="page-view">
+                    <div class="box mb-25">
+                        <div class="box-header">
+                            <h3><i class="fas fa-plus-circle text-green"></i> Add New Mini Summary Entry</h3>
+                        </div>
+                        <form id="ms-form">
+                            <div class="form-row-grid" style="grid-template-columns: 1fr 2fr 1fr auto;">
+                                <div class="input-block">
+                                    <label>Date</label>
+                                    <input type="date" id="ms-date" required value="2026-07-19">
+                                </div>
+                                <div class="input-block">
+                                    <label>Purpose / Description</label>
+                                    <input type="text" id="ms-purpose" placeholder="যেমন: চা খরচ, যাতায়াত ভাড়া ইত্যাদি" required>
+                                </div>
+                                <div class="input-block">
+                                    <label>Amount (৳)</label>
+                                    <input type="number" id="ms-amount" placeholder="0.00" required>
+                                </div>
+                                <div class="input-block">
+                                    <button type="submit" class="btn-submit-form" style="background: var(--color-green);">
+                                        <i class="fas fa-save"></i> Save Entry
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
                     <div class="box">
-                        <h2>Mini Summary Screen</h2>
+                        <div class="box-header">
+                            <h3><i class="fas fa-file-lines text-green"></i> Mini Summary History Log</h3>
+                            <div class="filter-wrapper">
+                                <select id="ms-filter-month">
+                                    <option value="all">All Months</option>
+                                    <option value="01">January</option>
+                                    <option value="02">February</option>
+                                    <option value="03">March</option>
+                                    <option value="04">April</option>
+                                    <option value="05">May</option>
+                                    <option value="06">June</option>
+                                    <option value="07" selected>July</option>
+                                    <option value="08">August</option>
+                                    <option value="09">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                                <select id="ms-filter-year">
+                                    <option value="all">All Years</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2026" selected>2026</option>
+                                    <option value="2027">2027</option>
+                                </select>
+                                <button type="button" id="btn-print-ms-report" class="btn-print-main" style="background: var(--color-green);">
+                                    <i class="fas fa-print"></i> Print Sheet
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table id="main-ms-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 8%;">SL</th>
+                                        <th style="width: 15%;">Date</th>
+                                        <th>Purpose Description</th>
+                                        <th style="width: 25%;">Amount (৳)</th>
+                                        <th style="width: 10%;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="table-summary-row cashbook-summary full-summary-box" style="justify-content: flex-end;">
+                            <div class="summary-item" style="background: #e6fcf5; padding: 8px 20px; border-radius: 8px; border: 1px solid #10b981;">
+                                <span>Total Expense Summary</span>
+                                <strong class="text-green" id="ms-total-amount" style="font-size:18px;">৳ 0</strong>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Empty Placeholder Views -->
                 <div id="view-daily-report" class="page-view">
                     <div class="box">
                         <h2>Daily Report Screen</h2>

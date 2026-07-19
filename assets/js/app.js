@@ -32,6 +32,9 @@ document.addEventListener("DOMContentLoaded", function () {
         { id: 9003, date: "2026-07-10", details: "Rocket Personal Payin 2000", commission: 10 }
     ];
 
+    // Local Storage থেকে Mini Summary ডেটা লোড করা
+    let miniSummaryData = JSON.parse(localStorage.getItem('miniSummaryData')) || [];
+
     // Sidebar Toggle
     if (toggleBtn && sidebar && mainContent) {
         toggleBtn.addEventListener("click", function (e) {
@@ -63,6 +66,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         if (targetViewId === "online-cost") {
             calculateOnlineCostAll();
+        }
+        if (targetViewId === "mini-summary") {
+            renderMiniSummaryTable();
         }
     }
 
@@ -113,7 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const filterYear = document.getElementById("ps-filter-year")?.value || "all";
 
         let sl = 1;
-        let totalFilteredProfit = 0; // লাভ ট্র্যাক করার জন্য ভেরিয়েবল
+        let totalFilteredProfit = 0; 
         if (tableBody) tableBody.innerHTML = "";
 
         photocopyServiceRecords.forEach((rec) => {
@@ -123,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             (filterYear === "all" || year === filterYear);
 
             if (isMatch) {
-                totalFilteredProfit += rec.finalProfit; // ফিল্টার করা লাভ যোগ হচ্ছে
+                totalFilteredProfit += rec.finalProfit; 
 
                 if (tableBody) {
                     let expenseDisplayHtml = `<span style="color: #e11d48; font-weight: 700; font-size: 13px;">৳ ${(rec.serviceCost || 0).toLocaleString()}</span>`;
@@ -162,7 +168,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // HTML সামারি বক্সে মোট লাভ পুশ করা
         if (document.getElementById("ps-total-profit-box")) {
             document.getElementById("ps-total-profit-box").innerText = "৳ " + totalFilteredProfit.toLocaleString();
         }
@@ -211,7 +216,6 @@ document.addEventListener("DOMContentLoaded", function () {
         alert("ক্যালকুলেশন সাকসেসফুলি সেভ করা হয়েছে!");
     });
 
-    // --- Photocopy Service Table Action (Delete & Row Single Print Fix) ---
     document.getElementById("main-ps-table")?.addEventListener("click", function(e) {
         const deleteBtn = e.target.closest(".btn-delete-ps");
         const printBtn = e.target.closest(".btn-print-ps");
@@ -273,7 +277,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // --- Photocopy Service: Full Report Bulk Filter Print Fix ---
     document.getElementById("btn-print-ps-report")?.addEventListener("click", function() {
         const mText = document.getElementById("ps-filter-month").options[document.getElementById("ps-filter-month").selectedIndex].text;
         const yText = document.getElementById("ps-filter-year").options[document.getElementById("ps-filter-year").selectedIndex].text;
@@ -351,7 +354,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("ps-filter-year")?.addEventListener("change", updatePhotocopyServiceUI);
 
 
-    // --- CASH BOOK ENGINE & DASHBOARD ENGINE ---
+    // --- CASH BOOK ENGINE & DASHBOARD ENGINE (Shorasori Gear Integrated) ---
     function updateCashBookUI() {
         const mainTableBody = document.querySelector("#main-cashbook-table tbody");
         const dashTableBody = document.querySelector("#dash-cashbook-table tbody");
@@ -363,6 +366,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (mainTableBody) mainTableBody.innerHTML = "";
         if (dashTableBody) dashTableBody.innerHTML = "";
 
+        // ১. ক্যাশ বুকের ট্রানজেকশনগুলো হিসাব করা
         cashTransactions.forEach((tx) => {
             const txYear = tx.date.substring(0, 4);
             const txMonth = tx.date.substring(5, 7);
@@ -408,6 +412,20 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
+        // ২. [GEAR ADDED] Mini Summary থেকে ফিল্টার করা খরচগুলো মোট ডেবিট বা এক্সপেন্সে যুক্ত করা
+        miniSummaryData.forEach((entry) => {
+            const dateParts = entry.date.split('-');
+            const entryYear = dateParts[0];
+            const entryMonth = dateParts[1];
+            
+            const matchMonth = (selectedMonth === 'all' || selectedMonth === entryMonth);
+            const matchYear = (selectedYear === 'all' || selectedYear === entryYear);
+            
+            if (matchMonth && matchYear) {
+                totalDebit += entry.amount; // খরচ মোট ডেবিটে লাইভ যুক্ত হচ্ছে
+            }
+        });
+
         const cashInHand = totalCredit - totalDebit; 
         if(document.getElementById("total-debit")) document.getElementById("total-debit").innerText = `৳ ${totalDebit.toLocaleString()}`;
         if(document.getElementById("total-credit")) document.getElementById("total-credit").innerText = `৳ ${totalCredit.toLocaleString()}`;
@@ -423,7 +441,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // --- Cash Book Action ---
     document.getElementById("main-cashbook-table")?.addEventListener("click", function(e) {
         const deleteBtn = e.target.closest(".btn-delete-cash");
         const printBtn = e.target.closest(".btn-print-cash-single");
@@ -466,7 +483,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // --- Cash Book: Print report ---
     document.getElementById("btn-print-ledger")?.addEventListener("click", function() {
         const mText = document.getElementById("filter-month").options[document.getElementById("filter-month").selectedIndex].text;
         const yText = document.getElementById("filter-year").options[document.getElementById("filter-year").selectedIndex].text;
@@ -669,13 +685,12 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 
-    // --- PHOTOCOPY MACHINE CALCULATION (FIXED & FULLY FUNCTIONAL) ---
+    // --- PHOTOCOPY MACHINE CALCULATION ---
     function calculatePhotocopyMachine() {
         const dateVal = document.getElementById("pm-date")?.value || "2026-07-19";
         const totalCount = parseFloat(document.getElementById("pm-total-count")?.value) || 0;
         const avgePcs = parseFloat(document.getElementById("pm-avge-pcs")?.value) || 0;
         
-        // ১. সার্ভিস খরচের লাইভ যোগফল বের করা
         let totalExpenseSum = 0;
         document.querySelectorAll(".pm-expense-amt").forEach(input => {
             totalExpenseSum += parseFloat(input.value) || 0;
@@ -689,19 +704,16 @@ document.addEventListener("DOMContentLoaded", function () {
         const rimPerPcs = parseFloat(document.getElementById("rate-rim-pcs")?.value) || 450;
         const rimPerTk = parseFloat(document.getElementById("rate-rim-tk")?.value) || 350;
 
-        // ২. ডাইনামিক টোটাল কপি হিসাব (Total Count - Avge.PCS)
         const totalCopy = totalCount - avgePcs;
         if(document.getElementById("pm-total-copy")) {
             document.getElementById("pm-total-copy").innerText = totalCopy > 0 ? totalCopy.toLocaleString() : "0";
         }
 
-        // ৩. প্রতি কপির দাম ২ টাকা ধরে টোটাল এমাউন্ট
         const totalAmount = totalCopy > 0 ? totalCopy * 2 : 0;
         if(document.getElementById("pm-total-amount")) {
             document.getElementById("pm-total-amount").innerText = "৳ " + totalAmount.toLocaleString();
         }
 
-        // ৪. রিম খরচ ও নেট এমাউন্ট ডাইনামিক ক্যালকুলেশন
         const totalRim = totalCopy > 0 ? totalCopy / rimPerPcs : 0;
         if(document.getElementById("pm-total-rim")) {
             document.getElementById("pm-total-rim").innerText = totalRim > 0 ? totalRim.toFixed(2) : "0";
@@ -717,28 +729,23 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("pm-net-amount").innerText = "৳ " + (netAmount > 0 ? netAmount.toLocaleString() : "0");
         }
 
-        // ৫. ফাইনাল সর্বমোট হিসাব (Net Amount - Service Cost)
         const finalTotal = netAmount - serviceCost;
         if(document.getElementById("pm-final-total")) {
             document.getElementById("pm-final-total").innerText = "৳ " + (finalTotal > 0 ? Math.round(finalTotal).toLocaleString() : "0");
         }
 
-        // ৬. কপি সার্ভিস টেবিল প্রিপারেশন ইনপুটের সাথে ডাইনামিক ডেটা পুশ ও সিঙ্ক
         if(document.getElementById("ps-entry-date")) document.getElementById("ps-entry-date").value = dateVal;
         if(document.getElementById("ps-entry-count")) document.getElementById("ps-entry-count").value = totalCount;
         if(document.getElementById("ps-entry-avg")) document.getElementById("ps-entry-avg").value = avgePcs;
         if(document.getElementById("ps-entry-service")) document.getElementById("ps-entry-service").value = serviceCost;
     }
 
-    // --- PHOTOCOPY MACHINE EVENT LISTENERS & EXPENSE ROW CONTROLS ---
-    // ইনপুট ফিল্ডগুলোতে টাইপ করলেই রিয়েল-টাইম লাইভ ক্যালকুলেশন রান হবে
     document.getElementById("pm-date")?.addEventListener("change", calculatePhotocopyMachine);
     document.getElementById("pm-total-count")?.addEventListener("input", calculatePhotocopyMachine);
     document.getElementById("pm-avge-pcs")?.addEventListener("input", calculatePhotocopyMachine);
     document.getElementById("rate-rim-pcs")?.addEventListener("input", calculatePhotocopyMachine);
     document.getElementById("rate-rim-tk")?.addEventListener("input", calculatePhotocopyMachine);
 
-    // ডাইনামিক নতুন এক্সপেন্স রো লাইন যোগ করার সুবিধা
     document.getElementById("btn-add-pm-expense")?.addEventListener("click", function() {
         const tbody = document.getElementById("pm-expense-tbody");
         if(!tbody) return;
@@ -753,11 +760,9 @@ document.addEventListener("DOMContentLoaded", function () {
             </td>
         `;
         tbody.appendChild(tr);
-        // নতুন যুক্ত হওয়া রো এর এমাউন্টে ইনপুট লিসেনার বাইন্ড করা
         tr.querySelector(".pm-expense-amt").addEventListener("input", calculatePhotocopyMachine);
     });
 
-    // এক্সপেন্স ডিলিট বোতাম এবং বিদ্যমান এক্সপেন্সে ইভেন্ট বাইন্ডিং
     document.getElementById("pm-expense-tbody")?.addEventListener("click", function(e) {
         const removeBtn = e.target.closest(".btn-remove-pm-exp");
         if (removeBtn) {
@@ -770,7 +775,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 
-    // --- ONLINE COST ENGINE (FIXED & FULLY FUNCTIONAL WITH DASHBOARD INTEGRATION) ---
+    // --- ONLINE COST ENGINE ---
     function addOnlineMasterRow(date = '2026-07-19', particulars = '', onlineWork = '', printSale = '', printCost = '') {
         const tbody = document.getElementById("oc-master-tbody");
         if(!tbody) return;
@@ -830,32 +835,27 @@ document.addEventListener("DOMContentLoaded", function () {
         const sharePrintNet = grossPrintRaw * 0.70;
         const finalCalculatedProfit = shareOnlineNet + sharePrintNet - grossCostRaw;
 
-        // Footers & Summary Calculation updates
         document.getElementById("oc-tot-online-raw").innerText = fmtBDT(grossOnlineRaw);
         document.getElementById("oc-tot-print-raw").innerText = fmtBDT(grossPrintRaw);
         document.getElementById("oc-tot-cost-raw").innerText = fmtBDT(grossCostRaw);
         document.getElementById("oc-tot-margin-net").innerText = fmtBDT(finalCalculatedProfit);
         
-        // Dynamic Update Formula Box Under the Table
         if(document.getElementById("oc-formula-online")) document.getElementById("oc-formula-online").innerText = fmtBDT(shareOnlineNet);
         if(document.getElementById("oc-formula-print")) document.getElementById("oc-formula-print").innerText = fmtBDT(sharePrintNet);
         if(document.getElementById("oc-formula-cost")) document.getElementById("oc-formula-cost").innerText = "- ৳ " + grossCostRaw.toLocaleString();
         if(document.getElementById("oc-formula-final")) document.getElementById("oc-formula-final").innerText = fmtBDT(finalCalculatedProfit);
 
-        // Update KPI top boxes
         if(document.getElementById("oc-kpi-online-net")) document.getElementById("oc-kpi-online-net").innerText = fmtBDT(shareOnlineNet);
         if(document.getElementById("oc-kpi-print-net")) document.getElementById("oc-kpi-print-net").innerText = fmtBDT(sharePrintNet);
         if(document.getElementById("oc-kpi-prod-cost")) document.getElementById("oc-kpi-prod-cost").innerText = fmtBDT(grossCostRaw);
         if(document.getElementById("oc-kpi-final-profit")) document.getElementById("oc-kpi-final-profit").innerText = fmtBDT(finalCalculatedProfit);
 
-        // --- DASHBOARD LIVE CARDS SYNC ---
         if(document.getElementById("dash-online-net")) document.getElementById("dash-online-net").innerText = fmtBDT(shareOnlineNet);
         if(document.getElementById("dash-print-net")) document.getElementById("dash-print-net").innerText = fmtBDT(sharePrintNet);
         if(document.getElementById("dash-total-costing")) document.getElementById("dash-total-costing").innerText = fmtBDT(grossCostRaw);
         if(document.getElementById("dash-final-net")) document.getElementById("dash-final-net").innerText = fmtBDT(finalCalculatedProfit);
     }
 
-    // Master Event Listener for Online Cost Table Actions (Delete / Print Row)
     document.getElementById("oc-master-tbody")?.addEventListener("click", function(e) {
         const deleteBtn = e.target.closest(".btn-delete-oc-row");
         const printMonthlyBtn = e.target.closest(".btn-oc-row-print-monthly");
@@ -913,7 +913,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Bulk / Monthly Report Print for Online Cost Tracker
     document.getElementById("btn-print-oc-monthly")?.addEventListener("click", function() {
         const mText = document.getElementById("oc-filter-month").options[document.getElementById("oc-filter-month").selectedIndex].text;
         const yText = document.getElementById("oc-filter-year").options[document.getElementById("oc-filter-year").selectedIndex].text;
@@ -995,5 +994,136 @@ document.addEventListener("DOMContentLoaded", function () {
     updateCashBookUI();
     calculatePhotocopyMachine(); 
     updatePhotocopyServiceUI();
-    calculateOnlineCostAll(); // Run real-time calculation & push to dashboard initially
+    calculateOnlineCostAll(); 
+
+
+    // ==========================================================================
+    // --- MINI SUMMARY ENGINE & CODE IMPLEMENTATION ---
+    // ==========================================================================
+    const msForm = document.getElementById('ms-form');
+    const msDateInput = document.getElementById('ms-date');
+    const msPurposeInput = document.getElementById('ms-purpose');
+    const msAmountInput = document.getElementById('ms-amount');
+    const msTableBody = document.querySelector('#main-ms-table tbody');
+    const msTotalAmountEl = document.getElementById('ms-total-amount');
+    const msFilterMonth = document.getElementById('ms-filter-month');
+    const msFilterYear = document.getElementById('ms-filter-year');
+    const btnPrintMsReport = document.getElementById('btn-print-ms-report');
+
+    if (msForm) {
+        msForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const newEntry = {
+                id: Date.now(),
+                date: msDateInput.value,
+                purpose: msPurposeInput.value.trim(),
+                amount: parseFloat(msAmountInput.value) || 0
+            };
+            miniSummaryData.push(newEntry);
+            localStorage.setItem('miniSummaryData', JSON.stringify(miniSummaryData));
+            
+            // ডেটা রেন্ডার করা এবং ক্যাশ বুকের টোটাল লাইভ রি-ক্যালকুলেট করা
+            renderMiniSummaryTable();
+            updateCashBookUI(); 
+            
+            msPurposeInput.value = '';
+            msAmountInput.value = '';
+        });
+    }
+
+    if (msFilterMonth) msFilterMonth.addEventListener('change', function() {
+        renderMiniSummaryTable();
+        updateCashBookUI();
+    });
+    if (msFilterYear) msFilterYear.addEventListener('change', function() {
+        renderMiniSummaryTable();
+        updateCashBookUI();
+    });
+
+    function renderMiniSummaryTable() {
+        if (!msTableBody) return;
+        msTableBody.innerHTML = '';
+        
+        const selectedMonth = msFilterMonth?.value || 'all';
+        const selectedYear = msFilterYear?.value || 'all';
+        let totalExpense = 0, serial = 1;
+        
+        miniSummaryData.forEach(entry => {
+            const dateParts = entry.date.split('-');
+            const entryYear = dateParts[0];
+            const entryMonth = dateParts[1];
+            
+            const matchMonth = (selectedMonth === 'all' || selectedMonth === entryMonth);
+            const matchYear = (selectedYear === 'all' || selectedYear === entryYear);
+            
+            if (matchMonth && matchYear) {
+                totalExpense += entry.amount;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${serial++}</td>
+                    <td>${formatFinancialDate(entry.date)}</td>
+                    <td>${entry.purpose}</td>
+                    <td style="font-weight: 600;">৳ ${entry.amount.toLocaleString()}</td>
+                    <td>
+                        <button type="button" class="btn-delete-ms" data-id="${entry.id}">
+                            <i class="fas fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+                msTableBody.appendChild(tr);
+            }
+        });
+        
+        if (msTotalAmountEl) msTotalAmountEl.textContent = `৳ ${totalExpense.toLocaleString()}`;
+    }
+
+    msTableBody?.addEventListener('click', function(e) {
+        const deleteBtn = e.target.closest('.btn-delete-ms');
+        if (deleteBtn) {
+            const idToDelete = parseInt(deleteBtn.getAttribute('data-id'));
+            if (confirm('আপনি কি নিশ্চিত যে এই এন্ট্রিটি ডিলিট করতে চান?')) {
+                miniSummaryData = miniSummaryData.filter(entry => entry.id !== idToDelete);
+                localStorage.setItem('miniSummaryData', JSON.stringify(miniSummaryData));
+                
+                renderMiniSummaryTable();
+                updateCashBookUI(); // ডিলিট করার পর ড্যাশবোর্ড আপডেট
+            }
+        }
+    });
+
+    if (btnPrintMsReport) {
+        btnPrintMsReport.addEventListener('click', function() {
+            const printTitle = document.getElementById('print-title-main');
+            const printMeta = document.getElementById('print-meta-area');
+            const printTableWrapper = document.getElementById('print-dynamic-table-wrapper');
+            
+            if (!printTableWrapper) return;
+            
+            printTitle.textContent = "MINI SUMMARY EXPENSE REPORT";
+            printMeta.innerHTML = `
+                <p><strong>Month:</strong> ${msFilterMonth.options[msFilterMonth.selectedIndex].text}</p>
+                <p><strong>Year:</strong> ${msFilterYear.value}</p>
+                <p><strong>Print Date:</strong> 19 Jul 2026</p>
+            `;
+            
+            const tableClone = document.getElementById('main-ms-table').cloneNode(true);
+            tableClone.querySelectorAll('th:last-child, td:last-child').forEach(el => el.remove());
+            
+            const tfoot = document.createElement('tfoot');
+            tfoot.innerHTML = `
+                <tr style="font-weight: bold; background: #f1f5f9;">
+                    <td colspan="2" style="text-align: right; padding: 10px;">Total Expense:</td>
+                    <td style="padding: 10px;">${msTotalAmountEl.textContent}</td>
+                </tr>
+            `;
+            tableClone.appendChild(tfoot);
+            printTableWrapper.innerHTML = '';
+            printTableWrapper.appendChild(tableClone);
+            window.print();
+        });
+    }
+
+    // প্রথমবার লোডের সময় সঠিক হিসাব পুশ করা
+    renderMiniSummaryTable();
+    updateCashBookUI();
 });
