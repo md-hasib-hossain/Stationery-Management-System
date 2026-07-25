@@ -25,6 +25,11 @@ document.addEventListener("DOMContentLoaded", function () {
         { id: 4001, date: '2026-07-19', item: 'A4 Size Paper Box & Pilot Pens', amount: 2000, note: 'Supplier Market Entry' }
     ];
 
+    // --- PARTNERSHIP MANAGEMENT DATABASE ENGINE ---
+    let partnershipData = JSON.parse(localStorage.getItem('partnershipData')) || [
+        { id: 8001, date: '2026-07-19', partnerName: 'Rahim Ahmed', shareAmount: 50000, remarks: 'Initial Business Capital Share' }
+    ];
+
     // Photocopy Service Array Database (With Expense Breakdown)
     let photocopyServiceRecords = [
         { 
@@ -73,30 +78,15 @@ document.addEventListener("DOMContentLoaded", function () {
             targetViewElement.classList.add("active-view");
         }
 
-        if (targetViewId === "mobile-banking") {
-            updateMobileBankingUI();
-        }
-        if (targetViewId === "online-cost") {
-            calculateOnlineCostAll();
-        }
-        if (targetViewId === "mini-summary") {
-            renderMiniSummaryTable();
-        }
-        if (targetViewId === "daily-sale" || targetViewId === "daily-report") {
-            renderDailySalesTable();
-        }
-        if (targetViewId === "purchase") {
-            renderPurchaseTable();
-        }
-        if (targetViewId === "expense-management") {
-            renderExpenseTable();
-        }
-        if (targetViewId === "cash-book") {
-            updateCashBookUI();
-        }
-        if (targetViewId === "photocopy-service") {
-            updatePhotocopyServiceUI();
-        }
+        if (targetViewId === "mobile-banking") updateMobileBankingUI();
+        if (targetViewId === "online-cost") calculateOnlineCostAll();
+        if (targetViewId === "mini-summary") renderMiniSummaryTable();
+        if (targetViewId === "daily-sale" || targetViewId === "daily-report") renderDailySalesTable();
+        if (targetViewId === "purchase") renderPurchaseTable();
+        if (targetViewId === "expense-management") renderExpenseTable();
+        if (targetViewId === "partnership" || targetViewId === "partnership-management") renderPartnershipTable();
+        if (targetViewId === "cash-book") updateCashBookUI();
+        if (targetViewId === "photocopy-service") updatePhotocopyServiceUI();
     }
 
     // Navigation System for Sidebar
@@ -138,6 +128,225 @@ document.addEventListener("DOMContentLoaded", function () {
         if(isNaN(d.getTime())) return dateString;
         return `${String(d.getDate()).padStart(2, '0')}-${months[d.getMonth()]}-${String(d.getFullYear()).slice(-2)}`;
     }
+
+
+    // --- PARTNERSHIP MANAGEMENT CORE SYSTEM ENGINE (WITH MONTH/YEAR FILTER) ---
+    const partnerForm = document.getElementById('partnership-form');
+    const partnerDateInput = document.getElementById('partner-date');
+    const partnerNameInput = document.getElementById('partner-name');
+    const partnerShareInput = document.getElementById('partner-share');
+    const partnerNoteInput = document.getElementById('partner-note');
+    const partnerTableBody = document.querySelector('#main-partnership-table tbody');
+
+    // Filter Dropdown Elements
+    const partnerFilterMonth = document.getElementById('partner-filter-month') || document.getElementById('partnership-filter-month');
+    const partnerFilterYear = document.getElementById('partner-filter-year') || document.getElementById('partnership-filter-year');
+
+    function savePartnerRecord() {
+        const dateVal = partnerDateInput ? partnerDateInput.value : '2026-07-19';
+        const nameVal = partnerNameInput ? partnerNameInput.value.trim() : '';
+        const shareVal = partnerShareInput ? parseFloat(partnerShareInput.value) || 0 : 0;
+        const noteVal = partnerNoteInput ? partnerNoteInput.value.trim() : '';
+
+        if (!nameVal) {
+            alert("দয়া করে পার্টনারের নাম ইনপুট দিন।");
+            return;
+        }
+        if (shareVal <= 0) {
+            alert("দয়া করে সঠিক শেয়ার / ইনভেস্টমেন্টের পরিমাণ দিন।");
+            return;
+        }
+
+        const newRecord = {
+            id: Math.floor(8000 + Math.random() * 2000),
+            date: dateVal,
+            partnerName: nameVal,
+            shareAmount: shareVal,
+            remarks: noteVal || 'Partnership Investment'
+        };
+
+        partnershipData.unshift(newRecord);
+        localStorage.setItem('partnershipData', JSON.stringify(partnershipData));
+
+        renderPartnershipTable();
+        
+        if (partnerNameInput) partnerNameInput.value = '';
+        if (partnerShareInput) partnerShareInput.value = '';
+        if (partnerNoteInput) partnerNoteInput.value = '';
+        if (partnerDateInput) partnerDateInput.value = "2026-07-19";
+
+        alert("পার্টনারশিপ রেকর্ড সফলভাবে সেভ করা হয়েছে!");
+    }
+
+    if (partnerForm) {
+        partnerForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            savePartnerRecord();
+        });
+    } else {
+        document.getElementById('btn-save-partner')?.addEventListener('click', function (e) {
+            e.preventDefault();
+            savePartnerRecord();
+        });
+    }
+
+    if (partnerFilterMonth) partnerFilterMonth.addEventListener('change', renderPartnershipTable);
+    if (partnerFilterYear) partnerFilterYear.addEventListener('change', renderPartnershipTable);
+
+    function renderPartnershipTable() {
+        if (!partnerTableBody) return;
+        partnerTableBody.innerHTML = '';
+
+        const selectedMonth = partnerFilterMonth?.value || 'all';
+        const selectedYear = partnerFilterYear?.value || 'all';
+
+        let totalShareSum = 0;
+        let serial = 1;
+
+        partnershipData.forEach((entry, index) => {
+            const dateParts = entry.date.split('-');
+            const entryYear = dateParts[0];
+            const entryMonth = dateParts[1];
+
+            const matchMonth = (selectedMonth === 'all' || selectedMonth === entryMonth);
+            const matchYear = (selectedYear === 'all' || selectedYear === entryYear);
+
+            if (matchMonth && matchYear) {
+                totalShareSum += entry.shareAmount;
+
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = "1px solid #cbd5e1";
+                tr.innerHTML = `
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">${serial++}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">${formatFinancialDate(entry.date)}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; font-weight: 600;">${entry.partnerName}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; font-weight: 600; color: #0284c7;">৳ ${entry.shareAmount.toLocaleString()}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">${entry.remarks || '-'}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">
+                        <div class="action-cell" style="justify-content: center; display: flex; gap: 10px;">
+                            <button type="button" class="btn-print-row btn-print-partner" data-id="${entry.id}" style="border: none; background: transparent; color: #2563eb; cursor: pointer;">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button type="button" class="btn-delete-row btn-delete-partner" data-index="${index}" style="border: none; background: transparent; color: #ef4444; cursor: pointer;">
+                                <i class="fas fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                partnerTableBody.appendChild(tr);
+            }
+        });
+
+        if (document.getElementById('total-partnership-share')) {
+            document.getElementById('total-partnership-share').innerText = "৳ " + totalShareSum.toLocaleString();
+        }
+    }
+
+    partnerTableBody?.addEventListener('click', function (e) {
+        const deleteBtn = e.target.closest('.btn-delete-partner');
+        const printBtn = e.target.closest('.btn-print-partner');
+
+        if (deleteBtn) {
+            const index = parseInt(deleteBtn.getAttribute('data-index'));
+            if (confirm('আপনি কি এই পার্টনারশিপ রেকর্ডটি মুছে ফেলতে চান?')) {
+                partnershipData.splice(index, 1);
+                localStorage.setItem('partnershipData', JSON.stringify(partnershipData));
+                renderPartnershipTable();
+            }
+        }
+
+        if (printBtn) {
+            const idToPrint = parseInt(printBtn.getAttribute("data-id"));
+            const rec = partnershipData.find(r => r.id === idToPrint);
+            if (rec) {
+                document.getElementById("print-title-main").innerText = "PARTNERSHIP INVESTMENT VOUCHER";
+                document.getElementById("print-subtitle-main").innerText = `Voucher ID: #PARTNER-${rec.id}`;
+                document.getElementById("print-meta-area").innerHTML = `<p><strong>Date:</strong> ${formatFinancialDate(rec.date)}</p><p><strong>Partner Name:</strong> ${rec.partnerName}</p>`;
+
+                let tableHtml = `
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th>Partner Name</th>
+                                <th>Share / Investment Amount</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${rec.partnerName}</td>
+                                <td style="font-weight: bold; color: #0284c7;">৳ ${rec.shareAmount.toLocaleString()}</td>
+                                <td>${rec.remarks || 'N/A'}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml;
+                window.print();
+            }
+        }
+    });
+
+    document.getElementById("btn-print-partner-report")?.addEventListener("click", function () {
+        const selectedMonth = partnerFilterMonth ? partnerFilterMonth.value : "all";
+        const selectedYear = partnerFilterYear ? partnerFilterYear.value : "all";
+
+        const mText = partnerFilterMonth ? partnerFilterMonth.options[partnerFilterMonth.selectedIndex].text : "All";
+        const yText = partnerFilterYear ? partnerFilterYear.options[partnerFilterYear.selectedIndex].text : "All";
+
+        document.getElementById("print-title-main").innerText = "PARTNERS RECORD LEDGER STATEMENT";
+        document.getElementById("print-subtitle-main").innerText = `Statement Period: ${mText} - ${yText}`;
+        document.getElementById("print-meta-area").innerHTML = `<p><strong>Report Type:</strong> Partner Investment Summary</p><p><strong>Generated Date:</strong> 19 Jul 2026</p>`;
+
+        let tableHtml = `
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">SL</th>
+                        <th style="width: 15%;">Date</th>
+                        <th>Partner Name</th>
+                        <th style="text-align: right; width: 25%;">Share / Amount (৳)</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        let totalShare = 0, sl = 1;
+
+        partnershipData.forEach(entry => {
+            const dateParts = entry.date.split('-');
+            const txYear = dateParts[0];
+            const txMonth = dateParts[1];
+
+            if ((selectedMonth === "all" || txMonth === selectedMonth) && (selectedYear === "all" || txYear === selectedYear)) {
+                totalShare += entry.shareAmount;
+                tableHtml += `
+                    <tr>
+                        <td style="text-align: center;">${sl++}</td>
+                        <td style="text-align: center;">${formatFinancialDate(entry.date)}</td>
+                        <td style="font-weight: 600;">${entry.partnerName}</td>
+                        <td style="text-align: right; color: #0284c7;">৳ ${entry.shareAmount.toLocaleString()}</td>
+                        <td>${entry.remarks || '-'}</td>
+                    </tr>
+                `;
+            }
+        });
+
+        tableHtml += `</tbody></table>`;
+        const summaryHtml = `
+            <div class="print-summary-box" style="margin-left: auto; width: 350px; margin-top: 20px;">
+                <div class="print-summary-row" style="font-weight: bold; background: #f8fafc;">
+                    <span>Total Investment / Share:</span>
+                    <span style="color: #0284c7;">৳ ${totalShare.toLocaleString()}</span>
+                </div>
+            </div>
+        `;
+
+        document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml + summaryHtml;
+        window.print();
+    });
+
 
     // --- PHOTOCOPY SERVICE SYSTEM ENGINE ---
     function updatePhotocopyServiceUI() {
@@ -390,7 +599,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         let totalPurchase = 0;
         let totalSales = 0;
-        let totalProfit = 0;
+        let totalGrossProfit = 0;
         let ledgerSl = 1;
         let recentSl = 0;
 
@@ -422,7 +631,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                     
                     totalSales += salesVal;
-                    totalProfit += profitVal;
+                    totalGrossProfit += profitVal;
                 }
 
                 if (mainTableBody) {
@@ -477,11 +686,36 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
+        let totalOtherExpenses = 0;
+
+        expenseData.forEach((exp) => {
+            const dateParts = exp.date.split('-');
+            const expYear = dateParts[0];
+            const expMonth = dateParts[1];
+            const matchMonth = (selectedMonth === 'all' || selectedMonth === expMonth);
+            const matchYear = (selectedYear === 'all' || selectedYear === expYear);
+            if (matchMonth && matchYear) {
+                totalOtherExpenses += exp.amount;
+            }
+        });
+
+        miniSummaryData.forEach((entry) => {
+            const dateParts = entry.date.split('-');
+            const entryYear = dateParts[0];
+            const entryMonth = dateParts[1];
+            const matchMonth = (selectedMonth === 'all' || selectedMonth === entryMonth);
+            const matchYear = (selectedYear === 'all' || selectedYear === entryYear);
+            if (matchMonth && matchYear) {
+                totalOtherExpenses += entry.amount;
+            }
+        });
+
+        const netProfit = totalGrossProfit - totalOtherExpenses;
         const cashInHand = totalSales - totalPurchase;
 
         if(document.getElementById("cb-total-purchase")) document.getElementById("cb-total-purchase").innerText = "৳ " + totalPurchase.toLocaleString();
         if(document.getElementById("cb-total-sales")) document.getElementById("cb-total-sales").innerText = "৳ " + totalSales.toLocaleString();
-        if(document.getElementById("cb-total-profit")) document.getElementById("cb-total-profit").innerText = "৳ " + Math.round(totalProfit).toLocaleString();
+        if(document.getElementById("cb-total-profit")) document.getElementById("cb-total-profit").innerText = "৳ " + Math.round(netProfit).toLocaleString();
 
         if(document.getElementById("total-debit")) document.getElementById("total-debit").innerText = `৳ ${totalPurchase.toLocaleString()}`;
         if(document.getElementById("total-credit")) document.getElementById("total-credit").innerText = `৳ ${totalSales.toLocaleString()}`;
@@ -490,7 +724,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if(document.getElementById("dash-sale")) document.getElementById("dash-sale").innerText = `৳ ${totalSales.toLocaleString()}`;
         if(document.getElementById("dash-expense")) document.getElementById("dash-expense").innerText = `৳ ${totalPurchase.toLocaleString()}`;
         if(document.getElementById("dash-cash")) document.getElementById("dash-cash").innerText = `৳ ${cashInHand.toLocaleString()}`;
-        if(document.getElementById("dash-profit")) document.getElementById("dash-profit").innerText = `৳ ${Math.round(totalProfit).toLocaleString()}`;
+        if(document.getElementById("dash-profit")) document.getElementById("dash-profit").innerText = `৳ ${Math.round(netProfit).toLocaleString()}`;
     }
 
     (document.getElementById("cashbook-form"))?.addEventListener("submit", function(e) {
@@ -839,7 +1073,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const dsTableBody = document.querySelector('#main-dailysale-table tbody');
     
-    // HTML-এ আইডি sale-filter বা daily-report-filter যেকোনো একটি হতে পারে, তাই উভয় চেক রাখা হলো
     const dsFilterMonth = document.getElementById('sale-filter-month') || document.getElementById('daily-report-filter-month');
     const dsFilterYear = document.getElementById('sale-filter-year') || document.getElementById('daily-report-filter-year');
 
@@ -1009,7 +1242,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- FIXED: 'Print Daily Report' বাটন কাজ করার কোড ---
     const btnPrintDailyReport = document.getElementById("btn-print-ds-report") || document.getElementById("btn-print-daily-report");
     btnPrintDailyReport?.addEventListener("click", function() {
         const filterM = document.getElementById("sale-filter-month") || document.getElementById("daily-report-filter-month");
@@ -1871,5 +2103,6 @@ document.addEventListener("DOMContentLoaded", function () {
     renderDailySalesTable();
     renderPurchaseTable();
     renderExpenseTable();
+    renderPartnershipTable();
     updateCashBookUI();
 });
