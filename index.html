@@ -37,7 +37,6 @@
             <li class="menu-item" data-target="photocopy-service"><i class="fas fa-copy"></i> <span>Photocopy Service</span></li>
             <li class="menu-item" data-target="photocopy-machine"><i class="fas fa-print"></i> <span>Photocopy Machine</span></li>
             <li class="menu-item" data-target="mobile-banking"><i class="fas fa-mobile-screen-button"></i> <span>Mobile Banking</span></li>
-            <!-- Partnership Menu Added -->
             <li class="menu-item" data-target="partnership"><i class="fas fa-handshake"></i> <span>Partnership</span></li>
 
             <li class="menu-label">REPORTS</li>
@@ -127,7 +126,7 @@
                     </div>
 
                     <!-- SECOND ROW: ONLINE & PRODUCTION LIVE CARDS -->
-                    <div class="cards" style="margin-bottom: 30px;">
+                    <div class="cards" style="margin-bottom: 20px;">
                         <!-- Online Net -->
                         <div class="card" style="padding: 15px; display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: flex-start;">
                             <div style="background: #dbeafe; color: #2563eb; width: 45px; height: 45px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 18px; flex-shrink: 0;">
@@ -162,6 +161,39 @@
                             <div>
                                 <span style="font-size: 12px; color: #64748b; font-weight: 500; display: block;">Final Net Income</span>
                                 <span id="dash-final-net" style="font-size: 20px; font-weight: 700; color: #8b5cf6;">৳ 4,750</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- THIRD ROW: MOBILE BANKING, PHOTOCOPY & OVERALL TOTAL PROFIT -->
+                    <div class="cards" style="margin-bottom: 30px;">
+                        <!-- Mobile Banking Net Profit -->
+                        <div class="card" style="padding: 15px; display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: flex-start;">
+                            <div style="background: #fce7f3; color: #ec4899; width: 45px; height: 45px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 18px; flex-shrink: 0;">
+                                <i class="fas fa-mobile-screen-button"></i></div>
+                            <div>
+                                <span style="font-size: 12px; color: #64748b; font-weight: 500; display: block;">Mobile Banking Profit</span>
+                                <span id="dash-mobile-profit" style="font-size: 20px; font-weight: 700; color: #ec4899;">৳ 3,45,454</span>
+                            </div>
+                        </div>
+
+                        <!-- Photocopy Service Net Profit -->
+                        <div class="card" style="padding: 15px; display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: flex-start;">
+                            <div style="background: #e0f2fe; color: #0284c7; width: 45px; height: 45px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 18px; flex-shrink: 0;">
+                                <i class="fas fa-copy"></i></div>
+                            <div>
+                                <span style="font-size: 12px; color: #64748b; font-weight: 500; display: block;">Photocopy Net Profit</span>
+                                <span id="dash-photocopy-profit" style="font-size: 20px; font-weight: 700; color: #0284c7;">৳ 9,827</span>
+                            </div>
+                        </div>
+
+                        <!-- Overall Total Profit -->
+                        <div class="card" style="padding: 15px; display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: flex-start;">
+                            <div style="background: #dcfce7; color: #15803d; width: 45px; height: 45px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 18px; flex-shrink: 0;">
+                                <i class="fas fa-sack-dollar"></i></div>
+                            <div>
+                                <span style="font-size: 12px; color: #64748b; font-weight: 500; display: block;">Total Profit</span>
+                                <span id="dash-overall-profit" style="font-size: 20px; font-weight: 700; color: #15803d;">৳ 3,55,281</span>
                             </div>
                         </div>
                     </div>
@@ -756,7 +788,7 @@
                         <div class="table-summary-row cashbook-summary full-summary-box" style="justify-content: flex-end; margin-top: 20px;">
                             <div class="summary-item" style="background: #e6fcf5; padding: 8px 20px; border-radius: 8px; border: 1px solid #10b981;">
                                 <span>Total Net Profit</span>
-                                <strong class="text-green" id="ps-total-profit-box" style="font-size: 18px;">৳ 0</strong>
+                                <strong class="text-green" id="ps-total-profit-box" style="font-size: 18px;">৳ 9,827</strong>
                             </div>
                         </div>
                     </div>
@@ -910,13 +942,13 @@
                         </div>
                         <div class="table-summary-row cashbook-summary full-summary-box" style="justify-content: flex-end;">
                             <div class="summary-item" style="background: #ede9fe; padding: 8px 20px; border-radius: 8px; border: 1px solid #c084fc;">
-                                <span>100% Total Net Profit</span><strong class="text-purple" id="mb-total-commission" style="font-size:18px;">৳ 0</strong>
+                                <span>100% Total Net Profit</span><strong class="text-purple" id="mb-total-commission" style="font-size:18px;">৳ 3,45,454</strong>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 10. PARTNERSHIP VIEW (ADDED) -->
+                <!-- 10. PARTNERSHIP VIEW -->
                 <div id="view-partnership" class="page-view">
                     <div class="box mb-25">
                         <div class="box-header">

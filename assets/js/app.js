@@ -4,6 +4,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const mainContent = document.querySelector(".main");
     const pageTitle = document.getElementById("page-title");
 
+    // --- HELPER FUNCTION: SAFE DROPDOWN TEXT GETTER ---
+    function getSelectedText(elementId, fallback = "All") {
+        const el = document.getElementById(elementId);
+        return (el && el.selectedIndex >= 0 && el.options[el.selectedIndex]) ? el.options[el.selectedIndex].text : fallback;
+    }
+
     // --- LIVE DATABASE ENGINE (INTEGRATED WITH LOCALSTORAGE) ---
     let cashBookData = JSON.parse(localStorage.getItem('cashBookData')) || [
         { date: '2026-07-19', type: 'Sales', amount: 5000, remarks: 'Daily regular shop sales' },
@@ -30,8 +36,11 @@ document.addEventListener("DOMContentLoaded", function () {
         { id: 8001, date: '2026-07-19', partnerName: 'Rahim Ahmed', shareAmount: 50000, remarks: 'Initial Business Capital Share' }
     ];
 
-    // Photocopy Service Array Database (With Expense Breakdown)
-    let photocopyServiceRecords = [
+    // --- ONLINE COST DATABASE ENGINE ---
+    let onlineCostData = JSON.parse(localStorage.getItem('onlineCostData')) || null;
+
+    // --- PHOTOCOPY SERVICE DATABASE ENGINE ---
+    let photocopyServiceRecords = JSON.parse(localStorage.getItem('photocopyServiceRecords')) || [
         { 
             id: 7001, date: "2026-07-19", totalCopy: 10000, grossAmt: 20000, rimQty: 22.22, rimCost: 7778, netAmt: 12222, serviceCost: 500, finalProfit: 11722,
             expenses: [{ title: "Toner Refill", amount: 300 }, { title: "Technician Tip", amount: 200 }]
@@ -43,7 +52,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ];
 
     // --- MOBILE BANKING SYSTEM DB ARRAY ---
-    let mbTransactions = [
+    let mbTransactions = JSON.parse(localStorage.getItem('mbTransactions')) || [
         { id: 9001, date: "2026-07-19", details: "bKash Cash In 5000", commission: 25 },
         { id: 9002, date: "2026-07-19", details: "Nagad Cash Out 3000", commission: 15 },
         { id: 9003, date: "2026-07-10", details: "Rocket Personal Payin 2000", commission: 10 }
@@ -51,6 +60,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Local Storage থেকে Mini Summary ডেটা লোড করা
     let miniSummaryData = JSON.parse(localStorage.getItem('miniSummaryData')) || [];
+
+    // --- SPECIFIC CARD PROFIT UPDATER ENGINE ---
+    function updateProfitCardsOnly() {
+        if (typeof mbTransactions !== 'undefined' && Array.isArray(mbTransactions)) {
+            let mbProfit = mbTransactions.reduce((acc, curr) => acc + (curr.commission || 0), 0);
+            const mbElement = document.getElementById("dash-mobile-profit");
+            if (mbElement) {
+                mbElement.innerText = "৳ " + mbProfit.toLocaleString('en-IN');
+            }
+        }
+
+        if (typeof photocopyServiceRecords !== 'undefined' && Array.isArray(photocopyServiceRecords)) {
+            let psProfit = photocopyServiceRecords.reduce((acc, curr) => acc + (curr.finalProfit || 0), 0);
+            const psElement = document.getElementById("dash-photocopy-profit");
+            if (psElement) {
+                psElement.innerText = "৳ " + psProfit.toLocaleString('en-IN');
+            }
+        }
+    }
 
     // Sidebar Toggle
     if (toggleBtn && sidebar && mainContent) {
@@ -129,8 +157,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return `${String(d.getDate()).padStart(2, '0')}-${months[d.getMonth()]}-${String(d.getFullYear()).slice(-2)}`;
     }
 
-
-    // --- PARTNERSHIP MANAGEMENT CORE SYSTEM ENGINE (WITH MONTH/YEAR FILTER) ---
+    // --- PARTNERSHIP MANAGEMENT CORE SYSTEM ENGINE ---
     const partnerForm = document.getElementById('partnership-form');
     const partnerDateInput = document.getElementById('partner-date');
     const partnerNameInput = document.getElementById('partner-name');
@@ -138,7 +165,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const partnerNoteInput = document.getElementById('partner-note');
     const partnerTableBody = document.querySelector('#main-partnership-table tbody');
 
-    // Filter Dropdown Elements
     const partnerFilterMonth = document.getElementById('partner-filter-month') || document.getElementById('partnership-filter-month');
     const partnerFilterYear = document.getElementById('partner-filter-year') || document.getElementById('partnership-filter-year');
 
@@ -288,11 +314,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.getElementById("btn-print-partner-report")?.addEventListener("click", function () {
-        const selectedMonth = partnerFilterMonth ? partnerFilterMonth.value : "all";
-        const selectedYear = partnerFilterYear ? partnerFilterYear.value : "all";
-
-        const mText = partnerFilterMonth ? partnerFilterMonth.options[partnerFilterMonth.selectedIndex].text : "All";
-        const yText = partnerFilterYear ? partnerFilterYear.options[partnerFilterYear.selectedIndex].text : "All";
+        const mText = getSelectedText("partner-filter-month") || getSelectedText("partnership-filter-month");
+        const yText = getSelectedText("partner-filter-year") || getSelectedText("partnership-filter-year");
 
         document.getElementById("print-title-main").innerText = "PARTNERS RECORD LEDGER STATEMENT";
         document.getElementById("print-subtitle-main").innerText = `Statement Period: ${mText} - ${yText}`;
@@ -313,6 +336,8 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         let totalShare = 0, sl = 1;
+        const selectedMonth = partnerFilterMonth ? partnerFilterMonth.value : "all";
+        const selectedYear = partnerFilterYear ? partnerFilterYear.value : "all";
 
         partnershipData.forEach(entry => {
             const dateParts = entry.date.split('-');
@@ -346,7 +371,6 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml + summaryHtml;
         window.print();
     });
-
 
     // --- PHOTOCOPY SERVICE SYSTEM ENGINE ---
     function updatePhotocopyServiceUI() {
@@ -407,6 +431,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (document.getElementById("ps-total-profit-box")) {
             document.getElementById("ps-total-profit-box").innerText = "৳ " + totalFilteredProfit.toLocaleString();
         }
+
+        updateProfitCardsOnly();
     }
 
     document.getElementById("btn-save-ps-record")?.addEventListener("click", function() {
@@ -448,6 +474,8 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         photocopyServiceRecords.unshift(newRecord);
+        localStorage.setItem('photocopyServiceRecords', JSON.stringify(photocopyServiceRecords));
+        
         updatePhotocopyServiceUI();
         alert("ক্যালকুলেশন সাকসেসফুলি সেভ করা হয়েছে!");
     });
@@ -460,6 +488,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const idToDelete = parseInt(deleteBtn.getAttribute("data-id"));
             if (confirm("আপনি কি এই ফটোকপি সার্ভিস রেকর্ডটি ডিলিট করতে চান?")) {
                 photocopyServiceRecords = photocopyServiceRecords.filter(r => r.id !== idToDelete);
+                localStorage.setItem('photocopyServiceRecords', JSON.stringify(photocopyServiceRecords));
                 updatePhotocopyServiceUI();
             }
         }
@@ -514,8 +543,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.getElementById("btn-print-ps-report")?.addEventListener("click", function() {
-        const mText = document.getElementById("ps-filter-month").options[document.getElementById("ps-filter-month").selectedIndex].text;
-        const yText = document.getElementById("ps-filter-year").options[document.getElementById("ps-filter-year").selectedIndex].text;
+        const mText = getSelectedText("ps-filter-month");
+        const yText = getSelectedText("ps-filter-year");
 
         document.getElementById("print-title-main").innerText = "PHOTOCOPY SERVICE REPORT STATEMENT";
         document.getElementById("print-subtitle-main").innerText = `Statement Period: ${mText} - ${yText}`;
@@ -540,8 +569,8 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         let totalCopies = 0, totalGross = 0, totalRimCost = 0, totalNet = 0, totalExp = 0, totalProfit = 0, sl = 1;
-        const selectedMonth = document.getElementById("ps-filter-month").value;
-        const selectedYear = document.getElementById("ps-filter-year").value;
+        const selectedMonth = document.getElementById("ps-filter-month")?.value || "all";
+        const selectedYear = document.getElementById("ps-filter-year")?.value || "all";
 
         photocopyServiceRecords.forEach(rec => {
             const txYear = rec.date.substring(0, 4);
@@ -588,7 +617,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("ps-filter-month")?.addEventListener("change", updatePhotocopyServiceUI);
     document.getElementById("ps-filter-year")?.addEventListener("change", updatePhotocopyServiceUI);
-
 
     // --- CASH BOOK ENGINE & DASHBOARD ENGINE ---
     function updateCashBookUI() {
@@ -790,10 +818,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.getElementById("btn-print-ledger")?.addEventListener("click", function() {
-        const filterM = document.getElementById("filter-month");
-        const filterY = document.getElementById("filter-year");
-        const mText = filterM.options[filterM.selectedIndex].text;
-        const yText = filterY.options[filterY.selectedIndex].text;
+        const mText = getSelectedText("filter-month") || getSelectedText("cb-filter-month");
+        const yText = getSelectedText("filter-year") || getSelectedText("cb-filter-year");
 
         document.getElementById("print-title-main").innerText = "CASH BOOK LEDGER STATEMENT";
         document.getElementById("print-subtitle-main").innerText = `Statement Period: ${mText} - ${yText}`;
@@ -814,8 +840,8 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         let totalDebit = 0, totalCredit = 0, sl = 1;
-        const selectedMonth = filterM.value;
-        const selectedYear = filterY.value;
+        const selectedMonth = (document.getElementById("filter-month") || document.getElementById("cb-filter-month"))?.value || "all";
+        const selectedYear = (document.getElementById("filter-year") || document.getElementById("cb-filter-year"))?.value || "all";
 
         cashBookData.forEach(tx => {
             const txYear = tx.date.substring(0, 4);
@@ -853,7 +879,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("filter-month")?.addEventListener("change", updateCashBookUI);
     document.getElementById("filter-year")?.addEventListener("change", updateCashBookUI);
-
 
     // --- EXPENSE MANAGEMENT CORE ENGINE SYSTEM ---
     const expenseForm = document.getElementById('expense-form');
@@ -1003,10 +1028,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.getElementById("btn-print-expense-report")?.addEventListener("click", function () {
-        const filterM = document.getElementById("expense-filter-month");
-        const filterY = document.getElementById("expense-filter-year");
-        const mText = filterM.options[filterM.selectedIndex].text;
-        const yText = filterY.options[filterY.selectedIndex].text;
+        const mText = getSelectedText("expense-filter-month");
+        const yText = getSelectedText("expense-filter-year");
 
         document.getElementById("print-title-main").innerText = "OFFICE EXPENSE STATEMENT REPORT";
         document.getElementById("print-subtitle-main").innerText = `Report Period: ${mText} - ${yText}`;
@@ -1027,8 +1050,8 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         let totalExpense = 0, sl = 1;
-        const selectedMonth = filterM.value;
-        const selectedYear = filterY.value;
+        const selectedMonth = document.getElementById("expense-filter-month")?.value || "all";
+        const selectedYear = document.getElementById("expense-filter-year")?.value || "all";
 
         expenseData.forEach(entry => {
             const dateParts = entry.date.split('-');
@@ -1062,7 +1085,6 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml + summaryHtml;
         window.print();
     });
-
 
     // --- DAILY SALES CORE ENGINE SYSTEM ---
     const dsForm = document.getElementById('dailysale-form');
@@ -1244,11 +1266,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const btnPrintDailyReport = document.getElementById("btn-print-ds-report") || document.getElementById("btn-print-daily-report");
     btnPrintDailyReport?.addEventListener("click", function() {
-        const filterM = document.getElementById("sale-filter-month") || document.getElementById("daily-report-filter-month");
-        const filterY = document.getElementById("sale-filter-year") || document.getElementById("daily-report-filter-year");
-        
-        const mText = filterM ? filterM.options[filterM.selectedIndex].text : "All";
-        const yText = filterY ? filterY.options[filterY.selectedIndex].text : "All";
+        const mText = getSelectedText("sale-filter-month") || getSelectedText("daily-report-filter-month");
+        const yText = getSelectedText("sale-filter-year") || getSelectedText("daily-report-filter-year");
 
         document.getElementById("print-title-main").innerText = "STATIONERY DAILY SALES STATEMENT";
         document.getElementById("print-subtitle-main").innerText = `Report Period: ${mText} - ${yText}`;
@@ -1273,8 +1292,8 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         let totalStationery = 0, totalProfit = 0, sl = 1;
-        const selectedMonth = filterM ? filterM.value : "all";
-        const selectedYear = filterY ? filterY.value : "all";
+        const selectedMonth = dsFilterMonth ? dsFilterMonth.value : "all";
+        const selectedYear = dsFilterYear ? dsFilterYear.value : "all";
 
         dailySalesData.forEach(entry => {
             const dateParts = entry.date.split('-');
@@ -1317,7 +1336,6 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml + summaryHtml;
         window.print();
     });
-
 
     // --- PURCHASE MANAGEMENT CORE ENGINE SYSTEM ---
     const purchaseForm = document.getElementById('purchase-form');
@@ -1466,10 +1484,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.getElementById("btn-print-purchase-report")?.addEventListener("click", function () {
-        const filterM = document.getElementById("purchase-filter-month");
-        const filterY = document.getElementById("purchase-filter-year");
-        const mText = filterM.options[filterM.selectedIndex].text;
-        const yText = filterY.options[filterY.selectedIndex].text;
+        const mText = getSelectedText("purchase-filter-month");
+        const yText = getSelectedText("purchase-filter-year");
 
         document.getElementById("print-title-main").innerText = "INVENTORY PURCHASE SHEET REPORT";
         document.getElementById("print-subtitle-main").innerText = `Report Period: ${mText} - ${yText}`;
@@ -1490,8 +1506,8 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         let totalPurchase = 0, sl = 1;
-        const selectedMonth = filterM.value;
-        const selectedYear = filterY.value;
+        const selectedMonth = document.getElementById("purchase-filter-month")?.value || "all";
+        const selectedYear = document.getElementById("purchase-filter-year")?.value || "all";
 
         purchaseData.forEach(entry => {
             const dateParts = entry.date.split('-');
@@ -1525,7 +1541,6 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml + summaryHtml;
         window.print();
     });
-
 
     // --- MOBILE BANKING LOGIC ---
     const fmtBDT = (num) => "৳ " + Number(num || 0).toLocaleString('en-IN', {maximumFractionDigits: 0});
@@ -1568,6 +1583,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (document.getElementById("mb-total-commission")) {
             document.getElementById("mb-total-commission").innerText = fmtBDT(totalProfit);
         }
+
+        updateProfitCardsOnly();
     }
 
     document.getElementById("mb-form")?.addEventListener("submit", function(e) {
@@ -1578,6 +1595,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const newTx = { id: Math.floor(9000 + Math.random() * 1000), date, details, commission };
         mbTransactions.unshift(newTx);
+        localStorage.setItem('mbTransactions', JSON.stringify(mbTransactions));
+        
         updateMobileBankingUI();
         this.reset();
         document.getElementById("mb-date").value = "2026-07-19";
@@ -1589,6 +1608,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const id = parseInt(deleteBtn.getAttribute("data-id"));
             if (confirm("আপনি কি নিশ্চিতভাবে এই মোবাইল ব্যাংকিং ট্রানজেকশনটি মুছে ফেলতে চান?")) {
                 mbTransactions = mbTransactions.filter(t => t.id !== id);
+                localStorage.setItem('mbTransactions', JSON.stringify(mbTransactions));
                 updateMobileBankingUI();
             }
         }
@@ -1598,8 +1618,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("mb-filter-year")?.addEventListener("change", updateMobileBankingUI);
 
     document.getElementById("btn-print-mb-report")?.addEventListener("click", function() {
-        const mText = document.getElementById("mb-filter-month").options[document.getElementById("mb-filter-month").selectedIndex].text;
-        const yText = document.getElementById("mb-filter-year").options[document.getElementById("mb-filter-year").selectedIndex].text;
+        const mText = getSelectedText("mb-filter-month");
+        const yText = getSelectedText("mb-filter-year");
 
         if (!confirm(`আপনি কি (${mText} - ${yText}) এর মোবাইল ব্যাংকিং স্টেটমেন্ট প্রফিট শীট প্রিন্ট করতে চান?`)) return;
 
@@ -1618,12 +1638,12 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         let totalProfit = 0, sl = 1;
-        
+        const selectedMonth = document.getElementById("mb-filter-month")?.value || "all";
+        const selectedYear = document.getElementById("mb-filter-year")?.value || "all";
+
         mbTransactions.forEach(tx => {
             const txYear = tx.date.substring(0, 4);
             const txMonth = tx.date.substring(5, 7);
-            const selectedMonth = document.getElementById("mb-filter-month").value;
-            const selectedYear = document.getElementById("mb-filter-year").value;
             
             if((selectedMonth === "all" || txMonth === selectedMonth) && (selectedYear === "all" || txYear === selectedYear)) {
                 totalProfit += tx.commission;
@@ -1650,7 +1670,6 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml + summaryHtml;
         window.print();
     });
-
 
     // --- PHOTOCOPY MACHINE CALCULATION ---
     function calculatePhotocopyMachine() {
@@ -1741,8 +1760,22 @@ document.addEventListener("DOMContentLoaded", function () {
         input.addEventListener("input", calculatePhotocopyMachine);
     });
 
+    // --- ONLINE COST ENGINE (PERSISTED WITH LOCALSTORAGE FIX) ---
+    function saveOnlineCostToStorage() {
+        const rows = document.querySelectorAll("#oc-master-tbody tr");
+        const data = [];
+        rows.forEach(row => {
+            data.push({
+                date: row.querySelector(".oc-row-date")?.value || '2026-07-19',
+                particulars: row.querySelector(".oc-row-particulars")?.value || '',
+                onlineWork: row.querySelector(".oc-row-online-work")?.value || '',
+                printSale: row.querySelector(".oc-row-print-sale")?.value || '',
+                printCost: row.querySelector(".oc-row-print-cost")?.value || ''
+            });
+        });
+        localStorage.setItem('onlineCostData', JSON.stringify(data));
+    }
 
-    // --- ONLINE COST ENGINE ---
     function addOnlineMasterRow(date = '2026-07-19', particulars = '', onlineWork = '', printSale = '', printCost = '') {
         const tbody = document.getElementById("oc-master-tbody");
         if(!tbody) return;
@@ -1802,10 +1835,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const sharePrintNet = grossPrintRaw * 0.70;
         const finalCalculatedProfit = shareOnlineNet + sharePrintNet - grossCostRaw;
 
-        document.getElementById("oc-tot-online-raw").innerText = fmtBDT(grossOnlineRaw);
-        document.getElementById("oc-tot-print-raw").innerText = fmtBDT(grossPrintRaw);
-        document.getElementById("oc-tot-cost-raw").innerText = fmtBDT(grossCostRaw);
-        document.getElementById("oc-tot-margin-net").innerText = fmtBDT(finalCalculatedProfit);
+        if(document.getElementById("oc-tot-online-raw")) document.getElementById("oc-tot-online-raw").innerText = fmtBDT(grossOnlineRaw);
+        if(document.getElementById("oc-tot-print-raw")) document.getElementById("oc-tot-print-raw").innerText = fmtBDT(grossPrintRaw);
+        if(document.getElementById("oc-tot-cost-raw")) document.getElementById("oc-tot-cost-raw").innerText = fmtBDT(grossCostRaw);
+        if(document.getElementById("oc-tot-margin-net")) document.getElementById("oc-tot-margin-net").innerText = fmtBDT(finalCalculatedProfit);
         
         if(document.getElementById("oc-formula-online")) document.getElementById("oc-formula-online").innerText = fmtBDT(shareOnlineNet);
         if(document.getElementById("oc-formula-print")) document.getElementById("oc-formula-print").innerText = fmtBDT(sharePrintNet);
@@ -1821,7 +1854,16 @@ document.addEventListener("DOMContentLoaded", function () {
         if(document.getElementById("dash-print-net")) document.getElementById("dash-print-net").innerText = fmtBDT(sharePrintNet);
         if(document.getElementById("dash-total-costing")) document.getElementById("dash-total-costing").innerText = fmtBDT(grossCostRaw);
         if(document.getElementById("dash-final-net")) document.getElementById("dash-final-net").innerText = fmtBDT(finalCalculatedProfit);
-    }
+
+        saveOnlineCostToStorage();
+    };
+
+    // Online Cost Filter Change Event Listeners (FIXED)
+    document.getElementById("oc-filter-month")?.addEventListener("change", calculateOnlineCostAll);
+    document.getElementById("oc-filter-year")?.addEventListener("change", calculateOnlineCostAll);
+
+    document.getElementById("oc-master-tbody")?.addEventListener("input", saveOnlineCostToStorage);
+    document.getElementById("oc-master-tbody")?.addEventListener("change", saveOnlineCostToStorage);
 
     document.getElementById("oc-master-tbody")?.addEventListener("click", function(e) {
         const deleteBtn = e.target.closest(".btn-delete-oc-row");
@@ -1833,6 +1875,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (confirm("আপনি কি নিশ্চিতভাবে এই রো লাইনটি মুছে ফেলতে চান?")) {
                 document.getElementById(rowId)?.remove();
                 calculateOnlineCostAll();
+                saveOnlineCostToStorage();
             }
         }
 
@@ -1881,8 +1924,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.getElementById("btn-print-oc-monthly")?.addEventListener("click", function() {
-        const mText = document.getElementById("oc-filter-month").options[document.getElementById("oc-filter-month").selectedIndex].text;
-        const yText = document.getElementById("oc-filter-year").options[document.getElementById("oc-filter-year").selectedIndex].text;
+        const mText = getSelectedText("oc-filter-month");
+        const yText = getSelectedText("oc-filter-year");
 
         document.getElementById("print-title-main").innerText = "ONLINE & PRODUCTION WORK STATEMENT";
         document.getElementById("print-subtitle-main").innerText = `Statement Period: ${mText} - ${yText}`;
@@ -1904,8 +1947,8 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         let totalOnline = 0, totalPrint = 0, totalCost = 0, totalMargin = 0;
-        const selectedMonth = document.getElementById("oc-filter-month").value;
-        const selectedYear = document.getElementById("oc-filter-year").value;
+        const selectedMonth = document.getElementById("oc-filter-month")?.value || "all";
+        const selectedYear = document.getElementById("oc-filter-year")?.value || "all";
 
         document.querySelectorAll("#oc-master-tbody tr").forEach(row => {
             const rowDate = row.querySelector(".oc-row-date").value;
@@ -1951,12 +1994,20 @@ document.addEventListener("DOMContentLoaded", function () {
         window.print();
     });
 
-    document.getElementById("btn-add-oc-row")?.addEventListener("click", () => addOnlineMasterRow());
+    document.getElementById("btn-add-oc-row")?.addEventListener("click", () => {
+        addOnlineMasterRow();
+        saveOnlineCostToStorage();
+    });
 
-    // Initial Demo Records Loading
-    addOnlineMasterRow('2026-07-02', 'Logo Design & Vector Work', 4000, 0, 0);
-    addOnlineMasterRow('2026-07-06', 'T-Shirt Sublimation Printing', 0, 8500, 3200);
-
+    if (onlineCostData !== null) {
+        onlineCostData.forEach(item => {
+            addOnlineMasterRow(item.date, item.particulars, item.onlineWork, item.printSale, item.printCost);
+        });
+    } else {
+        addOnlineMasterRow('2026-07-02', 'Logo Design & Vector Work', 4000, 0, 0);
+        addOnlineMasterRow('2026-07-06', 'T-Shirt Sublimation Printing', 0, 8500, 3200);
+        saveOnlineCostToStorage();
+    }
 
     // --- MINI SUMMARY ENGINE ---
     const msForm = document.getElementById('ms-form');
@@ -2073,8 +2124,8 @@ document.addEventListener("DOMContentLoaded", function () {
             
             printTitle.textContent = "MINI SUMMARY EXPENSE REPORT";
             printMeta.innerHTML = `
-                <p><strong>Month:</strong> ${msFilterMonth.options[msFilterMonth.selectedIndex].text}</p>
-                <p><strong>Year:</strong> ${msFilterYear.value}</p>
+                <p><strong>Month:</strong> ${getSelectedText('ms-filter-month')}</p>
+                <p><strong>Year:</strong> ${getSelectedText('ms-filter-year')}</p>
                 <p><strong>Print Date:</strong> 19 Jul 2026</p>
             `;
             
@@ -2098,6 +2149,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- SETUP BOOTSTRAPPING ON INITIAL LOAD ---
     calculatePhotocopyMachine(); 
     updatePhotocopyServiceUI();
+    updateMobileBankingUI();
     calculateOnlineCostAll(); 
     renderMiniSummaryTable();
     renderDailySalesTable();
@@ -2105,4 +2157,5 @@ document.addEventListener("DOMContentLoaded", function () {
     renderExpenseTable();
     renderPartnershipTable();
     updateCashBookUI();
+    updateProfitCardsOnly();
 });
