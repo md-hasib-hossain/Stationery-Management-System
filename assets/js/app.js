@@ -36,6 +36,9 @@ document.addEventListener("DOMContentLoaded", function () {
         { id: 8001, date: '2026-07-19', partnerName: 'Rahim Ahmed', shareAmount: 50000, remarks: 'Initial Business Capital Share' }
     ];
 
+    // --- WITHDRAWN / SETTLED PROFIT TRACKER (NEW) ---
+    let partnerWithdrawnAmount = parseFloat(localStorage.getItem('partnerWithdrawnAmount')) || 0;
+
     // --- ONLINE COST DATABASE ENGINE ---
     let onlineCostData = JSON.parse(localStorage.getItem('onlineCostData')) || null;
 
@@ -61,6 +64,19 @@ document.addEventListener("DOMContentLoaded", function () {
     // Local Storage থেকে Mini Summary ডেটা লোড করা
     let miniSummaryData = JSON.parse(localStorage.getItem('miniSummaryData')) || [];
 
+    // --- SHARED TOTALS STORE FOR "TOTAL PROFIT" CARD (Today's Profit + Final Net Income + Photocopy Net Profit) ---
+    let dashboardTotals = { todayProfit: 0, finalNetIncome: 0, photocopyProfit: 0 };
+
+    function updateOverallTotalProfit() {
+        const rawTotal = (dashboardTotals.todayProfit || 0) + (dashboardTotals.finalNetIncome || 0) + (dashboardTotals.photocopyProfit || 0);
+        const availableTotal = Math.max(0, rawTotal - (partnerWithdrawnAmount || 0));
+
+        const overallEl = document.getElementById("dash-overall-profit");
+        if (overallEl) overallEl.innerText = "৳ " + Math.round(availableTotal).toLocaleString('en-IN');
+
+        if (typeof updatePartnershipSplitUI === 'function') updatePartnershipSplitUI();
+    }
+
     // --- SPECIFIC CARD PROFIT UPDATER ENGINE ---
     function updateProfitCardsOnly() {
         if (typeof mbTransactions !== 'undefined' && Array.isArray(mbTransactions)) {
@@ -77,7 +93,10 @@ document.addEventListener("DOMContentLoaded", function () {
             if (psElement) {
                 psElement.innerText = "৳ " + psProfit.toLocaleString('en-IN');
             }
+            dashboardTotals.photocopyProfit = psProfit;
         }
+
+        updateOverallTotalProfit();
     }
 
     // Sidebar Toggle
@@ -112,7 +131,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (targetViewId === "daily-sale" || targetViewId === "daily-report") renderDailySalesTable();
         if (targetViewId === "purchase") renderPurchaseTable();
         if (targetViewId === "expense-management") renderExpenseTable();
-        if (targetViewId === "partnership" || targetViewId === "partnership-management") renderPartnershipTable();
+        if (targetViewId === "partnership" || targetViewId === "partnership-management") { renderPartnershipTable(); if (typeof updatePartnershipSplitUI === 'function') updatePartnershipSplitUI(); }
         if (targetViewId === "cash-book") updateCashBookUI();
         if (targetViewId === "photocopy-service") updatePhotocopyServiceUI();
     }
@@ -157,69 +176,115 @@ document.addEventListener("DOMContentLoaded", function () {
         return `${String(d.getDate()).padStart(2, '0')}-${months[d.getMonth()]}-${String(d.getFullYear()).slice(-2)}`;
     }
 
-    // --- PARTNERSHIP MANAGEMENT CORE SYSTEM ENGINE ---
-    const partnerForm = document.getElementById('partnership-form');
-    const partnerDateInput = document.getElementById('partner-date');
-    const partnerNameInput = document.getElementById('partner-name');
-    const partnerShareInput = document.getElementById('partner-share');
-    const partnerNoteInput = document.getElementById('partner-note');
+    // --- PARTNERSHIP MANAGEMENT CORE SYSTEM ENGINE (AUTO 50% - 50% PROFIT SPLIT) ---
     const partnerTableBody = document.querySelector('#main-partnership-table tbody');
 
     const partnerFilterMonth = document.getElementById('partner-filter-month') || document.getElementById('partnership-filter-month');
     const partnerFilterYear = document.getElementById('partner-filter-year') || document.getElementById('partnership-filter-year');
 
-    function savePartnerRecord() {
-        const dateVal = partnerDateInput ? partnerDateInput.value : '2026-07-19';
-        const nameVal = partnerNameInput ? partnerNameInput.value.trim() : '';
-        const shareVal = partnerShareInput ? parseFloat(partnerShareInput.value) || 0 : 0;
-        const noteVal = partnerNoteInput ? partnerNoteInput.value.trim() : '';
+    const partner1NameInput = document.getElementById('partner1-name-input');
+    const partner2NameInput = document.getElementById('partner2-name-input');
+    const partnerTotalProfitDisplay = document.getElementById('partner-total-profit-display');
+    const partner1ShareDisplay = document.getElementById('partner1-share-display');
+    const partner2ShareDisplay = document.getElementById('partner2-share-display');
+    const partnerSettleDateInput = document.getElementById('partner-settle-date');
+    const partnerSettleNoteInput = document.getElementById('partner-settle-note');
+    const btnSettlePartnership = document.getElementById('btn-settle-partnership');
+    const partnerWithdrawnDisplay = document.getElementById('partner-withdrawn-display'); // NEW
+    const btnResetPartnerWithdrawn = document.getElementById('btn-reset-partner-withdrawn'); // NEW
 
-        if (!nameVal) {
-            alert("দয়া করে পার্টনারের নাম ইনপুট দিন।");
+    // Load saved partner names (persisted so the names don't reset on refresh)
+    let partnerNamesData = JSON.parse(localStorage.getItem('partnerNamesData')) || { partner1: 'Partner 1', partner2: 'Partner 2' };
+    if (partner1NameInput) partner1NameInput.value = partnerNamesData.partner1;
+    if (partner2NameInput) partner2NameInput.value = partnerNamesData.partner2;
+
+    function savePartnerNames() {
+        partnerNamesData = {
+            partner1: (partner1NameInput?.value.trim()) || 'Partner 1',
+            partner2: (partner2NameInput?.value.trim()) || 'Partner 2'
+        };
+        localStorage.setItem('partnerNamesData', JSON.stringify(partnerNamesData));
+    }
+    partner1NameInput?.addEventListener('input', savePartnerNames);
+    partner2NameInput?.addEventListener('input', savePartnerNames);
+
+    // Live 50% - 50% split of the Overall Total Profit (Today's Profit + Final Net Income + Photocopy Net Profit)
+    // মাইনাস করা হয়েছে যা আগে Settle করা হয়ে গেছে (partnerWithdrawnAmount)
+    function updatePartnershipSplitUI() {
+        const rawTotal = (typeof dashboardTotals !== 'undefined')
+            ? ((dashboardTotals.todayProfit || 0) + (dashboardTotals.finalNetIncome || 0) + (dashboardTotals.photocopyProfit || 0))
+            : 0;
+        const availableTotal = Math.max(0, rawTotal - (partnerWithdrawnAmount || 0));
+        const half = availableTotal / 2;
+
+        if (partnerTotalProfitDisplay) partnerTotalProfitDisplay.innerText = "৳ " + Math.round(availableTotal).toLocaleString('en-IN');
+        if (partner1ShareDisplay) partner1ShareDisplay.innerText = "৳ " + Math.round(half).toLocaleString('en-IN');
+        if (partner2ShareDisplay) partner2ShareDisplay.innerText = "৳ " + Math.round(half).toLocaleString('en-IN');
+        if (partnerWithdrawnDisplay) partnerWithdrawnDisplay.innerText = "৳ " + Math.round(partnerWithdrawnAmount || 0).toLocaleString('en-IN');
+    }
+
+    // Settle & Save: records each partner's 50% share into the Profit Distribution Ledger
+    // এবং সেই পরিমাণ টাকা "Withdrawn" হিসেবে যোগ করে দেয় যাতে Available Total Profit ও Dashboard Total Profit 0 হয়ে যায়
+    btnSettlePartnership?.addEventListener('click', function () {
+        const rawTotal = (typeof dashboardTotals !== 'undefined')
+            ? ((dashboardTotals.todayProfit || 0) + (dashboardTotals.finalNetIncome || 0) + (dashboardTotals.photocopyProfit || 0))
+            : 0;
+        const totalProfit = Math.max(0, rawTotal - (partnerWithdrawnAmount || 0));
+
+        if (totalProfit <= 0) {
+            alert("দুঃখিত, ভাগ করার জন্য বর্তমানে কোনো Total Profit নেই।");
             return;
         }
-        if (shareVal <= 0) {
-            alert("দয়া করে সঠিক শেয়ার / ইনভেস্টমেন্টের পরিমাণ দিন।");
-            return;
-        }
 
-        const newRecord = {
+        const half = Math.round(totalProfit / 2);
+        const dateVal = partnerSettleDateInput ? partnerSettleDateInput.value : '2026-07-19';
+        const noteVal = (partnerSettleNoteInput?.value.trim()) || 'Profit Settlement (50% Share)';
+        const partner1Name = (partner1NameInput?.value.trim()) || 'Partner 1';
+        const partner2Name = (partner2NameInput?.value.trim()) || 'Partner 2';
+
+        if (!confirm(`মোট লাভ ৳ ${Math.round(totalProfit).toLocaleString()} থেকে প্রতিজন ৳ ${half.toLocaleString()} করে সেটেল করতে চান?`)) return;
+
+        partnershipData.unshift({
             id: Math.floor(8000 + Math.random() * 2000),
             date: dateVal,
-            partnerName: nameVal,
-            shareAmount: shareVal,
-            remarks: noteVal || 'Partnership Investment'
-        };
+            partnerName: partner1Name,
+            shareAmount: half,
+            remarks: noteVal
+        });
+        partnershipData.unshift({
+            id: Math.floor(8000 + Math.random() * 2000),
+            date: dateVal,
+            partnerName: partner2Name,
+            shareAmount: half,
+            remarks: noteVal
+        });
 
-        partnershipData.unshift(newRecord);
         localStorage.setItem('partnershipData', JSON.stringify(partnershipData));
-
         renderPartnershipTable();
-        
-        if (partnerNameInput) partnerNameInput.value = '';
-        if (partnerShareInput) partnerShareInput.value = '';
-        if (partnerNoteInput) partnerNoteInput.value = '';
-        if (partnerDateInput) partnerDateInput.value = "2026-07-19";
 
-        alert("পার্টনারশিপ রেকর্ড সফলভাবে সেভ করা হয়েছে!");
-    }
+        // NEW: এই টাকাটা "উত্তোলিত" হিসেবে চিহ্নিত করে দেওয়া হলো
+        partnerWithdrawnAmount += totalProfit;
+        localStorage.setItem('partnerWithdrawnAmount', JSON.stringify(partnerWithdrawnAmount));
+        updateOverallTotalProfit();
 
-    if (partnerForm) {
-        partnerForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            savePartnerRecord();
-        });
-    } else {
-        document.getElementById('btn-save-partner')?.addEventListener('click', function (e) {
-            e.preventDefault();
-            savePartnerRecord();
-        });
-    }
+        if (partnerSettleNoteInput) partnerSettleNoteInput.value = '';
+        alert("প্রফিট সফলভাবে দুই পার্টনারের মধ্যে ভাগ করে সেভ করা হয়েছে!");
+    });
+
+    // NEW: Reset withdrawn amount handler
+    btnResetPartnerWithdrawn?.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (confirm('আপনি কি Withdrawn এমাউন্ট রিসেট করতে চান? এটি করলে Available Total Profit আবার পূর্ণ পরিমাণে দেখাবে।')) {
+            partnerWithdrawnAmount = 0;
+            localStorage.removeItem('partnerWithdrawnAmount');
+            updateOverallTotalProfit();
+        }
+    });
 
     if (partnerFilterMonth) partnerFilterMonth.addEventListener('change', renderPartnershipTable);
     if (partnerFilterYear) partnerFilterYear.addEventListener('change', renderPartnershipTable);
 
-    function renderPartnershipTable() {
+        function renderPartnershipTable() {
         if (!partnerTableBody) return;
         partnerTableBody.innerHTML = '';
 
@@ -446,7 +511,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const totalCopy = totalCount - avgePcs;
         if(totalCopy <= 0) {
-            alert("দুঃখিত, কোনো ডাটা পাওয়া যায়নি! প্রথমে Photocopy Machine ক্যালকুলেটরে রিডিং ইনপুট দিন।");
+            alert("দুঃখিত, কোনো ডাটা পাওয়া যায়নি! প্রথমে Photocopy Machine ক্যালকুলেটরে রিডিং ইনপুট দিন।");
             return;
         }
 
@@ -477,7 +542,7 @@ document.addEventListener("DOMContentLoaded", function () {
         localStorage.setItem('photocopyServiceRecords', JSON.stringify(photocopyServiceRecords));
         
         updatePhotocopyServiceUI();
-        alert("ক্যালকুলেশন সাকসেসফুলি সেভ করা হয়েছে!");
+        alert("ক্যালকুলেশন সাকসেসফুলি সেভ করা হয়েছে!");
     });
 
     document.getElementById("main-ps-table")?.addEventListener("click", function(e) {
@@ -753,6 +818,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if(document.getElementById("dash-expense")) document.getElementById("dash-expense").innerText = `৳ ${totalPurchase.toLocaleString()}`;
         if(document.getElementById("dash-cash")) document.getElementById("dash-cash").innerText = `৳ ${cashInHand.toLocaleString()}`;
         if(document.getElementById("dash-profit")) document.getElementById("dash-profit").innerText = `৳ ${Math.round(netProfit).toLocaleString()}`;
+
+        dashboardTotals.todayProfit = netProfit;
+        updateOverallTotalProfit();
     }
 
     (document.getElementById("cashbook-form"))?.addEventListener("submit", function(e) {
@@ -899,7 +967,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const noteVal = expNoteInput.value.trim();
 
             if (amountVal <= 0) {
-                alert("দয়া করে সঠিক খরচের পরিমাণ ইনপুট দিন।");
+                alert("দয়া করে সঠিক খরচের পরিমাণ ইনপুট দিন।");
                 return;
             }
 
@@ -927,7 +995,7 @@ document.addEventListener("DOMContentLoaded", function () {
             this.reset();
 
             if (expDateInput) expDateInput.value = "2026-07-19";
-            alert("খরচের হিসাব সফলভাবে সেভ এবং ক্যাশ বুকে যুক্ত করা হয়েছে!");
+            alert("খরচের হিসাব সফলভাবে সেভ এবং ক্যাশ বুকে যুক্ত করা হয়েছে!");
         });
     }
 
@@ -1113,7 +1181,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const noteVal = dsNoteInput.value.trim();
 
             if (stationeryVal <= 0) {
-                alert("দয়া করে সঠিক বিক্রয় মূল্য ইনপুট দিন।");
+                alert("দয়া করে সঠিক বিক্রয় মূল্য ইনপুট দিন।");
                 return;
             }
 
@@ -1144,7 +1212,7 @@ document.addEventListener("DOMContentLoaded", function () {
             this.reset();
             
             if (dsDateInput) dsDateInput.value = "2026-07-19";
-            alert("ডেইলি সেলস ডেটা সফলভাবে সেভ এবং ক্যাশ বুকে যুক্ত করা হয়েছে!");
+            alert("ডেইলি সেলস ডেটা সফলভাবে সেভ এবং ক্যাশ বুকে যুক্ত করা হয়েছে!");
         });
     }
 
@@ -1356,7 +1424,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const noteVal = purNoteInput.value.trim();
 
             if (amountVal <= 0) {
-                alert("দয়া করে সঠিক ক্রয়ের পরিমাণ ইনপুট দিন।");
+                alert("দয়া করে সঠিক ক্রয়ের পরিমাণ ইনপুট দিন।");
                 return;
             }
 
@@ -1855,6 +1923,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if(document.getElementById("dash-total-costing")) document.getElementById("dash-total-costing").innerText = fmtBDT(grossCostRaw);
         if(document.getElementById("dash-final-net")) document.getElementById("dash-final-net").innerText = fmtBDT(finalCalculatedProfit);
 
+        dashboardTotals.finalNetIncome = finalCalculatedProfit;
+        updateOverallTotalProfit();
+
         saveOnlineCostToStorage();
     };
 
@@ -2103,13 +2174,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (btnClearMsData) {
         btnClearMsData.addEventListener('click', function() {
-            if (confirm('বসের হুঁশিয়ারি! আপনি কি নিশ্চিতভাবে সমস্ত মিনি সামারি ডাটা মুছে ফেলতে চান? এটি ড্যাশবোর্ডের খরচও আপডেট করে দেবে।')) {
+            if (confirm('বসের হুঁশিয়ারি! আপনি কি নিশ্চিতভাবে সমস্ত মিনি সামারি ডাটা মুছে ফেলতে চান? এটি ড্যাশবোর্ডের খরচও আপডেট করে দেবে।')) {
                 miniSummaryData = [];
                 localStorage.removeItem('miniSummaryData');
                 
                 renderMiniSummaryTable();
                 updateCashBookUI();
-                alert('সমস্ত মিনি সামারি রেকর্ড সফলভাবে মুছে ফেলা হয়েছে!');
+                alert('সমস্ত মিনি সামারি রেকর্ড সফলভাবে মুছে ফেলা হয়েছে!');
             }
         });
     }
