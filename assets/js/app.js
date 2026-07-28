@@ -185,13 +185,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const partner1NameInput = document.getElementById('partner1-name-input');
     const partner2NameInput = document.getElementById('partner2-name-input');
     const partnerTotalProfitDisplay = document.getElementById('partner-total-profit-display');
-    const partner1ShareDisplay = document.getElementById('partner1-share-display');
-    const partner2ShareDisplay = document.getElementById('partner2-share-display');
+    const partner1ShareInput = document.getElementById('partner1-share-input');
+    const partner2ShareInput = document.getElementById('partner2-share-input');
     const partnerSettleDateInput = document.getElementById('partner-settle-date');
     const partnerSettleNoteInput = document.getElementById('partner-settle-note');
     const btnSettlePartnership = document.getElementById('btn-settle-partnership');
     const partnerWithdrawnDisplay = document.getElementById('partner-withdrawn-display'); // NEW
     const btnResetPartnerWithdrawn = document.getElementById('btn-reset-partner-withdrawn'); // NEW
+    const btnAutofillSplit = document.getElementById('btn-autofill-5050'); // NEW: manual entry helper
 
     // Load saved partner names (persisted so the names don't reset on refresh)
     let partnerNamesData = JSON.parse(localStorage.getItem('partnerNamesData')) || { partner1: 'Partner 1', partner2: 'Partner 2' };
@@ -208,67 +209,115 @@ document.addEventListener("DOMContentLoaded", function () {
     partner1NameInput?.addEventListener('input', savePartnerNames);
     partner2NameInput?.addEventListener('input', savePartnerNames);
 
-    // Live 50% - 50% split of the Overall Total Profit (Today's Profit + Final Net Income + Photocopy Net Profit)
+    // --- MANUAL PARTNER SHARE ENTRY (NEW) ---
+    // এই দুইটা এমাউন্ট আর অটো ক্যালকুলেট হয় না, বরং হাতে লিখে এন্ট্রি করা যায়।
+    // কারণ: একজন পার্টনার চাইলে তার ভাগের টাকা ব্যবসায় রেখেও দিতে পারে, আবার পুরোটা তুলেও নিতে পারে।
+    let partnerShareValues = JSON.parse(localStorage.getItem('partnerShareValues')) || { partner1: null, partner2: null };
+    if (partner1ShareInput && partnerShareValues.partner1 !== null) partner1ShareInput.value = partnerShareValues.partner1;
+    if (partner2ShareInput && partnerShareValues.partner2 !== null) partner2ShareInput.value = partnerShareValues.partner2;
+
+    function savePartnerShareValues() {
+        partnerShareValues = {
+            partner1: (partner1ShareInput?.value !== '' && partner1ShareInput?.value !== undefined) ? (parseFloat(partner1ShareInput.value) || 0) : null,
+            partner2: (partner2ShareInput?.value !== '' && partner2ShareInput?.value !== undefined) ? (parseFloat(partner2ShareInput.value) || 0) : null
+        };
+        localStorage.setItem('partnerShareValues', JSON.stringify(partnerShareValues));
+    }
+    partner1ShareInput?.addEventListener('input', savePartnerShareValues);
+    partner2ShareInput?.addEventListener('input', savePartnerShareValues);
+
+    // "Auto 50/50 Split" link: শুধু চাইলে ব্যবহারকারী নিজে এটাতে ক্লিক করলে দুই বক্সে বর্তমান Available Total Profit এর অর্ধেক অর্ধেক বসে যাবে
+    btnAutofillSplit?.addEventListener('click', function (e) {
+        e.preventDefault();
+        const rawTotal = (typeof dashboardTotals !== 'undefined')
+            ? ((dashboardTotals.todayProfit || 0) + (dashboardTotals.finalNetIncome || 0) + (dashboardTotals.photocopyProfit || 0))
+            : 0;
+        const availableTotal = Math.max(0, rawTotal - (partnerWithdrawnAmount || 0));
+        const half = Math.round(availableTotal / 2);
+        if (partner1ShareInput) partner1ShareInput.value = half;
+        if (partner2ShareInput) partner2ShareInput.value = half;
+        savePartnerShareValues();
+    });
+
+    // Available Total Profit (Today's Profit + Final Net Income + Photocopy Net Profit) - এটা এখনো লাইভ ক্যালকুলেটেড
     // মাইনাস করা হয়েছে যা আগে Settle করা হয়ে গেছে (partnerWithdrawnAmount)
+    // NOTE: partner1-share-input / partner2-share-input এখন আর অটো ওভাররাইট হয় না, ইউজার হাতে যা লিখবে সেটাই থাকবে।
     function updatePartnershipSplitUI() {
         const rawTotal = (typeof dashboardTotals !== 'undefined')
             ? ((dashboardTotals.todayProfit || 0) + (dashboardTotals.finalNetIncome || 0) + (dashboardTotals.photocopyProfit || 0))
             : 0;
         const availableTotal = Math.max(0, rawTotal - (partnerWithdrawnAmount || 0));
-        const half = availableTotal / 2;
 
         if (partnerTotalProfitDisplay) partnerTotalProfitDisplay.innerText = "৳ " + Math.round(availableTotal).toLocaleString('en-IN');
-        if (partner1ShareDisplay) partner1ShareDisplay.innerText = "৳ " + Math.round(half).toLocaleString('en-IN');
-        if (partner2ShareDisplay) partner2ShareDisplay.innerText = "৳ " + Math.round(half).toLocaleString('en-IN');
         if (partnerWithdrawnDisplay) partnerWithdrawnDisplay.innerText = "৳ " + Math.round(partnerWithdrawnAmount || 0).toLocaleString('en-IN');
+
+        // প্রথমবার (একদম খালি থাকলে) সুবিধার জন্য 50/50 সাজেশন বসিয়ে দেওয়া হয়, তবে ইউজার একবার কিছু লিখলে বা সেভ করলে আর জোর করে বদলানো হয় না
+        const half = Math.round(availableTotal / 2);
+        if (partner1ShareInput && partner1ShareInput.value === '' && partnerShareValues.partner1 === null) {
+            partner1ShareInput.value = half;
+        }
+        if (partner2ShareInput && partner2ShareInput.value === '' && partnerShareValues.partner2 === null) {
+            partner2ShareInput.value = half;
+        }
     }
 
     // Settle & Save: records each partner's 50% share into the Profit Distribution Ledger
     // এবং সেই পরিমাণ টাকা "Withdrawn" হিসেবে যোগ করে দেয় যাতে Available Total Profit ও Dashboard Total Profit 0 হয়ে যায়
     btnSettlePartnership?.addEventListener('click', function () {
-        const rawTotal = (typeof dashboardTotals !== 'undefined')
-            ? ((dashboardTotals.todayProfit || 0) + (dashboardTotals.finalNetIncome || 0) + (dashboardTotals.photocopyProfit || 0))
-            : 0;
-        const totalProfit = Math.max(0, rawTotal - (partnerWithdrawnAmount || 0));
+        // এখন আর অটো 50/50 ক্যালকুলেট হয় না — ইউজার বক্সে যা হাতে লিখেছে সেটাই ব্যবহার হবে
+        const partner1Amt = Math.max(0, parseFloat(partner1ShareInput?.value) || 0);
+        const partner2Amt = Math.max(0, parseFloat(partner2ShareInput?.value) || 0);
+        const totalToSettle = partner1Amt + partner2Amt;
 
-        if (totalProfit <= 0) {
-            alert("দুঃখিত, ভাগ করার জন্য বর্তমানে কোনো Total Profit নেই।");
+        if (totalToSettle <= 0) {
+            alert("দুঃখিত, Settle করার জন্য কোনো Amount দেওয়া হয়নি। অনুগ্রহ করে Partner 1 ও Partner 2 এর ঘরে এমাউন্ট লিখুন।");
             return;
         }
 
-        const half = Math.round(totalProfit / 2);
         const dateVal = partnerSettleDateInput ? partnerSettleDateInput.value : '2026-07-19';
-        const noteVal = (partnerSettleNoteInput?.value.trim()) || 'Profit Settlement (50% Share)';
+        const noteVal = (partnerSettleNoteInput?.value.trim()) || 'Profit Settlement';
         const partner1Name = (partner1NameInput?.value.trim()) || 'Partner 1';
         const partner2Name = (partner2NameInput?.value.trim()) || 'Partner 2';
 
-        if (!confirm(`মোট লাভ ৳ ${Math.round(totalProfit).toLocaleString()} থেকে প্রতিজন ৳ ${half.toLocaleString()} করে সেটেল করতে চান?`)) return;
+        if (!confirm(`${partner1Name}: ৳ ${partner1Amt.toLocaleString()}\n${partner2Name}: ৳ ${partner2Amt.toLocaleString()}\n\nএই এমাউন্ট সেটেল করে সেভ করতে চান?`)) return;
 
-        partnershipData.unshift({
-            id: Math.floor(8000 + Math.random() * 2000),
-            date: dateVal,
-            partnerName: partner1Name,
-            shareAmount: half,
-            remarks: noteVal
-        });
-        partnershipData.unshift({
-            id: Math.floor(8000 + Math.random() * 2000),
-            date: dateVal,
-            partnerName: partner2Name,
-            shareAmount: half,
-            remarks: noteVal
-        });
+        if (partner1Amt > 0) {
+            partnershipData.unshift({
+                id: Math.floor(8000 + Math.random() * 2000),
+                date: dateVal,
+                partnerName: partner1Name,
+                shareAmount: partner1Amt,
+                remarks: noteVal
+            });
+        }
+        if (partner2Amt > 0) {
+            partnershipData.unshift({
+                id: Math.floor(8000 + Math.random() * 2000),
+                date: dateVal,
+                partnerName: partner2Name,
+                shareAmount: partner2Amt,
+                remarks: noteVal
+            });
+        }
 
         localStorage.setItem('partnershipData', JSON.stringify(partnershipData));
         renderPartnershipTable();
 
-        // NEW: এই টাকাটা "উত্তোলিত" হিসেবে চিহ্নিত করে দেওয়া হলো
-        partnerWithdrawnAmount += totalProfit;
+        // শুধু যে এমাউন্ট আসলে Settle করা হলো সেটাই "Withdrawn" হিসেবে যোগ হবে।
+        // কোনো পার্টনার যদি তার ভাগের কিছু অংশ ব্যবসায় রেখে দেয় (বক্সে কম লিখে), সেই অংশ Available Total Profit এ থেকেই যাবে।
+        partnerWithdrawnAmount += totalToSettle;
         localStorage.setItem('partnerWithdrawnAmount', JSON.stringify(partnerWithdrawnAmount));
+
+        // Settle করার পর বক্স দুটো খালি করে দেওয়া হলো, পরের বার নতুন করে হাতে লেখা যাবে
+        if (partner1ShareInput) partner1ShareInput.value = '';
+        if (partner2ShareInput) partner2ShareInput.value = '';
+        partnerShareValues = { partner1: null, partner2: null };
+        localStorage.setItem('partnerShareValues', JSON.stringify(partnerShareValues));
+
         updateOverallTotalProfit();
 
         if (partnerSettleNoteInput) partnerSettleNoteInput.value = '';
-        alert("প্রফিট সফলভাবে দুই পার্টনারের মধ্যে ভাগ করে সেভ করা হয়েছে!");
+        alert("প্রফিট সফলভাবে সেভ করা হয়েছে!");
     });
 
     // NEW: Reset withdrawn amount handler
@@ -2066,7 +2115,27 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.getElementById("btn-add-oc-row")?.addEventListener("click", () => {
-        addOnlineMasterRow();
+        // FIX: New row now gets a date that matches the currently selected
+        // Month/Year filter. Previously the row was always created with a
+        // hardcoded date (2026-07-19), so if the filter was set to any other
+        // month/year, calculateOnlineCostAll() would immediately hide the
+        // brand-new row (display:none) because it didn't match the filter -
+        // making it look like "Add New Row Line" wasn't working at all.
+        const selMonth = document.getElementById("oc-filter-month")?.value || "all";
+        const selYear = document.getElementById("oc-filter-year")?.value || "all";
+
+        const today = new Date();
+        const todayYear = String(today.getFullYear());
+        const todayMonth = String(today.getMonth() + 1).padStart(2, '0');
+        const todayDay = String(today.getDate()).padStart(2, '0');
+
+        const targetYear = (selYear !== "all") ? selYear : todayYear;
+        const targetMonth = (selMonth !== "all") ? selMonth : todayMonth;
+        const targetDay = (targetYear === todayYear && targetMonth === todayMonth) ? todayDay : "01";
+
+        const newRowDate = `${targetYear}-${targetMonth}-${targetDay}`;
+
+        addOnlineMasterRow(newRowDate);
         saveOnlineCostToStorage();
     });
 
@@ -2214,6 +2283,7 @@ document.addEventListener("DOMContentLoaded", function () {
             printTableWrapper.innerHTML = '';
             printTableWrapper.appendChild(tableClone);
             window.print();
+
         });
     }
 
