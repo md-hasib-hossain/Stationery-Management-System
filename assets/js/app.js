@@ -211,6 +211,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (targetViewId === "mini-summary") renderMiniSummaryTable();
         if (targetViewId === "daily-sale" || targetViewId === "daily-report") renderDailySalesTable();
         if (targetViewId === "daily-report" && typeof renderDailyReport === "function") renderDailyReport();
+        if (targetViewId === "monthly-report" && typeof renderMonthlyReport === "function") renderMonthlyReport();
+        if (targetViewId === "yearly-report" && typeof renderYearlyReport === "function") renderYearlyReport();
         if (targetViewId === "purchase") renderPurchaseTable();
         if (targetViewId === "expense-management") renderExpenseTable();
         if (targetViewId === "partnership" || targetViewId === "partnership-management") { renderPartnershipTable(); updatePartnershipSplitUI(); }
@@ -2508,7 +2510,402 @@ document.addEventListener("DOMContentLoaded", function () {
         window.print();
     });
 
+    // ================= MONTHLY REPORT ENGINE =================
+    const mrFilterMonth = document.getElementById('mr-filter-month');
+    const mrFilterYear = document.getElementById('mr-filter-year');
+    const mrBreakdownBody = document.getElementById('mr-breakdown-tbody');
+    const mrDaywiseBody = document.getElementById('mr-daywise-tbody');
+    const mrCardRevenue = document.getElementById('mr-card-revenue');
+    const mrCardExpenses = document.getElementById('mr-card-expenses');
+    const mrCardProfit = document.getElementById('mr-card-profit');
+    const mrCardAvgProfit = document.getElementById('mr-card-avgprofit');
+    const btnPrintMr = document.getElementById('btn-print-mr');
+
+    const MR_SECTION_META = [
+        { name: 'Cash Book (Manual Entries)', icon: 'fa-book' },
+        { name: 'Daily Sale', icon: 'fa-cart-shopping' },
+        { name: 'Expense Management', icon: 'fa-wallet' },
+        { name: 'Purchase Management', icon: 'fa-bag-shopping' },
+        { name: 'Online Cost & Production', icon: 'fa-globe' },
+        { name: 'Photocopy Service', icon: 'fa-copy' },
+        { name: 'Mobile Banking', icon: 'fa-mobile-screen-button' },
+        { name: 'Mini Summary (Petty Expense)', icon: 'fa-file-lines' }
+    ];
+
+    function buildMonthlyReportData(monthStr, yearStr) {
+        const daysInMonth = new Date(parseInt(yearStr), parseInt(monthStr), 0).getDate();
+        const sectionTotals = MR_SECTION_META.map(meta => ({ ...meta, revenue: 0, cost: 0, profit: 0 }));
+        const dayRows = [];
+        let activeDays = 0;
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateStr = `${yearStr}-${monthStr}-${String(d).padStart(2, '0')}`;
+            const daySections = buildDailyReportSections(dateStr);
+
+            let dayRevenue = 0, dayCost = 0, dayProfit = 0;
+            daySections.forEach((sec, idx) => {
+                sectionTotals[idx].revenue += sec.revenue;
+                sectionTotals[idx].cost += sec.cost;
+                sectionTotals[idx].profit += sec.profit;
+                dayRevenue += sec.revenue;
+                dayCost += sec.cost;
+                dayProfit += sec.profit;
+            });
+
+            if (dayRevenue !== 0 || dayCost !== 0) {
+                activeDays++;
+                dayRows.push({ date: dateStr, revenue: dayRevenue, cost: dayCost, profit: dayProfit });
+            }
+        }
+
+        const grand = sectionTotals.reduce((acc, sec) => {
+            acc.revenue += sec.revenue; acc.cost += sec.cost; acc.profit += sec.profit; return acc;
+        }, { revenue: 0, cost: 0, profit: 0 });
+
+        return { sectionTotals, dayRows, grand, activeDays };
+    }
+
+    function renderMonthlyReport() {
+        if (!mrBreakdownBody) return;
+        const monthStr = mrFilterMonth?.value || '07';
+        const yearStr = mrFilterYear?.value || '2026';
+        const { sectionTotals, dayRows, grand, activeDays } = buildMonthlyReportData(monthStr, yearStr);
+
+        // Section-wise breakdown
+        mrBreakdownBody.innerHTML = '';
+        sectionTotals.forEach(sec => {
+            const profitColor = sec.profit >= 0 ? '#16a34a' : '#dc2626';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding: 12px; font-weight: 500;"><i class="fas ${sec.icon}" style="width:18px; color:#64748b; margin-right:8px;"></i>${sec.name}</td>
+                <td style="padding: 12px; text-align: right; color:#16a34a;">${sec.revenue > 0 ? fmtTk(sec.revenue) : '-'}</td>
+                <td style="padding: 12px; text-align: right; color:#dc2626;">${sec.cost > 0 ? fmtTk(sec.cost) : '-'}</td>
+                <td style="padding: 12px; text-align: right; font-weight: 700; color:${profitColor};">${fmtTk(sec.profit)}</td>
+            `;
+            mrBreakdownBody.appendChild(tr);
+        });
+        const grandSecTr = document.createElement('tr');
+        grandSecTr.style.background = '#f1f5f9';
+        grandSecTr.style.borderTop = '2px solid #cbd5e1';
+        grandSecTr.innerHTML = `
+            <td style="padding: 12px; font-weight: 700;">Grand Total</td>
+            <td style="padding: 12px; text-align: right; font-weight: 700; color:#16a34a;">${fmtTk(grand.revenue)}</td>
+            <td style="padding: 12px; text-align: right; font-weight: 700; color:#dc2626;">${fmtTk(grand.cost)}</td>
+            <td style="padding: 12px; text-align: right; font-weight: 700; color:${grand.profit >= 0 ? '#2563eb' : '#dc2626'};">${fmtTk(grand.profit)}</td>
+        `;
+        mrBreakdownBody.appendChild(grandSecTr);
+
+        // Day-wise ledger
+        if (mrDaywiseBody) {
+            mrDaywiseBody.innerHTML = '';
+            if (dayRows.length === 0) {
+                mrDaywiseBody.innerHTML = `<tr><td colspan="4" style="padding: 20px; text-align:center; color:#94a3b8;">এই মাসে কোনো লেনদেন পাওয়া যায়নি।</td></tr>`;
+            } else {
+                dayRows.forEach(row => {
+                    const profitColor = row.profit >= 0 ? '#16a34a' : '#dc2626';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="padding: 10px; text-align: center; border-bottom: 1px solid #f1f5f9;">${formatFinancialDate(row.date)}</td>
+                        <td style="padding: 10px; text-align: right; color:#16a34a; border-bottom: 1px solid #f1f5f9;">${row.revenue > 0 ? fmtTk(row.revenue) : '-'}</td>
+                        <td style="padding: 10px; text-align: right; color:#dc2626; border-bottom: 1px solid #f1f5f9;">${row.cost > 0 ? fmtTk(row.cost) : '-'}</td>
+                        <td style="padding: 10px; text-align: right; font-weight: 600; color:${profitColor}; border-bottom: 1px solid #f1f5f9;">${fmtTk(row.profit)}</td>
+                    `;
+                    mrDaywiseBody.appendChild(tr);
+                });
+                const grandDayTr = document.createElement('tr');
+                grandDayTr.style.background = '#f1f5f9';
+                grandDayTr.style.borderTop = '2px solid #cbd5e1';
+                grandDayTr.innerHTML = `
+                    <td style="padding: 12px; text-align: center; font-weight: 700;">Total (${activeDays} Days)</td>
+                    <td style="padding: 12px; text-align: right; font-weight: 700; color:#16a34a;">${fmtTk(grand.revenue)}</td>
+                    <td style="padding: 12px; text-align: right; font-weight: 700; color:#dc2626;">${fmtTk(grand.cost)}</td>
+                    <td style="padding: 12px; text-align: right; font-weight: 700; color:${grand.profit >= 0 ? '#2563eb' : '#dc2626'};">${fmtTk(grand.profit)}</td>
+                `;
+                mrDaywiseBody.appendChild(grandDayTr);
+            }
+        }
+
+        // KPI cards
+        const avgProfit = activeDays > 0 ? (grand.profit / activeDays) : 0;
+        if (mrCardRevenue) mrCardRevenue.innerText = fmtTk(grand.revenue);
+        if (mrCardExpenses) mrCardExpenses.innerText = fmtTk(grand.cost);
+        if (mrCardProfit) mrCardProfit.innerText = fmtTk(grand.profit);
+        if (mrCardAvgProfit) mrCardAvgProfit.innerText = fmtTk(avgProfit);
+    }
+
+    mrFilterMonth?.addEventListener('change', renderMonthlyReport);
+    mrFilterYear?.addEventListener('change', renderMonthlyReport);
+
+    btnPrintMr?.addEventListener('click', function () {
+        const monthStr = mrFilterMonth?.value || '07';
+        const yearStr = mrFilterYear?.value || '2026';
+        const { sectionTotals, dayRows, grand, activeDays } = buildMonthlyReportData(monthStr, yearStr);
+
+        const printTitle = document.getElementById('print-title-main');
+        const printSubtitle = document.getElementById('print-subtitle-main');
+        const printMeta = document.getElementById('print-meta-area');
+        const printTableWrapper = document.getElementById('print-dynamic-table-wrapper');
+        if (!printTableWrapper) return;
+
+        let sectionRowsHtml = '';
+        sectionTotals.forEach(sec => {
+            sectionRowsHtml += `
+                <tr>
+                    <td>${sec.name}</td>
+                    <td style="text-align:right;">${sec.revenue > 0 ? fmtTk(sec.revenue) : '-'}</td>
+                    <td style="text-align:right;">${sec.cost > 0 ? fmtTk(sec.cost) : '-'}</td>
+                    <td style="text-align:right; font-weight:700;">${fmtTk(sec.profit)}</td>
+                </tr>
+            `;
+        });
+
+        let dayRowsHtml = '';
+        dayRows.forEach(row => {
+            dayRowsHtml += `
+                <tr>
+                    <td style="text-align:center;">${formatFinancialDate(row.date)}</td>
+                    <td style="text-align:right;">${row.revenue > 0 ? fmtTk(row.revenue) : '-'}</td>
+                    <td style="text-align:right;">${row.cost > 0 ? fmtTk(row.cost) : '-'}</td>
+                    <td style="text-align:right; font-weight:700;">${fmtTk(row.profit)}</td>
+                </tr>
+            `;
+        });
+
+        if (printTitle) printTitle.textContent = 'MONTHLY FINANCIAL STATEMENT';
+        if (printSubtitle) printSubtitle.textContent = 'Stationery Management System';
+        if (printMeta) {
+            printMeta.innerHTML = `
+                <p><strong>Month:</strong> ${getSelectedText('mr-filter-month')} ${yearStr}</p>
+                <p><strong>Active Business Days:</strong> ${activeDays}</p>
+                <p><strong>Generated On:</strong> ${formatFinancialDate('2026-07-19')}</p>
+            `;
+        }
+
+        printTableWrapper.innerHTML = `
+            <h3 style="font-size: 15px; margin-bottom: 10px; color:#1e293b;">Section-Wise Financial Breakdown</h3>
+            <table class="print-table" style="margin-bottom: 25px;">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;">Business Sector Module</th>
+                        <th style="text-align:right;">Revenue (৳)</th>
+                        <th style="text-align:right;">Expense (৳)</th>
+                        <th style="text-align:right;">Net Profit (৳)</th>
+                    </tr>
+                </thead>
+                <tbody>${sectionRowsHtml}</tbody>
+            </table>
+            <h3 style="font-size: 15px; margin-bottom: 10px; color:#1e293b;">Day-Wise Ledger</h3>
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:center;">Date</th>
+                        <th style="text-align:right;">Revenue (৳)</th>
+                        <th style="text-align:right;">Expense (৳)</th>
+                        <th style="text-align:right;">Net Profit (৳)</th>
+                    </tr>
+                </thead>
+                <tbody>${dayRowsHtml || '<tr><td colspan="4" style="text-align:center;">No transactions found.</td></tr>'}</tbody>
+            </table>
+            <div class="print-summary-box">
+                <div class="print-summary-row"><span>Total Revenue (Monthly)</span><strong>${fmtTk(grand.revenue)}</strong></div>
+                <div class="print-summary-row"><span>Total Cost &amp; Expenses</span><strong>${fmtTk(grand.cost)}</strong></div>
+                <div class="print-summary-row"><span>Net Profit for the Month</span><strong>${fmtTk(grand.profit)}</strong></div>
+            </div>
+        `;
+
+        window.print();
+    });
+
+    // ================= YEARLY REPORT ENGINE =================
+    const yrFilterYear = document.getElementById('yr-filter-year');
+    const yrBreakdownBody = document.getElementById('yr-breakdown-tbody');
+    const yrMonthwiseBody = document.getElementById('yr-monthwise-tbody');
+    const yrCardRevenue = document.getElementById('yr-card-revenue');
+    const yrCardExpenses = document.getElementById('yr-card-expenses');
+    const yrCardProfit = document.getElementById('yr-card-profit');
+    const yrCardAvgProfit = document.getElementById('yr-card-avgprofit');
+    const btnPrintYr = document.getElementById('btn-print-yr');
+
+    const MONTH_NAMES_SHORT = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+    function buildYearlyReportData(yearStr) {
+        const sectionTotals = MR_SECTION_META.map(meta => ({ ...meta, revenue: 0, cost: 0, profit: 0 }));
+        const monthRows = [];
+        let activeMonths = 0;
+
+        for (let m = 1; m <= 12; m++) {
+            const monthStr = String(m).padStart(2, '0');
+            const monthData = buildMonthlyReportData(monthStr, yearStr);
+
+            monthData.sectionTotals.forEach((sec, idx) => {
+                sectionTotals[idx].revenue += sec.revenue;
+                sectionTotals[idx].cost += sec.cost;
+                sectionTotals[idx].profit += sec.profit;
+            });
+
+            if (monthData.grand.revenue !== 0 || monthData.grand.cost !== 0) activeMonths++;
+            monthRows.push({
+                label: MONTH_NAMES_SHORT[m - 1],
+                revenue: monthData.grand.revenue,
+                cost: monthData.grand.cost,
+                profit: monthData.grand.profit
+            });
+        }
+
+        const grand = sectionTotals.reduce((acc, sec) => {
+            acc.revenue += sec.revenue; acc.cost += sec.cost; acc.profit += sec.profit; return acc;
+        }, { revenue: 0, cost: 0, profit: 0 });
+
+        return { sectionTotals, monthRows, grand, activeMonths };
+    }
+
+    function renderYearlyReport() {
+        if (!yrBreakdownBody) return;
+        const yearStr = yrFilterYear?.value || '2026';
+        const { sectionTotals, monthRows, grand, activeMonths } = buildYearlyReportData(yearStr);
+
+        // Section-wise breakdown
+        yrBreakdownBody.innerHTML = '';
+        sectionTotals.forEach(sec => {
+            const profitColor = sec.profit >= 0 ? '#16a34a' : '#dc2626';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding: 12px; font-weight: 500;"><i class="fas ${sec.icon}" style="width:18px; color:#64748b; margin-right:8px;"></i>${sec.name}</td>
+                <td style="padding: 12px; text-align: right; color:#16a34a;">${sec.revenue > 0 ? fmtTk(sec.revenue) : '-'}</td>
+                <td style="padding: 12px; text-align: right; color:#dc2626;">${sec.cost > 0 ? fmtTk(sec.cost) : '-'}</td>
+                <td style="padding: 12px; text-align: right; font-weight: 700; color:${profitColor};">${fmtTk(sec.profit)}</td>
+            `;
+            yrBreakdownBody.appendChild(tr);
+        });
+        const grandSecTr = document.createElement('tr');
+        grandSecTr.style.background = '#f1f5f9';
+        grandSecTr.style.borderTop = '2px solid #cbd5e1';
+        grandSecTr.innerHTML = `
+            <td style="padding: 12px; font-weight: 700;">Grand Total</td>
+            <td style="padding: 12px; text-align: right; font-weight: 700; color:#16a34a;">${fmtTk(grand.revenue)}</td>
+            <td style="padding: 12px; text-align: right; font-weight: 700; color:#dc2626;">${fmtTk(grand.cost)}</td>
+            <td style="padding: 12px; text-align: right; font-weight: 700; color:${grand.profit >= 0 ? '#2563eb' : '#dc2626'};">${fmtTk(grand.profit)}</td>
+        `;
+        yrBreakdownBody.appendChild(grandSecTr);
+
+        // Month-wise ledger (always shows all 12 months)
+        if (yrMonthwiseBody) {
+            yrMonthwiseBody.innerHTML = '';
+            monthRows.forEach(row => {
+                const profitColor = row.profit >= 0 ? '#16a34a' : '#dc2626';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="padding: 10px; text-align: center; border-bottom: 1px solid #f1f5f9; font-weight: 500;">${row.label}</td>
+                    <td style="padding: 10px; text-align: right; color:#16a34a; border-bottom: 1px solid #f1f5f9;">${row.revenue > 0 ? fmtTk(row.revenue) : '-'}</td>
+                    <td style="padding: 10px; text-align: right; color:#dc2626; border-bottom: 1px solid #f1f5f9;">${row.cost > 0 ? fmtTk(row.cost) : '-'}</td>
+                    <td style="padding: 10px; text-align: right; font-weight: 600; color:${profitColor}; border-bottom: 1px solid #f1f5f9;">${fmtTk(row.profit)}</td>
+                `;
+                yrMonthwiseBody.appendChild(tr);
+            });
+            const grandMonthTr = document.createElement('tr');
+            grandMonthTr.style.background = '#f1f5f9';
+            grandMonthTr.style.borderTop = '2px solid #cbd5e1';
+            grandMonthTr.innerHTML = `
+                <td style="padding: 12px; text-align: center; font-weight: 700;">Yearly Total</td>
+                <td style="padding: 12px; text-align: right; font-weight: 700; color:#16a34a;">${fmtTk(grand.revenue)}</td>
+                <td style="padding: 12px; text-align: right; font-weight: 700; color:#dc2626;">${fmtTk(grand.cost)}</td>
+                <td style="padding: 12px; text-align: right; font-weight: 700; color:${grand.profit >= 0 ? '#2563eb' : '#dc2626'};">${fmtTk(grand.profit)}</td>
+            `;
+            yrMonthwiseBody.appendChild(grandMonthTr);
+        }
+
+        // KPI cards
+        const avgProfit = activeMonths > 0 ? (grand.profit / activeMonths) : 0;
+        if (yrCardRevenue) yrCardRevenue.innerText = fmtTk(grand.revenue);
+        if (yrCardExpenses) yrCardExpenses.innerText = fmtTk(grand.cost);
+        if (yrCardProfit) yrCardProfit.innerText = fmtTk(grand.profit);
+        if (yrCardAvgProfit) yrCardAvgProfit.innerText = fmtTk(avgProfit);
+    }
+
+    yrFilterYear?.addEventListener('change', renderYearlyReport);
+
+    btnPrintYr?.addEventListener('click', function () {
+        const yearStr = yrFilterYear?.value || '2026';
+        const { sectionTotals, monthRows, grand, activeMonths } = buildYearlyReportData(yearStr);
+
+        const printTitle = document.getElementById('print-title-main');
+        const printSubtitle = document.getElementById('print-subtitle-main');
+        const printMeta = document.getElementById('print-meta-area');
+        const printTableWrapper = document.getElementById('print-dynamic-table-wrapper');
+        if (!printTableWrapper) return;
+
+        let sectionRowsHtml = '';
+        sectionTotals.forEach(sec => {
+            sectionRowsHtml += `
+                <tr>
+                    <td>${sec.name}</td>
+                    <td style="text-align:right;">${sec.revenue > 0 ? fmtTk(sec.revenue) : '-'}</td>
+                    <td style="text-align:right;">${sec.cost > 0 ? fmtTk(sec.cost) : '-'}</td>
+                    <td style="text-align:right; font-weight:700;">${fmtTk(sec.profit)}</td>
+                </tr>
+            `;
+        });
+
+        let monthRowsHtml = '';
+        monthRows.forEach(row => {
+            monthRowsHtml += `
+                <tr>
+                    <td style="text-align:center;">${row.label}</td>
+                    <td style="text-align:right;">${row.revenue > 0 ? fmtTk(row.revenue) : '-'}</td>
+                    <td style="text-align:right;">${row.cost > 0 ? fmtTk(row.cost) : '-'}</td>
+                    <td style="text-align:right; font-weight:700;">${fmtTk(row.profit)}</td>
+                </tr>
+            `;
+        });
+
+        if (printTitle) printTitle.textContent = 'YEARLY FINANCIAL STATEMENT';
+        if (printSubtitle) printSubtitle.textContent = 'Stationery Management System';
+        if (printMeta) {
+            printMeta.innerHTML = `
+                <p><strong>Year:</strong> ${yearStr}</p>
+                <p><strong>Active Business Months:</strong> ${activeMonths} / 12</p>
+                <p><strong>Generated On:</strong> ${formatFinancialDate('2026-07-19')}</p>
+            `;
+        }
+
+        printTableWrapper.innerHTML = `
+            <h3 style="font-size: 15px; margin-bottom: 10px; color:#1e293b;">Section-Wise Financial Breakdown</h3>
+            <table class="print-table" style="margin-bottom: 25px;">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;">Business Sector Module</th>
+                        <th style="text-align:right;">Revenue (৳)</th>
+                        <th style="text-align:right;">Expense (৳)</th>
+                        <th style="text-align:right;">Net Profit (৳)</th>
+                    </tr>
+                </thead>
+                <tbody>${sectionRowsHtml}</tbody>
+            </table>
+            <h3 style="font-size: 15px; margin-bottom: 10px; color:#1e293b;">Month-Wise Ledger</h3>
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:center;">Month</th>
+                        <th style="text-align:right;">Revenue (৳)</th>
+                        <th style="text-align:right;">Expense (৳)</th>
+                        <th style="text-align:right;">Net Profit (৳)</th>
+                    </tr>
+                </thead>
+                <tbody>${monthRowsHtml}</tbody>
+            </table>
+            <div class="print-summary-box">
+                <div class="print-summary-row"><span>Total Revenue (Yearly)</span><strong>${fmtTk(grand.revenue)}</strong></div>
+                <div class="print-summary-row"><span>Total Cost &amp; Expenses</span><strong>${fmtTk(grand.cost)}</strong></div>
+                <div class="print-summary-row"><span>Net Profit for the Year</span><strong>${fmtTk(grand.profit)}</strong></div>
+            </div>
+        `;
+
+        window.print();
+    });
+
     // --- INITIAL RENDER CALLS ---
     updateCashBookUI();
     renderDailyReport();
+    renderMonthlyReport();
+    renderYearlyReport();
 });

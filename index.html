@@ -1638,13 +1638,243 @@
                 </div>
 
                 <div id="view-monthly-report" class="page-view">
+                    <div class="box mb-25">
+                        <div class="box-header">
+                            <h3><i class="fa-solid fa-chart-pie text-blue"></i> Generate Monthly Statement</h3>
+                            <div class="filter-wrapper" style="display: flex; gap: 15px; align-items: center;">
+                                <select id="mr-filter-month" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 600; background: #f8fafc;">
+                                    <option value="01">January</option>
+                                    <option value="02">February</option>
+                                    <option value="03">March</option>
+                                    <option value="04">April</option>
+                                    <option value="05">May</option>
+                                    <option value="06">June</option>
+                                    <option value="07" selected>July</option>
+                                    <option value="08">August</option>
+                                    <option value="09">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                                <select id="mr-filter-year" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 600; background: #f8fafc;">
+                                    <option value="2025">2025</option>
+                                    <option value="2026" selected>2026</option>
+                                    <option value="2027">2027</option>
+                                    <option value="2028">2028</option>
+                                    <option value="2029">2029</option>
+                                    <option value="2030">2030</option>
+                                    <option value="2031">2031</option>
+                                    <option value="2032">2032</option>
+                                    <option value="2033">2033</option>
+                                    <option value="2034">2034</option>
+                                    <option value="2035">2035</option>
+                                </select>
+                                <button type="button" id="btn-print-mr" class="btn-print-main" style="background-color: #2563eb;">
+                                    <i class="fas fa-print"></i> Print Monthly Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MONTHLY KPI SUMMARY CARDS -->
+                    <div class="cards" style="margin-bottom: 25px;">
+                        <div class="card sale-card">
+                            <div class="card-main" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                                <div style="background: #e6fcf5; color: #0ca678; padding: 12px; border-radius: 8px; font-size: 20px;">
+                                    <i class="fas fa-basket-shopping"></i>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b; display: block;">Total Revenue (Monthly)</span>
+                                    <h2 id="mr-card-revenue" style="font-size: 20px; font-weight: 700; color: #0ca678;">৳ 0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card Red-card">
+                            <div class="card-main" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                                <div style="background: #fff5f5; color: #fa5252; padding: 12px; border-radius: 8px; font-size: 20px;">
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b; display: block;">Total Cost & Expenses</span>
+                                    <h2 id="mr-card-expenses" style="font-size: 20px; font-weight: 700; color: #fa5252;">৳ 0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card profit-card">
+                            <div class="card-main" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                                <div style="background: #e7f5ff; color: #228be6; padding: 12px; border-radius: 8px; font-size: 20px;">
+                                    <i class="fas fa-money-bill-trend-up"></i>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b; display: block;">Calculated Net Profit</span>
+                                    <h2 id="mr-card-profit" style="font-size: 20px; font-weight: 700; color: #228be6;">৳ 0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card cash-card">
+                            <div class="card-main" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                                <div style="background: #f3f0ff; color: #7950f2; padding: 12px; border-radius: 8px; font-size: 20px;">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b; display: block;">Avg. Daily Profit</span>
+                                    <h2 id="mr-card-avgprofit" style="font-size: 20px; font-weight: 700; color: #7950f2;">৳ 0</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION-WISE MONTHLY BREAKDOWN -->
+                    <div class="box mb-25">
+                        <div class="box-header" style="border-bottom: 2px solid #cbd5e1; padding-bottom: 10px;">
+                            <h3><i class="fas fa-chart-pie text-blue"></i> Section-Wise Financial Breakdown</h3>
+                        </div>
+                        <div class="table-container" style="margin-top: 15px;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                                <thead>
+                                    <tr style="background-color: #f8fafc; color: #334155; border-bottom: 2px solid #cbd5e1;">
+                                        <th style="padding: 12px; text-align: left;">Business Sector Module</th>
+                                        <th style="padding: 12px; text-align: right;">Gross Cash In / Revenue (৳)</th>
+                                        <th style="padding: 12px; text-align: right;">Cost / Expense Out (৳)</th>
+                                        <th style="padding: 12px; text-align: right;">Net Profit Generated (৳)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mr-breakdown-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- DAY-WISE MONTHLY LEDGER -->
                     <div class="box">
-                        <h2>Monthly Report Screen</h2>
+                        <div class="box-header" style="border-bottom: 2px solid #cbd5e1; padding-bottom: 10px;">
+                            <h3><i class="fas fa-calendar-days text-blue"></i> Day-Wise Ledger (Selected Month)</h3>
+                        </div>
+                        <div class="table-container" style="margin-top: 15px;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                                <thead>
+                                    <tr style="background-color: #f8fafc; color: #334155; border-bottom: 2px solid #cbd5e1;">
+                                        <th style="padding: 12px; text-align: center; width: 10%;">Date</th>
+                                        <th style="padding: 12px; text-align: right;">Revenue (৳)</th>
+                                        <th style="padding: 12px; text-align: right;">Expense (৳)</th>
+                                        <th style="padding: 12px; text-align: right;">Net Profit (৳)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mr-daywise-tbody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 <div id="view-yearly-report" class="page-view">
+                    <div class="box mb-25">
+                        <div class="box-header">
+                            <h3><i class="fa-solid fa-chart-column text-blue"></i> Generate Yearly Statement</h3>
+                            <div class="filter-wrapper" style="display: flex; gap: 15px; align-items: center;">
+                                <select id="yr-filter-year" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 600; background: #f8fafc;">
+                                    <option value="2025">2025</option>
+                                    <option value="2026" selected>2026</option>
+                                    <option value="2027">2027</option>
+                                    <option value="2028">2028</option>
+                                    <option value="2029">2029</option>
+                                    <option value="2030">2030</option>
+                                    <option value="2031">2031</option>
+                                    <option value="2032">2032</option>
+                                    <option value="2033">2033</option>
+                                    <option value="2034">2034</option>
+                                    <option value="2035">2035</option>
+                                </select>
+                                <button type="button" id="btn-print-yr" class="btn-print-main" style="background-color: #2563eb;">
+                                    <i class="fas fa-print"></i> Print Yearly Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- YEARLY KPI SUMMARY CARDS -->
+                    <div class="cards" style="margin-bottom: 25px;">
+                        <div class="card sale-card">
+                            <div class="card-main" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                                <div style="background: #e6fcf5; color: #0ca678; padding: 12px; border-radius: 8px; font-size: 20px;">
+                                    <i class="fas fa-basket-shopping"></i>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b; display: block;">Total Revenue (Yearly)</span>
+                                    <h2 id="yr-card-revenue" style="font-size: 20px; font-weight: 700; color: #0ca678;">৳ 0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card Red-card">
+                            <div class="card-main" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                                <div style="background: #fff5f5; color: #fa5252; padding: 12px; border-radius: 8px; font-size: 20px;">
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b; display: block;">Total Cost & Expenses</span>
+                                    <h2 id="yr-card-expenses" style="font-size: 20px; font-weight: 700; color: #fa5252;">৳ 0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card profit-card">
+                            <div class="card-main" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                                <div style="background: #e7f5ff; color: #228be6; padding: 12px; border-radius: 8px; font-size: 20px;">
+                                    <i class="fas fa-money-bill-trend-up"></i>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b; display: block;">Calculated Net Profit</span>
+                                    <h2 id="yr-card-profit" style="font-size: 20px; font-weight: 700; color: #228be6;">৳ 0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card cash-card">
+                            <div class="card-main" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                                <div style="background: #f3f0ff; color: #7950f2; padding: 12px; border-radius: 8px; font-size: 20px;">
+                                    <i class="fas fa-calendar-week"></i>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b; display: block;">Avg. Monthly Profit</span>
+                                    <h2 id="yr-card-avgprofit" style="font-size: 20px; font-weight: 700; color: #7950f2;">৳ 0</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION-WISE YEARLY BREAKDOWN -->
+                    <div class="box mb-25">
+                        <div class="box-header" style="border-bottom: 2px solid #cbd5e1; padding-bottom: 10px;">
+                            <h3><i class="fas fa-chart-pie text-blue"></i> Section-Wise Financial Breakdown</h3>
+                        </div>
+                        <div class="table-container" style="margin-top: 15px;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                                <thead>
+                                    <tr style="background-color: #f8fafc; color: #334155; border-bottom: 2px solid #cbd5e1;">
+                                        <th style="padding: 12px; text-align: left;">Business Sector Module</th>
+                                        <th style="padding: 12px; text-align: right;">Gross Cash In / Revenue (৳)</th>
+                                        <th style="padding: 12px; text-align: right;">Cost / Expense Out (৳)</th>
+                                        <th style="padding: 12px; text-align: right;">Net Profit Generated (৳)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="yr-breakdown-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- MONTH-WISE YEARLY LEDGER -->
                     <div class="box">
-                        <h2>Yearly Report Screen</h2>
+                        <div class="box-header" style="border-bottom: 2px solid #cbd5e1; padding-bottom: 10px;">
+                            <h3><i class="fas fa-calendar-days text-blue"></i> Month-Wise Ledger (Selected Year)</h3>
+                        </div>
+                        <div class="table-container" style="margin-top: 15px;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                                <thead>
+                                    <tr style="background-color: #f8fafc; color: #334155; border-bottom: 2px solid #cbd5e1;">
+                                        <th style="padding: 12px; text-align: center; width: 14%;">Month</th>
+                                        <th style="padding: 12px; text-align: right;">Revenue (৳)</th>
+                                        <th style="padding: 12px; text-align: right;">Expense (৳)</th>
+                                        <th style="padding: 12px; text-align: right;">Net Profit (৳)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="yr-monthwise-tbody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 <div id="view-users" class="page-view">
