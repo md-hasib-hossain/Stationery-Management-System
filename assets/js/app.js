@@ -31,16 +31,44 @@ document.addEventListener("DOMContentLoaded", function () {
         { id: 4001, date: '2026-07-19', item: 'A4 Size Paper Box & Pilot Pens', amount: 2000, note: 'Supplier Market Entry' }
     ];
 
-    // --- PARTNERSHIP MANAGEMENT DATABASE ENGINE ---
-    let partnershipData = JSON.parse(localStorage.getItem('partnershipData')) || [
-        { id: 8001, date: '2026-07-19', partnerName: 'Rahim Ahmed', shareAmount: 50000, remarks: 'Initial Business Capital Share' }
-    ];
+    // --- MIGRATION HELPER ---
+    function migratePartnershipData(rawData) {
+        if (!Array.isArray(rawData) || rawData.length === 0) return [];
+        if (rawData[0] && Object.prototype.hasOwnProperty.call(rawData[0], 'partner1Name')) {
+            return rawData;
+        }
+        const groups = {};
+        const order = [];
+        rawData.forEach((entry) => {
+            const key = (entry.date || '') + '|' + (entry.remarks || '');
+            if (!groups[key]) { groups[key] = []; order.push(key); }
+            groups[key].push(entry);
+        });
+        return order.map((key) => {
+            const group = groups[key];
+            return {
+                id: Math.floor(8000 + Math.random() * 2000),
+                date: group[0]?.date || '2026-07-19',
+                remarks: group[0]?.remarks || '',
+                partner1Name: group[0]?.partnerName || 'Partner 1',
+                partner1Amount: group[0]?.shareAmount || 0,
+                partner2Name: group[1]?.partnerName || 'Partner 2',
+                partner2Amount: group[1]?.shareAmount || 0
+            };
+        });
+    }
 
-    // --- WITHDRAWN / SETTLED PROFIT TRACKER (NEW) ---
+    // --- PARTNERSHIP MANAGEMENT DATABASE ENGINE ---
+    let partnershipData = migratePartnershipData(JSON.parse(localStorage.getItem('partnershipData')) || [
+        { id: 8001, date: '2026-07-19', partner1Name: 'Rahim Ahmed', partner1Amount: 25000, partner2Name: 'Partner 2', partner2Amount: 25000, remarks: 'Initial Business Capital Share' }
+    ]);
+    localStorage.setItem('partnershipData', JSON.stringify(partnershipData));
+
+    // --- WITHDRAWN / SETTLED PROFIT TRACKER ---
     let partnerWithdrawnAmount = parseFloat(localStorage.getItem('partnerWithdrawnAmount')) || 0;
 
     // --- ONLINE COST DATABASE ENGINE ---
-    let onlineCostData = JSON.parse(localStorage.getItem('onlineCostData')) || null;
+    let onlineCostData = JSON.parse(localStorage.getItem('onlineCostData'));
 
     // --- PHOTOCOPY SERVICE DATABASE ENGINE ---
     let photocopyServiceRecords = JSON.parse(localStorage.getItem('photocopyServiceRecords')) || [
@@ -61,40 +89,59 @@ document.addEventListener("DOMContentLoaded", function () {
         { id: 9003, date: "2026-07-10", details: "Rocket Personal Payin 2000", commission: 10 }
     ];
 
-    // Local Storage থেকে Mini Summary ডেটা লোড করা
+    // Mini Summary Data
     let miniSummaryData = JSON.parse(localStorage.getItem('miniSummaryData')) || [];
 
-    // --- SHARED TOTALS STORE FOR "TOTAL PROFIT" CARD (Today's Profit + Final Net Income + Photocopy Net Profit) ---
-    let dashboardTotals = { todayProfit: 0, finalNetIncome: 0, photocopyProfit: 0 };
+    // --- SHARED TOTALS STORE FOR "TOTAL PROFIT" CARD ---
+    let dashboardTotals = { todayProfit: 0, finalNetIncome: 0, photocopyProfit: 0, mobileProfit: 0 };
 
     function updateOverallTotalProfit() {
         const rawTotal = (dashboardTotals.todayProfit || 0) + (dashboardTotals.finalNetIncome || 0) + (dashboardTotals.photocopyProfit || 0);
         const availableTotal = Math.max(0, rawTotal - (partnerWithdrawnAmount || 0));
-
         const overallEl = document.getElementById("dash-overall-profit");
         if (overallEl) overallEl.innerText = "৳ " + Math.round(availableTotal).toLocaleString('en-IN');
-
         if (typeof updatePartnershipSplitUI === 'function') updatePartnershipSplitUI();
     }
 
     // --- SPECIFIC CARD PROFIT UPDATER ENGINE ---
-    function updateProfitCardsOnly() {
-        if (typeof mbTransactions !== 'undefined' && Array.isArray(mbTransactions)) {
-            let mbProfit = mbTransactions.reduce((acc, curr) => acc + (curr.commission || 0), 0);
-            const mbElement = document.getElementById("dash-mobile-profit");
-            if (mbElement) {
-                mbElement.innerText = "৳ " + mbProfit.toLocaleString('en-IN');
-            }
+    function updateProfitCardsOnly(filteredPsProfit, filteredMbProfit) {
+        let mbProfit = 0;
+        if (typeof filteredMbProfit !== 'undefined') {
+            mbProfit = filteredMbProfit;
+        } else if (typeof mbTransactions !== 'undefined' && Array.isArray(mbTransactions)) {
+            const selectedMonth = document.getElementById("mb-filter-month")?.value || "all";
+            const selectedYear = document.getElementById("mb-filter-year")?.value || "all";
+            mbProfit = mbTransactions.reduce((acc, curr) => {
+                const txYear = curr.date.substring(0, 4);
+                const txMonth = curr.date.substring(5, 7);
+                const isMatch = (selectedMonth === "all" || txMonth === selectedMonth) && 
+                                (selectedYear === "all" || txYear === selectedYear);
+                return isMatch ? acc + (curr.commission || 0) : acc;
+            }, 0);
+        }
+        
+        const mbElement = document.getElementById("dash-mobile-profit");
+        if (mbElement) mbElement.innerText = "৳ " + mbProfit.toLocaleString('en-IN');
+        dashboardTotals.mobileProfit = mbProfit;
+
+        let psProfit = 0;
+        if (typeof filteredPsProfit !== 'undefined') {
+            psProfit = filteredPsProfit;
+        } else if (typeof photocopyServiceRecords !== 'undefined' && Array.isArray(photocopyServiceRecords)) {
+            const selectedMonth = document.getElementById("ps-filter-month")?.value || "all";
+            const selectedYear = document.getElementById("ps-filter-year")?.value || "all";
+            psProfit = photocopyServiceRecords.reduce((acc, curr) => {
+                const year = curr.date.substring(0, 4);
+                const month = curr.date.substring(5, 7);
+                const isMatch = (selectedMonth === "all" || month === selectedMonth) && 
+                                (selectedYear === "all" || year === selectedYear);
+                return isMatch ? acc + (curr.finalProfit || 0) : acc;
+            }, 0);
         }
 
-        if (typeof photocopyServiceRecords !== 'undefined' && Array.isArray(photocopyServiceRecords)) {
-            let psProfit = photocopyServiceRecords.reduce((acc, curr) => acc + (curr.finalProfit || 0), 0);
-            const psElement = document.getElementById("dash-photocopy-profit");
-            if (psElement) {
-                psElement.innerText = "৳ " + psProfit.toLocaleString('en-IN');
-            }
-            dashboardTotals.photocopyProfit = psProfit;
-        }
+        const psElement = document.getElementById("dash-photocopy-profit");
+        if (psElement) psElement.innerText = "৳ " + psProfit.toLocaleString('en-IN');
+        dashboardTotals.photocopyProfit = psProfit;
 
         updateOverallTotalProfit();
     }
@@ -118,20 +165,18 @@ document.addEventListener("DOMContentLoaded", function () {
         const targetMenuItem = document.querySelector(`.sidebar ul .menu-item[data-target="${targetViewId}"]`);
         if (targetMenuItem) targetMenuItem.classList.add("active");
         if (pageTitle) pageTitle.innerText = menuText;
-
         const targetViewElement = document.getElementById(`view-${targetViewId}`);
         if (targetViewElement) {
             document.querySelector("#dynamic-content .active-view")?.classList.remove("active-view");
             targetViewElement.classList.add("active-view");
         }
-
         if (targetViewId === "mobile-banking") updateMobileBankingUI();
         if (targetViewId === "online-cost") calculateOnlineCostAll();
         if (targetViewId === "mini-summary") renderMiniSummaryTable();
         if (targetViewId === "daily-sale" || targetViewId === "daily-report") renderDailySalesTable();
         if (targetViewId === "purchase") renderPurchaseTable();
         if (targetViewId === "expense-management") renderExpenseTable();
-        if (targetViewId === "partnership" || targetViewId === "partnership-management") { renderPartnershipTable(); if (typeof updatePartnershipSplitUI === 'function') updatePartnershipSplitUI(); }
+        if (targetViewId === "partnership" || targetViewId === "partnership-management") { renderPartnershipTable(); updatePartnershipSplitUI(); }
         if (targetViewId === "cash-book") updateCashBookUI();
         if (targetViewId === "photocopy-service") updatePhotocopyServiceUI();
     }
@@ -151,7 +196,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const viewAllButtons = document.querySelectorAll(".btn-view-all");
     viewAllButtons.forEach((btn) => {
         btn.addEventListener("click", function () {
-            const boxTitle = this.closest(".box").querySelector("h3").innerText.toLowerCase();
+            const boxTitle = this.closest(".box")?.querySelector("h3")?.innerText.toLowerCase() || "";
             if (boxTitle.includes("cash book")) switchPage("cash-book", "Cash Book");
             else if (boxTitle.includes("mini summary")) switchPage("mini-summary", "Mini Summary");
         });
@@ -163,6 +208,7 @@ document.addEventListener("DOMContentLoaded", function () {
         link.addEventListener("click", function (e) {
             e.preventDefault();
             const card = this.closest(".card");
+            if (!card) return;
             if (card.classList.contains("expense-card")) switchPage("expense-management", "Expense Management");
             else if (card.classList.contains("profit-card")) switchPage("photocopy-service", "Photocopy Service");
             else if (card.classList.contains("cash-card")) switchPage("cash-book", "Cash Book");
@@ -170,18 +216,17 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     function formatFinancialDate(dateString) {
+        if(!dateString) return '';
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const d = new Date(dateString);
         if(isNaN(d.getTime())) return dateString;
         return `${String(d.getDate()).padStart(2, '0')}-${months[d.getMonth()]}-${String(d.getFullYear()).slice(-2)}`;
     }
 
-    // --- PARTNERSHIP MANAGEMENT CORE SYSTEM ENGINE (AUTO 50% - 50% PROFIT SPLIT) ---
+    // --- PARTNERSHIP MANAGEMENT ---
     const partnerTableBody = document.querySelector('#main-partnership-table tbody');
-
     const partnerFilterMonth = document.getElementById('partner-filter-month') || document.getElementById('partnership-filter-month');
     const partnerFilterYear = document.getElementById('partner-filter-year') || document.getElementById('partnership-filter-year');
-
     const partner1NameInput = document.getElementById('partner1-name-input');
     const partner2NameInput = document.getElementById('partner2-name-input');
     const partnerTotalProfitDisplay = document.getElementById('partner-total-profit-display');
@@ -190,11 +235,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const partnerSettleDateInput = document.getElementById('partner-settle-date');
     const partnerSettleNoteInput = document.getElementById('partner-settle-note');
     const btnSettlePartnership = document.getElementById('btn-settle-partnership');
-    const partnerWithdrawnDisplay = document.getElementById('partner-withdrawn-display'); // NEW
-    const btnResetPartnerWithdrawn = document.getElementById('btn-reset-partner-withdrawn'); // NEW
-    const btnAutofillSplit = document.getElementById('btn-autofill-5050'); // NEW: manual entry helper
+    const partnerWithdrawnDisplay = document.getElementById('partner-withdrawn-display');
+    const btnResetPartnerWithdrawn = document.getElementById('btn-reset-partner-withdrawn');
+    const btnAutofillSplit = document.getElementById('btn-autofill-5050');
 
-    // Load saved partner names (persisted so the names don't reset on refresh)
     let partnerNamesData = JSON.parse(localStorage.getItem('partnerNamesData')) || { partner1: 'Partner 1', partner2: 'Partner 2' };
     if (partner1NameInput) partner1NameInput.value = partnerNamesData.partner1;
     if (partner2NameInput) partner2NameInput.value = partnerNamesData.partner2;
@@ -209,9 +253,6 @@ document.addEventListener("DOMContentLoaded", function () {
     partner1NameInput?.addEventListener('input', savePartnerNames);
     partner2NameInput?.addEventListener('input', savePartnerNames);
 
-    // --- MANUAL PARTNER SHARE ENTRY (NEW) ---
-    // এই দুইটা এমাউন্ট আর অটো ক্যালকুলেট হয় না, বরং হাতে লিখে এন্ট্রি করা যায়।
-    // কারণ: একজন পার্টনার চাইলে তার ভাগের টাকা ব্যবসায় রেখেও দিতে পারে, আবার পুরোটা তুলেও নিতে পারে।
     let partnerShareValues = JSON.parse(localStorage.getItem('partnerShareValues')) || { partner1: null, partner2: null };
     if (partner1ShareInput && partnerShareValues.partner1 !== null) partner1ShareInput.value = partnerShareValues.partner1;
     if (partner2ShareInput && partnerShareValues.partner2 !== null) partner2ShareInput.value = partnerShareValues.partner2;
@@ -226,12 +267,9 @@ document.addEventListener("DOMContentLoaded", function () {
     partner1ShareInput?.addEventListener('input', savePartnerShareValues);
     partner2ShareInput?.addEventListener('input', savePartnerShareValues);
 
-    // "Auto 50/50 Split" link: শুধু চাইলে ব্যবহারকারী নিজে এটাতে ক্লিক করলে দুই বক্সে বর্তমান Available Total Profit এর অর্ধেক অর্ধেক বসে যাবে
     btnAutofillSplit?.addEventListener('click', function (e) {
         e.preventDefault();
-        const rawTotal = (typeof dashboardTotals !== 'undefined')
-            ? ((dashboardTotals.todayProfit || 0) + (dashboardTotals.finalNetIncome || 0) + (dashboardTotals.photocopyProfit || 0))
-            : 0;
+        const rawTotal = (dashboardTotals.todayProfit || 0) + (dashboardTotals.finalNetIncome || 0) + (dashboardTotals.photocopyProfit || 0);
         const availableTotal = Math.max(0, rawTotal - (partnerWithdrawnAmount || 0));
         const half = Math.round(availableTotal / 2);
         if (partner1ShareInput) partner1ShareInput.value = half;
@@ -239,19 +277,11 @@ document.addEventListener("DOMContentLoaded", function () {
         savePartnerShareValues();
     });
 
-    // Available Total Profit (Today's Profit + Final Net Income + Photocopy Net Profit) - এটা এখনো লাইভ ক্যালকুলেটেড
-    // মাইনাস করা হয়েছে যা আগে Settle করা হয়ে গেছে (partnerWithdrawnAmount)
-    // NOTE: partner1-share-input / partner2-share-input এখন আর অটো ওভাররাইট হয় না, ইউজার হাতে যা লিখবে সেটাই থাকবে।
     function updatePartnershipSplitUI() {
-        const rawTotal = (typeof dashboardTotals !== 'undefined')
-            ? ((dashboardTotals.todayProfit || 0) + (dashboardTotals.finalNetIncome || 0) + (dashboardTotals.photocopyProfit || 0))
-            : 0;
+        const rawTotal = (dashboardTotals.todayProfit || 0) + (dashboardTotals.finalNetIncome || 0) + (dashboardTotals.photocopyProfit || 0);
         const availableTotal = Math.max(0, rawTotal - (partnerWithdrawnAmount || 0));
-
         if (partnerTotalProfitDisplay) partnerTotalProfitDisplay.innerText = "৳ " + Math.round(availableTotal).toLocaleString('en-IN');
         if (partnerWithdrawnDisplay) partnerWithdrawnDisplay.innerText = "৳ " + Math.round(partnerWithdrawnAmount || 0).toLocaleString('en-IN');
-
-        // প্রথমবার (একদম খালি থাকলে) সুবিধার জন্য 50/50 সাজেশন বসিয়ে দেওয়া হয়, তবে ইউজার একবার কিছু লিখলে বা সেভ করলে আর জোর করে বদলানো হয় না
         const half = Math.round(availableTotal / 2);
         if (partner1ShareInput && partner1ShareInput.value === '' && partnerShareValues.partner1 === null) {
             partner1ShareInput.value = half;
@@ -261,66 +291,41 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Settle & Save: records each partner's 50% share into the Profit Distribution Ledger
-    // এবং সেই পরিমাণ টাকা "Withdrawn" হিসেবে যোগ করে দেয় যাতে Available Total Profit ও Dashboard Total Profit 0 হয়ে যায়
     btnSettlePartnership?.addEventListener('click', function () {
-        // এখন আর অটো 50/50 ক্যালকুলেট হয় না — ইউজার বক্সে যা হাতে লিখেছে সেটাই ব্যবহার হবে
         const partner1Amt = Math.max(0, parseFloat(partner1ShareInput?.value) || 0);
         const partner2Amt = Math.max(0, parseFloat(partner2ShareInput?.value) || 0);
         const totalToSettle = partner1Amt + partner2Amt;
-
         if (totalToSettle <= 0) {
-            alert("দুঃখিত, Settle করার জন্য কোনো Amount দেওয়া হয়নি। অনুগ্রহ করে Partner 1 ও Partner 2 এর ঘরে এমাউন্ট লিখুন।");
+            alert("দুঃখিত, Settle করার জন্য কোনো Amount দেওয়া হয়নি। অনুগ্রহ করে Partner 1 ও Partner 2 এর ঘরে এমাউন্ট লিখুন।");
             return;
         }
-
-        const dateVal = partnerSettleDateInput ? partnerSettleDateInput.value : '2026-07-19';
+        const dateVal = partnerSettleDateInput?.value || '2026-07-19';
         const noteVal = (partnerSettleNoteInput?.value.trim()) || 'Profit Settlement';
         const partner1Name = (partner1NameInput?.value.trim()) || 'Partner 1';
         const partner2Name = (partner2NameInput?.value.trim()) || 'Partner 2';
-
         if (!confirm(`${partner1Name}: ৳ ${partner1Amt.toLocaleString()}\n${partner2Name}: ৳ ${partner2Amt.toLocaleString()}\n\nএই এমাউন্ট সেটেল করে সেভ করতে চান?`)) return;
-
-        if (partner1Amt > 0) {
-            partnershipData.unshift({
-                id: Math.floor(8000 + Math.random() * 2000),
-                date: dateVal,
-                partnerName: partner1Name,
-                shareAmount: partner1Amt,
-                remarks: noteVal
-            });
-        }
-        if (partner2Amt > 0) {
-            partnershipData.unshift({
-                id: Math.floor(8000 + Math.random() * 2000),
-                date: dateVal,
-                partnerName: partner2Name,
-                shareAmount: partner2Amt,
-                remarks: noteVal
-            });
-        }
-
+        partnershipData.unshift({
+            id: Math.floor(8000 + Math.random() * 2000),
+            date: dateVal,
+            partner1Name: partner1Name,
+            partner1Amount: partner1Amt,
+            partner2Name: partner2Name,
+            partner2Amount: partner2Amt,
+            remarks: noteVal
+        });
         localStorage.setItem('partnershipData', JSON.stringify(partnershipData));
         renderPartnershipTable();
-
-        // শুধু যে এমাউন্ট আসলে Settle করা হলো সেটাই "Withdrawn" হিসেবে যোগ হবে।
-        // কোনো পার্টনার যদি তার ভাগের কিছু অংশ ব্যবসায় রেখে দেয় (বক্সে কম লিখে), সেই অংশ Available Total Profit এ থেকেই যাবে।
         partnerWithdrawnAmount += totalToSettle;
         localStorage.setItem('partnerWithdrawnAmount', JSON.stringify(partnerWithdrawnAmount));
-
-        // Settle করার পর বক্স দুটো খালি করে দেওয়া হলো, পরের বার নতুন করে হাতে লেখা যাবে
         if (partner1ShareInput) partner1ShareInput.value = '';
         if (partner2ShareInput) partner2ShareInput.value = '';
         partnerShareValues = { partner1: null, partner2: null };
         localStorage.setItem('partnerShareValues', JSON.stringify(partnerShareValues));
-
         updateOverallTotalProfit();
-
         if (partnerSettleNoteInput) partnerSettleNoteInput.value = '';
-        alert("প্রফিট সফলভাবে সেভ করা হয়েছে!");
+        alert("প্রফিট সফলভাবে সেভ করা হয়েছে!");
     });
 
-    // NEW: Reset withdrawn amount handler
     btnResetPartnerWithdrawn?.addEventListener('click', function (e) {
         e.preventDefault();
         if (confirm('আপনি কি Withdrawn এমাউন্ট রিসেট করতে চান? এটি করলে Available Total Profit আবার পূর্ণ পরিমাণে দেখাবে।')) {
@@ -333,38 +338,47 @@ document.addEventListener("DOMContentLoaded", function () {
     if (partnerFilterMonth) partnerFilterMonth.addEventListener('change', renderPartnershipTable);
     if (partnerFilterYear) partnerFilterYear.addEventListener('change', renderPartnershipTable);
 
-        function renderPartnershipTable() {
+    function renderPartnershipTable() {
         if (!partnerTableBody) return;
         partnerTableBody.innerHTML = '';
-
         const selectedMonth = partnerFilterMonth?.value || 'all';
         const selectedYear = partnerFilterYear?.value || 'all';
-
-        let totalShareSum = 0;
+        let totalPartner1Sum = 0;
+        let totalPartner2Sum = 0;
         let serial = 1;
-
         partnershipData.forEach((entry, index) => {
-            const dateParts = entry.date.split('-');
+            const dateParts = (entry.date || '2026-07-19').split('-');
             const entryYear = dateParts[0];
             const entryMonth = dateParts[1];
-
             const matchMonth = (selectedMonth === 'all' || selectedMonth === entryMonth);
             const matchYear = (selectedYear === 'all' || selectedYear === entryYear);
-
             if (matchMonth && matchYear) {
-                totalShareSum += entry.shareAmount;
-
+                const p1Amt = entry.partner1Amount || 0;
+                const p2Amt = entry.partner2Amount || 0;
+                totalPartner1Sum += p1Amt;
+                totalPartner2Sum += p2Amt;
                 const tr = document.createElement('tr');
                 tr.style.borderBottom = "1px solid #cbd5e1";
                 tr.innerHTML = `
                     <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">${serial++}</td>
                     <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">${formatFinancialDate(entry.date)}</td>
-                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; font-weight: 600;">${entry.partnerName}</td>
-                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; font-weight: 600; color: #0284c7;">৳ ${entry.shareAmount.toLocaleString()}</td>
-                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">${entry.remarks || '-'}</td>
-                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; font-weight: 600; background: #f8fbff;">${entry.partner1Name || 'Partner 1'}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; font-weight: 600; color: #2563eb; background: #f8fbff;">৳ ${p1Amt.toLocaleString()}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; background: #f8fbff;">
                         <div class="action-cell" style="justify-content: center; display: flex; gap: 10px;">
-                            <button type="button" class="btn-print-row btn-print-partner" data-id="${entry.id}" style="border: none; background: transparent; color: #2563eb; cursor: pointer;">
+                            <button type="button" class="btn-print-row btn-print-partner" data-id="${entry.id}" data-partner="1" style="border: none; background: transparent; color: #2563eb; cursor: pointer;">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button type="button" class="btn-delete-row btn-delete-partner" data-index="${index}" style="border: none; background: transparent; color: #ef4444; cursor: pointer;">
+                                <i class="fas fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; font-weight: 600; background: #f7fdfa;">${entry.partner2Name || 'Partner 2'}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; font-weight: 600; color: #059669; background: #f7fdfa;">৳ ${p2Amt.toLocaleString()}</td>
+                    <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; background: #f7fdfa;">
+                        <div class="action-cell" style="justify-content: center; display: flex; gap: 10px;">
+                            <button type="button" class="btn-print-row btn-print-partner" data-id="${entry.id}" data-partner="2" style="border: none; background: transparent; color: #2563eb; cursor: pointer;">
                                 <i class="fas fa-print"></i>
                             </button>
                             <button type="button" class="btn-delete-row btn-delete-partner" data-index="${index}" style="border: none; background: transparent; color: #ef4444; cursor: pointer;">
@@ -376,32 +390,44 @@ document.addEventListener("DOMContentLoaded", function () {
                 partnerTableBody.appendChild(tr);
             }
         });
-
+        if (document.getElementById('total-partner1-share')) {
+            document.getElementById('total-partner1-share').innerText = "৳ " + totalPartner1Sum.toLocaleString();
+        }
+        if (document.getElementById('total-partner2-share')) {
+            document.getElementById('total-partner2-share').innerText = "৳ " + totalPartner2Sum.toLocaleString();
+        }
         if (document.getElementById('total-partnership-share')) {
-            document.getElementById('total-partnership-share').innerText = "৳ " + totalShareSum.toLocaleString();
+            document.getElementById('total-partnership-share').innerText = "৳ " + (totalPartner1Sum + totalPartner2Sum).toLocaleString();
         }
     }
 
     partnerTableBody?.addEventListener('click', function (e) {
         const deleteBtn = e.target.closest('.btn-delete-partner');
         const printBtn = e.target.closest('.btn-print-partner');
-
         if (deleteBtn) {
             const index = parseInt(deleteBtn.getAttribute('data-index'));
-            if (confirm('আপনি কি এই পার্টনারশিপ রেকর্ডটি মুছে ফেলতে চান?')) {
+            if (confirm('আপনি কি এই পার্টনারশিপ সেটেলমেন্ট রেকর্ডটি (উভয় পার্টনার সহ) মুছে ফেলতে চান?')) {
                 partnershipData.splice(index, 1);
                 localStorage.setItem('partnershipData', JSON.stringify(partnershipData));
                 renderPartnershipTable();
             }
         }
-
         if (printBtn) {
             const idToPrint = parseInt(printBtn.getAttribute("data-id"));
+            const whichPartner = printBtn.getAttribute("data-partner");
             const rec = partnershipData.find(r => r.id === idToPrint);
             if (rec) {
-                document.getElementById("print-title-main").innerText = "PARTNERSHIP INVESTMENT VOUCHER";
-                document.getElementById("print-subtitle-main").innerText = `Voucher ID: #PARTNER-${rec.id}`;
-                document.getElementById("print-meta-area").innerHTML = `<p><strong>Date:</strong> ${formatFinancialDate(rec.date)}</p><p><strong>Partner Name:</strong> ${rec.partnerName}</p>`;
+                const printTitle = document.getElementById("print-title-main");
+                const printSubtitle = document.getElementById("print-subtitle-main");
+                const printMeta = document.getElementById("print-meta-area");
+                const printWrapper = document.getElementById("print-dynamic-table-wrapper");
+
+                if (printTitle) printTitle.innerText = "PARTNERSHIP INVESTMENT VOUCHER";
+                if (printSubtitle) printSubtitle.innerText = `Voucher ID: #PARTNER-${rec.id}-P${whichPartner}`;
+                if (printMeta) printMeta.innerHTML = `<p><strong>Date:</strong> ${formatFinancialDate(rec.date)}</p><p><strong>Partner Name:</strong> ${whichPartner === '1' ? rec.partner1Name : rec.partner2Name}</p>`;
+
+                const pName = whichPartner === '1' ? (rec.partner1Name || 'Partner 1') : (rec.partner2Name || 'Partner 2');
+                const pAmt = whichPartner === '1' ? (rec.partner1Amount || 0) : (rec.partner2Amount || 0);
 
                 let tableHtml = `
                     <table class="print-table">
@@ -414,14 +440,14 @@ document.addEventListener("DOMContentLoaded", function () {
                         </thead>
                         <tbody>
                             <tr>
-                                <td>${rec.partnerName}</td>
-                                <td style="font-weight: bold; color: #0284c7;">৳ ${rec.shareAmount.toLocaleString()}</td>
+                                <td>${pName}</td>
+                                <td style="font-weight: bold; color: #0284c7;">৳ ${pAmt.toLocaleString()}</td>
                                 <td>${rec.remarks || 'N/A'}</td>
                             </tr>
                         </tbody>
                     </table>
                 `;
-                document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml;
+                if (printWrapper) printWrapper.innerHTML = tableHtml;
                 window.print();
             }
         }
@@ -430,59 +456,74 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("btn-print-partner-report")?.addEventListener("click", function () {
         const mText = getSelectedText("partner-filter-month") || getSelectedText("partnership-filter-month");
         const yText = getSelectedText("partner-filter-year") || getSelectedText("partnership-filter-year");
+        
+        const printTitle = document.getElementById("print-title-main");
+        const printSubtitle = document.getElementById("print-subtitle-main");
+        const printMeta = document.getElementById("print-meta-area");
+        const printWrapper = document.getElementById("print-dynamic-table-wrapper");
 
-        document.getElementById("print-title-main").innerText = "PARTNERS RECORD LEDGER STATEMENT";
-        document.getElementById("print-subtitle-main").innerText = `Statement Period: ${mText} - ${yText}`;
-        document.getElementById("print-meta-area").innerHTML = `<p><strong>Report Type:</strong> Partner Investment Summary</p><p><strong>Generated Date:</strong> 19 Jul 2026</p>`;
-
+        if (printTitle) printTitle.innerText = "PARTNERS RECORD LEDGER STATEMENT";
+        if (printSubtitle) printSubtitle.innerText = `Statement Period: ${mText} - ${yText}`;
+        if (printMeta) printMeta.innerHTML = `<p><strong>Report Type:</strong> Partner Distribution Summary</p><p><strong>Generated Date:</strong> 19 Jul 2026</p>`;
+        
         let tableHtml = `
             <table class="print-table">
                 <thead>
                     <tr>
-                        <th style="width: 8%;">SL</th>
-                        <th style="width: 15%;">Date</th>
-                        <th>Partner Name</th>
-                        <th style="text-align: right; width: 25%;">Share / Amount (৳)</th>
+                        <th style="width: 6%;">SL</th>
+                        <th style="width: 12%;">Date</th>
+                        <th>Partner 1 Name</th>
+                        <th style="text-align: right;">Partner 1 Amount (৳)</th>
+                        <th>Partner 2 Name</th>
+                        <th style="text-align: right;">Partner 2 Amount (৳)</th>
                         <th>Remarks</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody> 
         `;
-
-        let totalShare = 0, sl = 1;
+        let totalP1 = 0, totalP2 = 0, sl = 1;
         const selectedMonth = partnerFilterMonth ? partnerFilterMonth.value : "all";
         const selectedYear = partnerFilterYear ? partnerFilterYear.value : "all";
-
         partnershipData.forEach(entry => {
-            const dateParts = entry.date.split('-');
+            const dateParts = (entry.date || '2026-07-19').split('-');
             const txYear = dateParts[0];
             const txMonth = dateParts[1];
-
             if ((selectedMonth === "all" || txMonth === selectedMonth) && (selectedYear === "all" || txYear === selectedYear)) {
-                totalShare += entry.shareAmount;
+                const p1Amt = entry.partner1Amount || 0;
+                const p2Amt = entry.partner2Amount || 0;
+                totalP1 += p1Amt;
+                totalP2 += p2Amt;
                 tableHtml += `
                     <tr>
                         <td style="text-align: center;">${sl++}</td>
                         <td style="text-align: center;">${formatFinancialDate(entry.date)}</td>
-                        <td style="font-weight: 600;">${entry.partnerName}</td>
-                        <td style="text-align: right; color: #0284c7;">৳ ${entry.shareAmount.toLocaleString()}</td>
+                        <td style="font-weight: 600;">${entry.partner1Name || 'Partner 1'}</td>
+                        <td style="text-align: right; color: #2563eb;">৳ ${p1Amt.toLocaleString()}</td>
+                        <td style="font-weight: 600;">${entry.partner2Name || 'Partner 2'}</td>
+                        <td style="text-align: right; color: #059669;">৳ ${p2Amt.toLocaleString()}</td>
                         <td>${entry.remarks || '-'}</td>
                     </tr>
                 `;
             }
         });
-
         tableHtml += `</tbody></table>`;
         const summaryHtml = `
-            <div class="print-summary-box" style="margin-left: auto; width: 350px; margin-top: 20px;">
+            <div class="print-summary-box" style="margin-left: auto; width: 380px; margin-top: 20px;">
+                <div class="print-summary-row">
+                    <span>Partner 1 Total Amount:</span>
+                    <span style="color: #2563eb;">৳ ${totalP1.toLocaleString()}</span>
+                </div>
+                <div class="print-summary-row">
+                    <span>Partner 2 Total Amount:</span>
+                    <span style="color: #059669;">৳ ${totalP2.toLocaleString()}</span>
+                </div>
                 <div class="print-summary-row" style="font-weight: bold; background: #f8fafc;">
-                    <span>Total Investment / Share:</span>
-                    <span style="color: #0284c7;">৳ ${totalShare.toLocaleString()}</span>
+                    <span>Total Distributed Profit:</span>
+                    <span style="color: #0284c7;">৳ ${(totalP1 + totalP2).toLocaleString()}</span>
                 </div>
             </div>
         `;
-
-        document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml + summaryHtml;
+        if (printWrapper) printWrapper.innerHTML = tableHtml + summaryHtml;
         window.print();
     });
 
@@ -491,23 +532,18 @@ document.addEventListener("DOMContentLoaded", function () {
         const tableBody = document.querySelector("#main-ps-table tbody");
         const filterMonth = document.getElementById("ps-filter-month")?.value || "all";
         const filterYear = document.getElementById("ps-filter-year")?.value || "all";
-
         let sl = 1;
         let totalFilteredProfit = 0; 
         if (tableBody) tableBody.innerHTML = "";
-
         photocopyServiceRecords.forEach((rec) => {
             const year = rec.date.substring(0, 4);
             const month = rec.date.substring(5, 7);
             const isMatch = (filterMonth === "all" || month === filterMonth) && 
                             (filterYear === "all" || year === filterYear);
-
             if (isMatch) {
                 totalFilteredProfit += rec.finalProfit; 
-
                 if (tableBody) {
                     let expenseDisplayHtml = `<span style="color: #e11d48; font-weight: 700; font-size: 13px;">৳ ${(rec.serviceCost || 0).toLocaleString()}</span>`;
-                    
                     if (rec.expenses && rec.expenses.length > 0) {
                         expenseDisplayHtml += `<div style="font-size: 11px; color: #475569; margin-top: 5px; line-height: 1.4; border-top: 1px dashed #fecdd3; padding-top: 4px;">`;
                         rec.expenses.forEach(e => {
@@ -515,7 +551,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         });
                         expenseDisplayHtml += `</div>`;
                     }
-
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
                         <td>${sl}</td>
@@ -541,33 +576,27 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             }
         });
-
         if (document.getElementById("ps-total-profit-box")) {
             document.getElementById("ps-total-profit-box").innerText = "৳ " + totalFilteredProfit.toLocaleString();
         }
-
-        updateProfitCardsOnly();
+        updateProfitCardsOnly(totalFilteredProfit);
     }
 
     document.getElementById("btn-save-ps-record")?.addEventListener("click", function() {
-        const dateVal = document.getElementById("ps-entry-date").value;
-        const totalCount = parseFloat(document.getElementById("ps-entry-count").value) || 0;
-        const avgePcs = parseFloat(document.getElementById("ps-entry-avg").value) || 0;
-        const serviceCost = parseFloat(document.getElementById("ps-entry-service").value) || 0;
-        
-        const rimPerPcs = parseFloat(document.getElementById("rate-rim-pcs").value) || 450;
-        const rimPerTk = parseFloat(document.getElementById("rate-rim-tk").value) || 350;
-
+        const dateVal = document.getElementById("ps-entry-date")?.value || "2026-07-19";
+        const totalCount = parseFloat(document.getElementById("ps-entry-count")?.value) || 0;
+        const avgePcs = parseFloat(document.getElementById("ps-entry-avg")?.value) || 0;
+        const serviceCost = parseFloat(document.getElementById("ps-entry-service")?.value) || 0;
+        const rimPerPcs = parseFloat(document.getElementById("rate-rim-pcs")?.value) || 450;
+        const rimPerTk = parseFloat(document.getElementById("rate-rim-tk")?.value) || 350;
         const totalCopy = totalCount - avgePcs;
         if(totalCopy <= 0) {
-            alert("দুঃখিত, কোনো ডাটা পাওয়া যায়নি! প্রথমে Photocopy Machine ক্যালকুলেটরে রিডিং ইনপুট দিন।");
+            alert("দুঃখিত, কোনো ডাটা পাওয়া যায়নি! প্রথমে Photocopy Machine ক্যালকুলেটরে রিডিং ইনপুট দিন।");
             return;
         }
-
         let currentExpensesList = [];
         const titles = document.querySelectorAll(".pm-expense-title");
         const amounts = document.querySelectorAll(".pm-expense-amt");
-        
         for(let i = 0; i < titles.length; i++) {
             let titleText = titles[i].value.trim();
             let amountVal = parseFloat(amounts[i].value) || 0;
@@ -575,29 +604,24 @@ document.addEventListener("DOMContentLoaded", function () {
                 currentExpensesList.push({ title: titleText || "General Maintenance", amount: amountVal });
             }
         }
-
         const grossAmt = totalCopy * 2;
         const rimQty = totalCopy / rimPerPcs;
         const rimCost = Math.round(rimQty * rimPerTk);
         const netAmt = grossAmt - rimCost;
         const finalProfit = netAmt - serviceCost; 
-
         const newRecord = {
             id: Math.floor(7000 + Math.random() * 3000),
             date: dateVal, totalCopy, grossAmt, rimQty, rimCost, netAmt, serviceCost, finalProfit, expenses: currentExpensesList
         };
-
         photocopyServiceRecords.unshift(newRecord);
         localStorage.setItem('photocopyServiceRecords', JSON.stringify(photocopyServiceRecords));
-        
         updatePhotocopyServiceUI();
-        alert("ক্যালকুলেশন সাকসেসফুলি সেভ করা হয়েছে!");
+        alert("ক্যালকুলেশন সাকসেসফুলি সেভ করা হয়েছে!");
     });
 
     document.getElementById("main-ps-table")?.addEventListener("click", function(e) {
         const deleteBtn = e.target.closest(".btn-delete-ps");
         const printBtn = e.target.closest(".btn-print-ps");
-        
         if (deleteBtn) {
             const idToDelete = parseInt(deleteBtn.getAttribute("data-id"));
             if (confirm("আপনি কি এই ফটোকপি সার্ভিস রেকর্ডটি ডিলিট করতে চান?")) {
@@ -606,7 +630,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 updatePhotocopyServiceUI();
             }
         }
-
         if (printBtn) {
             const idToPrint = parseInt(printBtn.getAttribute("data-id"));
             const rec = photocopyServiceRecords.find(r => r.id === idToPrint);
@@ -614,7 +637,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("print-title-main").innerText = "PHOTOCOPY SERVICE TRANSACTION VOUCHER";
                 document.getElementById("print-subtitle-main").innerText = `Record ID: #${rec.id}`;
                 document.getElementById("print-meta-area").innerHTML = `<p><strong>Date:</strong> ${formatFinancialDate(rec.date)}</p><p><strong>Status:</strong> Saved Log Entry</p>`;
-                
                 let expenseNotes = `৳ ${(rec.serviceCost || 0).toLocaleString()}`;
                 if(rec.expenses && rec.expenses.length > 0) {
                     expenseNotes += " (";
@@ -623,7 +645,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     });
                     expenseNotes += ")";
                 }
-
                 let tableHtml = `
                     <table class="print-table">
                         <thead>
@@ -659,11 +680,9 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("btn-print-ps-report")?.addEventListener("click", function() {
         const mText = getSelectedText("ps-filter-month");
         const yText = getSelectedText("ps-filter-year");
-
         document.getElementById("print-title-main").innerText = "PHOTOCOPY SERVICE REPORT STATEMENT";
         document.getElementById("print-subtitle-main").innerText = `Statement Period: ${mText} - ${yText}`;
         document.getElementById("print-meta-area").innerHTML = `<p><strong>Report Type:</strong> Full History Log</p><p><strong>Status:</strong> Generated Successfully</p>`;
-
         let tableHtml = `
             <table class="print-table">
                 <thead>
@@ -681,11 +700,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 </thead>
                 <tbody>
         `;
-
         let totalCopies = 0, totalGross = 0, totalRimCost = 0, totalNet = 0, totalExp = 0, totalProfit = 0, sl = 1;
         const selectedMonth = document.getElementById("ps-filter-month")?.value || "all";
         const selectedYear = document.getElementById("ps-filter-year")?.value || "all";
-
         photocopyServiceRecords.forEach(rec => {
             const txYear = rec.date.substring(0, 4);
             const txMonth = rec.date.substring(5, 7);
@@ -696,7 +713,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 totalNet += rec.netAmt;
                 totalExp += rec.serviceCost;
                 totalProfit += rec.finalProfit;
-
                 tableHtml += `
                     <tr>
                         <td>${sl}</td>
@@ -713,7 +729,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 sl++;
             }
         });
-
         tableHtml += `</tbody></table>`;
         const summaryHtml = `
             <div class="print-summary-box">
@@ -724,7 +739,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="print-summary-row" style="font-weight: bold; background: #e2e8f0;"><span>Total Net Profit:</span><span>৳ ${totalProfit.toLocaleString()}</span></div>
             </div>
         `;
-
         document.getElementById("print-dynamic-table-wrapper").innerHTML = tableHtml + summaryHtml;
         window.print();
     });
@@ -732,50 +746,42 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("ps-filter-month")?.addEventListener("change", updatePhotocopyServiceUI);
     document.getElementById("ps-filter-year")?.addEventListener("change", updatePhotocopyServiceUI);
 
-    // --- CASH BOOK ENGINE & DASHBOARD ENGINE ---
+    // --- CASH BOOK ENGINE ---
     function updateCashBookUI() {
         const mainTableBody = document.querySelector("#main-cashbook-table tbody") || document.querySelector("#main-cb-table tbody");
         const dashTableBody = document.querySelector("#dash-cashbook-table tbody");
         const selectedMonth = (document.getElementById("filter-month") || document.getElementById("cb-filter-month"))?.value || "all";
         const selectedYear = (document.getElementById("filter-year") || document.getElementById("cb-filter-year"))?.value || "all";
-
         let totalPurchase = 0;
         let totalSales = 0;
         let totalGrossProfit = 0;
         let ledgerSl = 1;
         let recentSl = 0;
-
         if (mainTableBody) mainTableBody.innerHTML = "";
         if (dashTableBody) dashTableBody.innerHTML = "";
-
         cashBookData.forEach((entry, index) => {
             const txYear = entry.date.substring(0, 4);
             const txMonth = entry.date.substring(5, 7);
             const isMatch = (selectedMonth === "all" || txMonth === selectedMonth) && 
                             (selectedYear === "all" || txYear === selectedYear);
-
             if (isMatch) {
                 let purchaseVal = 0;
                 let salesVal = 0;
                 let profitVal = 0;
-
                 if (entry.type === "Purchase" || entry.type === "debit") {
                     purchaseVal = entry.amount;
                     totalPurchase += purchaseVal;
                 } else if (entry.type === "Sales" || entry.type === "credit") {
                     salesVal = entry.amount;
-                    
                     if (entry.remarks && entry.remarks.includes("[Daily Sale]")) {
                         const match = dailySalesData.find(d => entry.remarks.includes(`Stat: ৳${d.stationery}`) && d.date === entry.date);
                         profitVal = match ? match.profit : (salesVal * 0.25);
                     } else {
                         profitVal = salesVal * 0.25; 
                     }
-                    
                     totalSales += salesVal;
                     totalGrossProfit += profitVal;
                 }
-
                 if (mainTableBody) {
                     const tr = document.createElement("tr");
                     tr.style.borderBottom = "1px solid #cbd5e1";
@@ -800,7 +806,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     mainTableBody.appendChild(tr);
                     ledgerSl++;
                 }
-
                 if (dashTableBody && recentSl < 5) {
                     const trDash = document.createElement("tr");
                     trDash.innerHTML = `
@@ -815,28 +820,12 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        miniSummaryData.forEach((entry) => {
-            const dateParts = entry.date.split('-');
-            const entryYear = dateParts[0];
-            const entryMonth = dateParts[1];
-            
-            const matchMonth = (selectedMonth === 'all' || selectedMonth === entryMonth);
-            const matchYear = (selectedYear === 'all' || selectedYear === entryYear);
-            
-            if (matchMonth && matchYear) {
-                totalPurchase += entry.amount; 
-            }
-        });
-
         let totalOtherExpenses = 0;
-
         expenseData.forEach((exp) => {
             const dateParts = exp.date.split('-');
             const expYear = dateParts[0];
             const expMonth = dateParts[1];
-            const matchMonth = (selectedMonth === 'all' || selectedMonth === expMonth);
-            const matchYear = (selectedYear === 'all' || selectedYear === expYear);
-            if (matchMonth && matchYear) {
+            if ((selectedMonth === 'all' || selectedMonth === expMonth) && (selectedYear === 'all' || selectedYear === expYear)) {
                 totalOtherExpenses += exp.amount;
             }
         });
@@ -845,36 +834,30 @@ document.addEventListener("DOMContentLoaded", function () {
             const dateParts = entry.date.split('-');
             const entryYear = dateParts[0];
             const entryMonth = dateParts[1];
-            const matchMonth = (selectedMonth === 'all' || selectedMonth === entryMonth);
-            const matchYear = (selectedYear === 'all' || selectedYear === entryYear);
-            if (matchMonth && matchYear) {
+            if ((selectedMonth === 'all' || selectedMonth === entryMonth) && (selectedYear === 'all' || selectedYear === entryYear)) {
                 totalOtherExpenses += entry.amount;
             }
         });
 
         const netProfit = totalGrossProfit - totalOtherExpenses;
         const cashInHand = totalSales - totalPurchase;
-
         if(document.getElementById("cb-total-purchase")) document.getElementById("cb-total-purchase").innerText = "৳ " + totalPurchase.toLocaleString();
         if(document.getElementById("cb-total-sales")) document.getElementById("cb-total-sales").innerText = "৳ " + totalSales.toLocaleString();
         if(document.getElementById("cb-total-profit")) document.getElementById("cb-total-profit").innerText = "৳ " + Math.round(netProfit).toLocaleString();
-
         if(document.getElementById("total-debit")) document.getElementById("total-debit").innerText = `৳ ${totalPurchase.toLocaleString()}`;
         if(document.getElementById("total-credit")) document.getElementById("total-credit").innerText = `৳ ${totalSales.toLocaleString()}`;
         if(document.getElementById("net-balance")) document.getElementById("net-balance").innerText = `৳ ${cashInHand.toLocaleString()}`;
-
         if(document.getElementById("dash-sale")) document.getElementById("dash-sale").innerText = `৳ ${totalSales.toLocaleString()}`;
         if(document.getElementById("dash-expense")) document.getElementById("dash-expense").innerText = `৳ ${totalPurchase.toLocaleString()}`;
         if(document.getElementById("dash-cash")) document.getElementById("dash-cash").innerText = `৳ ${cashInHand.toLocaleString()}`;
         if(document.getElementById("dash-profit")) document.getElementById("dash-profit").innerText = `৳ ${Math.round(netProfit).toLocaleString()}`;
-
+        
         dashboardTotals.todayProfit = netProfit;
         updateOverallTotalProfit();
     }
 
-    (document.getElementById("cashbook-form"))?.addEventListener("submit", function(e) {
-        e.preventDefault();
-        
+    document.getElementById("cashbook-form")?.addEventListener("submit", function(e) {
+        e.preventDefault();  
         const date = document.getElementById("input-date").value;
         const type = document.getElementById("input-type").value;
         const amount = parseFloat(document.getElementById("input-amount").value) || 0;
@@ -997,7 +980,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("filter-month")?.addEventListener("change", updateCashBookUI);
     document.getElementById("filter-year")?.addEventListener("change", updateCashBookUI);
 
-    // --- EXPENSE MANAGEMENT CORE ENGINE SYSTEM ---
+    // --- EXPENSE MANAGEMENT ---
     const expenseForm = document.getElementById('expense-form');
     const expDateInput = document.getElementById('expense-date');
     const expCategoryInput = document.getElementById('expense-category');
@@ -1203,21 +1186,17 @@ document.addEventListener("DOMContentLoaded", function () {
         window.print();
     });
 
-    // --- DAILY SALES CORE ENGINE SYSTEM ---
+    // --- DAILY SALES SYSTEM ---
     const dsForm = document.getElementById('dailysale-form');
     const dsDateInput = document.getElementById('sale-date');
     const dsPurposeInput = document.getElementById('sale-purpose');
     const dsStationeryInput = document.getElementById('sale-stationery');
     const dsNoteInput = document.getElementById('sale-note');
-
     const dsTableBody = document.querySelector('#main-dailysale-table tbody');
-    
     const dsFilterMonth = document.getElementById('sale-filter-month') || document.getElementById('daily-report-filter-month');
     const dsFilterYear = document.getElementById('sale-filter-year') || document.getElementById('daily-report-filter-year');
-
     const txtTotalStationery = document.getElementById('total-stationery-sales');
     const txtEstimatedProfit = document.getElementById('profit-revenue-sales');
-
     const dashSaleTableBody = document.querySelector("#dash-sale-table tbody");
 
     if (dsForm) {
@@ -1454,7 +1433,7 @@ document.addEventListener("DOMContentLoaded", function () {
         window.print();
     });
 
-    // --- PURCHASE MANAGEMENT CORE ENGINE SYSTEM ---
+    // --- PURCHASE MANAGEMENT ---
     const purchaseForm = document.getElementById('purchase-form');
     const purDateInput = document.getElementById('purchase-date');
     const purItemInput = document.getElementById('purchase-item');
@@ -1701,7 +1680,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("mb-total-commission").innerText = fmtBDT(totalProfit);
         }
 
-        updateProfitCardsOnly();
+        updateProfitCardsOnly(undefined, totalProfit);
     }
 
     document.getElementById("mb-form")?.addEventListener("submit", function(e) {
@@ -1873,11 +1852,12 @@ document.addEventListener("DOMContentLoaded", function () {
             calculatePhotocopyMachine();
         }
     });
+
     document.querySelectorAll(".pm-expense-amt").forEach(input => {
         input.addEventListener("input", calculatePhotocopyMachine);
     });
 
-    // --- ONLINE COST ENGINE (PERSISTED WITH LOCALSTORAGE FIX) ---
+    // --- ONLINE COST ENGINE ---
     function saveOnlineCostToStorage() {
         const rows = document.querySelectorAll("#oc-master-tbody tr");
         const data = [];
@@ -1931,7 +1911,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectedYear = document.getElementById("oc-filter-year")?.value || "all";
 
         document.querySelectorAll("#oc-master-tbody tr").forEach(row => {
-            const rowDate = row.querySelector(".oc-row-date").value;
+            const rowDate = row.querySelector(".oc-row-date")?.value || "";
             const txYear = rowDate.substring(0, 4);
             const txMonth = rowDate.substring(5, 7);
             
@@ -1939,13 +1919,14 @@ document.addEventListener("DOMContentLoaded", function () {
                             
             if (!isMatch) { row.style.display = "none"; return; } else { row.style.display = ""; }
 
-            const onlineWorkVal = parseFloat(row.querySelector(".oc-row-online-work").value) || 0;
-            const printSaleVal = parseFloat(row.querySelector(".oc-row-print-sale").value) || 0;
-            const printCostVal = parseFloat(row.querySelector(".oc-row-print-cost").value) || 0;
+            const onlineWorkVal = parseFloat(row.querySelector(".oc-row-online-work")?.value) || 0;
+            const printSaleVal = parseFloat(row.querySelector(".oc-row-print-sale")?.value) || 0;
+            const printCostVal = parseFloat(row.querySelector(".oc-row-print-cost")?.value) || 0;
 
             grossOnlineRaw += onlineWorkVal; grossPrintRaw += printSaleVal; grossCostRaw += printCostVal;
             const rowMargin = (onlineWorkVal / 2) + (printSaleVal * 0.70) - printCostVal;
-            row.querySelector(".oc-row-net-margin").innerText = fmtBDT(rowMargin);
+            const netMarginEl = row.querySelector(".oc-row-net-margin");
+            if (netMarginEl) netMarginEl.innerText = fmtBDT(rowMargin);
         });
 
         const shareOnlineNet = grossOnlineRaw / 2;
@@ -1978,10 +1959,8 @@ document.addEventListener("DOMContentLoaded", function () {
         saveOnlineCostToStorage();
     };
 
-    // Online Cost Filter Change Event Listeners (FIXED)
     document.getElementById("oc-filter-month")?.addEventListener("change", calculateOnlineCostAll);
     document.getElementById("oc-filter-year")?.addEventListener("change", calculateOnlineCostAll);
-
     document.getElementById("oc-master-tbody")?.addEventListener("input", saveOnlineCostToStorage);
     document.getElementById("oc-master-tbody")?.addEventListener("change", saveOnlineCostToStorage);
 
@@ -2004,11 +1983,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const row = document.getElementById(rowId);
             if (!row) return;
 
-            const date = row.querySelector(".oc-row-date").value;
-            const particulars = row.querySelector(".oc-row-particulars").value || "N/A";
-            const onlineWork = parseFloat(row.querySelector(".oc-row-online-work").value) || 0;
-            const printSale = parseFloat(row.querySelector(".oc-row-print-sale").value) || 0;
-            const printCost = parseFloat(row.querySelector(".oc-row-print-cost").value) || 0;
+            const date = row.querySelector(".oc-row-date")?.value || "";
+            const particulars = row.querySelector(".oc-row-particulars")?.value || "N/A";
+            const onlineWork = parseFloat(row.querySelector(".oc-row-online-work")?.value) || 0;
+            const printSale = parseFloat(row.querySelector(".oc-row-print-sale")?.value) || 0;
+            const printCost = parseFloat(row.querySelector(".oc-row-print-cost")?.value) || 0;
             const netMargin = (onlineWork / 2) + (printSale * 0.70) - printCost;
             const reportType = printMonthlyBtn ? "MONTHLY STATEMENT VOUCHER" : "YEARLY STATEMENT VOUCHER";
 
@@ -2071,15 +2050,15 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectedYear = document.getElementById("oc-filter-year")?.value || "all";
 
         document.querySelectorAll("#oc-master-tbody tr").forEach(row => {
-            const rowDate = row.querySelector(".oc-row-date").value;
+            const rowDate = row.querySelector(".oc-row-date")?.value || "";
             const txYear = rowDate.substring(0, 4);
             const txMonth = rowDate.substring(5, 7);
             
             if ((selectedMonth === "all" || txMonth === selectedMonth) && (selectedYear === "all" || txYear === selectedYear)) {
-                const particulars = row.querySelector(".oc-row-particulars").value || "N/A";
-                const onlineWorkVal = parseFloat(row.querySelector(".oc-row-online-work").value) || 0;
-                const printSaleVal = parseFloat(row.querySelector(".oc-row-print-sale").value) || 0;
-                const printCostVal = parseFloat(row.querySelector(".oc-row-print-cost").value) || 0;
+                const particulars = row.querySelector(".oc-row-particulars")?.value || "N/A";
+                const onlineWorkVal = parseFloat(row.querySelector(".oc-row-online-work")?.value) || 0;
+                const printSaleVal = parseFloat(row.querySelector(".oc-row-print-sale")?.value) || 0;
+                const printCostVal = parseFloat(row.querySelector(".oc-row-print-cost")?.value) || 0;
 
                 const oNet = onlineWorkVal / 2;
                 const pNet = printSaleVal * 0.70;
@@ -2115,12 +2094,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.getElementById("btn-add-oc-row")?.addEventListener("click", () => {
-        // FIX: New row now gets a date that matches the currently selected
-        // Month/Year filter. Previously the row was always created with a
-        // hardcoded date (2026-07-19), so if the filter was set to any other
-        // month/year, calculateOnlineCostAll() would immediately hide the
-        // brand-new row (display:none) because it didn't match the filter -
-        // making it look like "Add New Row Line" wasn't working at all.
         const selMonth = document.getElementById("oc-filter-month")?.value || "all";
         const selYear = document.getElementById("oc-filter-year")?.value || "all";
 
@@ -2139,7 +2112,7 @@ document.addEventListener("DOMContentLoaded", function () {
         saveOnlineCostToStorage();
     });
 
-    if (onlineCostData !== null) {
+    if (Array.isArray(onlineCostData) && onlineCostData.length > 0) {
         onlineCostData.forEach(item => {
             addOnlineMasterRow(item.date, item.particulars, item.onlineWork, item.printSale, item.printCost);
         });
@@ -2243,7 +2216,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (btnClearMsData) {
         btnClearMsData.addEventListener('click', function() {
-            if (confirm('বসের হুঁশিয়ারি! আপনি কি নিশ্চিতভাবে সমস্ত মিনি সামারি ডাটা মুছে ফেলতে চান? এটি ড্যাশবোর্ডের খরচও আপডেট করে দেবে।')) {
+            if (confirm('আপনি কি নিশ্চিতভাবে সমস্ত মিনি সামারি ডাটা মুছে ফেলতে চান? এটি ড্যাশবোর্ডের খরচও আপডেট করে দেবে।')) {
                 miniSummaryData = [];
                 localStorage.removeItem('miniSummaryData');
                 
@@ -2262,41 +2235,38 @@ document.addEventListener("DOMContentLoaded", function () {
             
             if (!printTableWrapper) return;
             
-            printTitle.textContent = "MINI SUMMARY EXPENSE REPORT";
-            printMeta.innerHTML = `
-                <p><strong>Month:</strong> ${getSelectedText('ms-filter-month')}</p>
-                <p><strong>Year:</strong> ${getSelectedText('ms-filter-year')}</p>
-                <p><strong>Print Date:</strong> 19 Jul 2026</p>
-            `;
+            if (printTitle) printTitle.textContent = "MINI SUMMARY EXPENSE REPORT";
+            if (printMeta) {
+                printMeta.innerHTML = `
+                    <p><strong>Month:</strong> ${getSelectedText('ms-filter-month')}</p>
+                    <p><strong>Year:</strong> ${getSelectedText('ms-filter-year')}</p>
+                    <p><strong>Print Date:</strong> 19 Jul 2026</p>
+                `;
+            }
             
-            const tableClone = document.getElementById('main-ms-table').cloneNode(true);
-            tableClone.querySelectorAll('th:last-child, td:last-child').forEach(el => el.remove());
-            
-            const tfoot = document.createElement('tfoot');
-            tfoot.innerHTML = `
-                <tr style="font-weight: bold; background: #f1f5f9;">
-                    <td colspan="2" style="text-align: right; padding: 10px;">Total Expense:</td>
-                    <td style="padding: 10px;">${msTotalAmountEl.textContent}</td>
-                </tr>
-            `;
-            tableClone.appendChild(tfoot);
-            printTableWrapper.innerHTML = '';
-            printTableWrapper.appendChild(tableClone);
-            window.print();
+            const tableClone = document.getElementById('main-ms-table')?.cloneNode(true);
+            if (tableClone) {
+                tableClone.querySelectorAll('th:last-child, td:last-child').forEach(el => el.remove());
+                
+                let totalAmount = 0;
+                miniSummaryData.forEach(entry => totalAmount += entry.amount);
 
+                const tfoot = document.createElement('tfoot');
+                tfoot.innerHTML = `
+                    <tr style="font-weight: bold; background: #f1f5f9;">
+                        <td colspan="3" style="text-align: right; padding: 10px;">Total Expense:</td>
+                        <td style="padding: 10px;">৳ ${totalAmount.toLocaleString()}</td>
+                    </tr>
+                `;
+                tableClone.appendChild(tfoot);
+
+                printTableWrapper.innerHTML = '';
+                printTableWrapper.appendChild(tableClone);
+                window.print();
+            }
         });
     }
 
-    // --- SETUP BOOTSTRAPPING ON INITIAL LOAD ---
-    calculatePhotocopyMachine(); 
-    updatePhotocopyServiceUI();
-    updateMobileBankingUI();
-    calculateOnlineCostAll(); 
-    renderMiniSummaryTable();
-    renderDailySalesTable();
-    renderPurchaseTable();
-    renderExpenseTable();
-    renderPartnershipTable();
+    // --- INITIAL RENDER CALLS ---
     updateCashBookUI();
-    updateProfitCardsOnly();
 });
