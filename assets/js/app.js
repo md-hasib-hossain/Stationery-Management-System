@@ -210,6 +210,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (targetViewId === "online-cost") calculateOnlineCostAll();
         if (targetViewId === "mini-summary") renderMiniSummaryTable();
         if (targetViewId === "daily-sale" || targetViewId === "daily-report") renderDailySalesTable();
+        if (targetViewId === "daily-report" && typeof renderDailyReport === "function") renderDailyReport();
         if (targetViewId === "purchase") renderPurchaseTable();
         if (targetViewId === "expense-management") renderExpenseTable();
         if (targetViewId === "partnership" || targetViewId === "partnership-management") { renderPartnershipTable(); updatePartnershipSplitUI(); }
@@ -2303,6 +2304,211 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // ================= DAILY REPORT ENGINE =================
+    const drSelectDate = document.getElementById('dr-select-date');
+    const drBreakdownBody = document.getElementById('dr-breakdown-tbody');
+    const drCardRevenue = document.getElementById('dr-card-revenue');
+    const drCardExpenses = document.getElementById('dr-card-expenses');
+    const drCardProfit = document.getElementById('dr-card-profit');
+    const btnPrintDr = document.getElementById('btn-print-dr');
+
+    const fmtTk = (num) => "৳ " + Math.round(num || 0).toLocaleString('en-IN');
+
+    // Online Cost lives only in the DOM table rows (not the JS array), so read it live
+    function getOnlineCostTotalsForDate(dateStr) {
+        const rows = document.querySelectorAll('#oc-master-tbody tr');
+        let revenue = 0, cost = 0, profit = 0;
+        rows.forEach(row => {
+            const rowDate = row.querySelector('.oc-row-date')?.value;
+            if (rowDate !== dateStr) return;
+            const onlineWork = parseFloat(row.querySelector('.oc-row-online-work')?.value) || 0;
+            const printSale = parseFloat(row.querySelector('.oc-row-print-sale')?.value) || 0;
+            const printCost = parseFloat(row.querySelector('.oc-row-print-cost')?.value) || 0;
+            revenue += onlineWork + printSale;
+            cost += printCost;
+            profit += (onlineWork / 2) + (printSale * 0.70) - printCost;
+        });
+        return { revenue, cost, profit };
+    }
+
+    function buildDailyReportSections(dateStr) {
+        const sections = [];
+
+        // 1. Cash Book — manual entries only (Expense / Daily Sale / Purchase are counted in their own sections)
+        let cbRevenue = 0, cbCost = 0, cbProfit = 0;
+        cashBookData.forEach(entry => {
+            if (entry.date !== dateStr) return;
+            const tag = entry.remarks || '';
+            if (tag.includes('[Expense]') || tag.includes('[Daily Sale]') || tag.includes('[Purchase]')) return;
+            if (entry.type === 'Sales' || entry.type === 'credit') {
+                cbRevenue += entry.amount;
+                cbProfit += entry.amount * 0.25;
+            } else if (entry.type === 'Purchase' || entry.type === 'debit') {
+                cbCost += entry.amount;
+                cbProfit -= entry.amount;
+            }
+        });
+        sections.push({ name: 'Cash Book (Manual Entries)', icon: 'fa-book', revenue: cbRevenue, cost: cbCost, profit: cbProfit });
+
+        // 2. Daily Sale
+        let dsRevenue = 0, dsCost = 0, dsProfit = 0;
+        dailySalesData.forEach(entry => {
+            if (entry.date !== dateStr) return;
+            const stationery = entry.stationery || 0;
+            const profitVal = entry.profit || 0;
+            dsRevenue += stationery;
+            dsProfit += profitVal;
+            dsCost += (stationery - profitVal);
+        });
+        sections.push({ name: 'Daily Sale', icon: 'fa-cart-shopping', revenue: dsRevenue, cost: dsCost, profit: dsProfit });
+
+        // 3. Expense Management
+        let expCost = 0;
+        expenseData.forEach(entry => {
+            if (entry.date === dateStr) expCost += entry.amount || 0;
+        });
+        sections.push({ name: 'Expense Management', icon: 'fa-wallet', revenue: 0, cost: expCost, profit: -expCost });
+
+        // 4. Purchase Management
+        let purCost = 0;
+        purchaseData.forEach(entry => {
+            if (entry.date === dateStr) purCost += entry.amount || 0;
+        });
+        sections.push({ name: 'Purchase Management', icon: 'fa-bag-shopping', revenue: 0, cost: purCost, profit: -purCost });
+
+        // 5. Online Cost & Production
+        const oc = getOnlineCostTotalsForDate(dateStr);
+        sections.push({ name: 'Online Cost & Production', icon: 'fa-globe', revenue: oc.revenue, cost: oc.cost, profit: oc.profit });
+
+        // 6. Photocopy Service
+        let psRevenue = 0, psCost = 0, psProfit = 0;
+        photocopyServiceRecords.forEach(entry => {
+            if (entry.date !== dateStr) return;
+            const gross = entry.grossAmt || 0;
+            const profitVal = entry.finalProfit || 0;
+            psRevenue += gross;
+            psProfit += profitVal;
+            psCost += (gross - profitVal);
+        });
+        sections.push({ name: 'Photocopy Service', icon: 'fa-copy', revenue: psRevenue, cost: psCost, profit: psProfit });
+
+        // 7. Mobile Banking (commission income only)
+        let mbRevenue = 0;
+        mbTransactions.forEach(entry => {
+            if (entry.date === dateStr) mbRevenue += entry.commission || 0;
+        });
+        sections.push({ name: 'Mobile Banking', icon: 'fa-mobile-screen-button', revenue: mbRevenue, cost: 0, profit: mbRevenue });
+
+        // 8. Mini Summary (petty expense tracker)
+        let msCost = 0;
+        miniSummaryData.forEach(entry => {
+            if (entry.date === dateStr) msCost += entry.amount || 0;
+        });
+        sections.push({ name: 'Mini Summary (Petty Expense)', icon: 'fa-file-lines', revenue: 0, cost: msCost, profit: -msCost });
+
+        return sections;
+    }
+
+    function renderDailyReport() {
+        if (!drBreakdownBody) return;
+        const dateStr = drSelectDate?.value || '2026-07-19';
+        const sections = buildDailyReportSections(dateStr);
+
+        drBreakdownBody.innerHTML = '';
+        let grandRevenue = 0, grandCost = 0, grandProfit = 0;
+
+        sections.forEach(sec => {
+            grandRevenue += sec.revenue;
+            grandCost += sec.cost;
+            grandProfit += sec.profit;
+
+            const profitColor = sec.profit >= 0 ? '#16a34a' : '#dc2626';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding: 12px; font-weight: 500;"><i class="fas ${sec.icon}" style="width:18px; color:#64748b; margin-right:8px;"></i>${sec.name}</td>
+                <td style="padding: 12px; text-align: right; color:#16a34a;">${sec.revenue > 0 ? fmtTk(sec.revenue) : '-'}</td>
+                <td style="padding: 12px; text-align: right; color:#dc2626;">${sec.cost > 0 ? fmtTk(sec.cost) : '-'}</td>
+                <td style="padding: 12px; text-align: right; font-weight: 700; color:${profitColor};">${fmtTk(sec.profit)}</td>
+            `;
+            drBreakdownBody.appendChild(tr);
+        });
+
+        const grandTr = document.createElement('tr');
+        grandTr.style.background = '#f1f5f9';
+        grandTr.style.borderTop = '2px solid #cbd5e1';
+        grandTr.innerHTML = `
+            <td style="padding: 12px; font-weight: 700;">Grand Total</td>
+            <td style="padding: 12px; text-align: right; font-weight: 700; color:#16a34a;">${fmtTk(grandRevenue)}</td>
+            <td style="padding: 12px; text-align: right; font-weight: 700; color:#dc2626;">${fmtTk(grandCost)}</td>
+            <td style="padding: 12px; text-align: right; font-weight: 700; color:${grandProfit >= 0 ? '#2563eb' : '#dc2626'};">${fmtTk(grandProfit)}</td>
+        `;
+        drBreakdownBody.appendChild(grandTr);
+
+        if (drCardRevenue) drCardRevenue.innerText = fmtTk(grandRevenue);
+        if (drCardExpenses) drCardExpenses.innerText = fmtTk(grandCost);
+        if (drCardProfit) drCardProfit.innerText = fmtTk(grandProfit);
+    }
+
+    drSelectDate?.addEventListener('change', renderDailyReport);
+
+    btnPrintDr?.addEventListener('click', function () {
+        const dateStr = drSelectDate?.value || '2026-07-19';
+        const sections = buildDailyReportSections(dateStr);
+
+        const printTitle = document.getElementById('print-title-main');
+        const printSubtitle = document.getElementById('print-subtitle-main');
+        const printMeta = document.getElementById('print-meta-area');
+        const printTableWrapper = document.getElementById('print-dynamic-table-wrapper');
+        if (!printTableWrapper) return;
+
+        let grandRevenue = 0, grandCost = 0, grandProfit = 0;
+        let rowsHtml = '';
+        sections.forEach(sec => {
+            grandRevenue += sec.revenue;
+            grandCost += sec.cost;
+            grandProfit += sec.profit;
+            rowsHtml += `
+                <tr>
+                    <td>${sec.name}</td>
+                    <td style="text-align:right;">${sec.revenue > 0 ? fmtTk(sec.revenue) : '-'}</td>
+                    <td style="text-align:right;">${sec.cost > 0 ? fmtTk(sec.cost) : '-'}</td>
+                    <td style="text-align:right; font-weight:700;">${fmtTk(sec.profit)}</td>
+                </tr>
+            `;
+        });
+
+        if (printTitle) printTitle.textContent = 'DAILY FINANCIAL STATEMENT';
+        if (printSubtitle) printSubtitle.textContent = 'Stationery Management System';
+        if (printMeta) {
+            printMeta.innerHTML = `
+                <p><strong>Report Date:</strong> ${formatFinancialDate(dateStr)}</p>
+                <p><strong>Generated On:</strong> ${formatFinancialDate('2026-07-19')}</p>
+            `;
+        }
+
+        printTableWrapper.innerHTML = `
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;">Business Sector Module</th>
+                        <th style="text-align:right;">Revenue (৳)</th>
+                        <th style="text-align:right;">Expense (৳)</th>
+                        <th style="text-align:right;">Net Profit (৳)</th>
+                    </tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+            </table>
+            <div class="print-summary-box">
+                <div class="print-summary-row"><span>Total Revenue (Inflow)</span><strong>${fmtTk(grandRevenue)}</strong></div>
+                <div class="print-summary-row"><span>Total Cost &amp; Expenses</span><strong>${fmtTk(grandCost)}</strong></div>
+                <div class="print-summary-row"><span>Net Profit for the Day</span><strong>${fmtTk(grandProfit)}</strong></div>
+            </div>
+        `;
+
+        window.print();
+    });
+
     // --- INITIAL RENDER CALLS ---
     updateCashBookUI();
+    renderDailyReport();
 });
