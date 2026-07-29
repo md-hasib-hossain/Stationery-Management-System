@@ -146,18 +146,54 @@ document.addEventListener("DOMContentLoaded", function () {
         updateOverallTotalProfit();
     }
 
+    // --- Mobile Sidebar Backdrop (created dynamically, no HTML edit required) ---
+    let sidebarBackdrop = document.querySelector(".sidebar-backdrop");
+    if (!sidebarBackdrop) {
+        sidebarBackdrop = document.createElement("div");
+        sidebarBackdrop.className = "sidebar-backdrop";
+        document.body.appendChild(sidebarBackdrop);
+    }
+
+    function closeMobileSidebar() {
+        sidebar.classList.remove("show-sidebar");
+        sidebarBackdrop.classList.remove("show-backdrop");
+    }
+
+    function openMobileSidebar() {
+        sidebar.classList.add("show-sidebar");
+        sidebarBackdrop.classList.add("show-backdrop");
+    }
+
+    sidebarBackdrop.addEventListener("click", closeMobileSidebar);
+
     // Sidebar Toggle
     if (toggleBtn && sidebar && mainContent) {
         toggleBtn.addEventListener("click", function (e) {
             e.stopPropagation();
             if (window.innerWidth <= 768) {
-                sidebar.classList.toggle("show-sidebar");
+                if (sidebar.classList.contains("show-sidebar")) {
+                    closeMobileSidebar();
+                } else {
+                    openMobileSidebar();
+                }
             } else {
                 sidebar.classList.toggle("mini-sidebar");
                 mainContent.classList.toggle("expand-main");
             }
         });
     }
+
+    // Auto-close mobile sidebar after choosing a menu item (nicer mobile UX)
+    document.querySelectorAll(".sidebar ul li.menu-item").forEach(function (item) {
+        item.addEventListener("click", function () {
+            if (window.innerWidth <= 768) closeMobileSidebar();
+        });
+    });
+
+    // Keep sidebar state sane when resizing across the mobile breakpoint
+    window.addEventListener("resize", function () {
+        if (window.innerWidth > 768) closeMobileSidebar();
+    });
 
     // Function to Switch Pages smoothly
     function switchPage(targetViewId, menuText) {

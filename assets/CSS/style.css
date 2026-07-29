@@ -324,3 +324,132 @@ body{
     font-weight: 600;
     border-bottom: 2px solid #cbd5e1 !important;
 }
+
+/* ==========================================================================
+   PROFESSIONAL RESPONSIVE ENHANCEMENTS
+   ========================================================================== */
+
+/* --- Thin, professional scrollbars everywhere --- */
+.sidebar, .table-container {
+    scrollbar-width: thin;
+    scrollbar-color: #94a3b8 transparent;
+}
+.sidebar::-webkit-scrollbar, .table-container::-webkit-scrollbar { height: 6px; width: 6px; }
+.sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+.table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+.table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* --- Collapsible Sidebar (Desktop "Mini" Mode) --- */
+.main { transition: margin-left 0.3s ease; }
+
+.sidebar.mini-sidebar { width: 78px; }
+.sidebar.mini-sidebar .logo { justify-content: center; padding: 20px 10px; }
+.sidebar.mini-sidebar .logo div,
+.sidebar.mini-sidebar .menu-label,
+.sidebar.mini-sidebar ul li span {
+    display: none;
+}
+.sidebar.mini-sidebar ul li {
+    justify-content: center;
+    padding: 14px 0;
+    margin-right: 0;
+}
+.sidebar.mini-sidebar ul li.active { border-radius: 8px; margin: 0 12px; }
+.sidebar.mini-sidebar ul li i { font-size: 16px; }
+
+.main.expand-main { margin-left: 78px; }
+
+/* --- Mobile Sidebar Backdrop (added dynamically by app.js) --- */
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 99;
+}
+.sidebar-backdrop.show-backdrop { display: block; }
+
+/* --- Navbar responsiveness --- */
+.navbar { flex-wrap: wrap; gap: 10px; height: auto; min-height: 70px; }
+.navbar .left h2 { font-size: 16px; }
+.user-info .username { font-size: 13px; }
+.user-info .role { font-size: 10px; }
+
+/* --- Box header & filters wrap gracefully --- */
+.box-header { flex-wrap: wrap; gap: 12px; }
+.filter-wrapper { flex-wrap: wrap; }
+
+/* --- Tables: horizontal scroll instead of ugly squishing --- */
+.table-container {
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* --- Generic: any inline two-column grid layout collapses on small screens --- */
+@media screen and (max-width: 900px) {
+    div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* --- Large tablets / small laptops --- */
+@media screen and (max-width: 1200px) {
+    .content { padding: 22px; }
+}
+
+/* --- Tablets --- */
+@media screen and (max-width: 992px) {
+    .cards, .layout-3-col { grid-template-columns: repeat(2, 1fr); }
+    .form-row-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+    .table-container { overflow-x: auto; }
+    .table-container table { white-space: nowrap; }
+    .table-container table th,
+    .table-container table td { white-space: nowrap; }
+}
+
+/* --- Mobile landscape / large phones --- */
+@media screen and (max-width: 768px) {
+    .sidebar { left: -260px; }
+    .sidebar.show-sidebar { left: 0; box-shadow: 0 0 30px rgba(0,0,0,0.35); }
+    .main, .main.expand-main { margin-left: 0 !important; }
+
+    .navbar { padding: 12px 15px; }
+    .navbar .right { gap: 12px; }
+    .date-display span { display: none; }
+    .date-display { padding: 8px 10px; }
+
+    .content { padding: 16px; }
+    .cards, .layout-3-col { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .form-row-grid { grid-template-columns: 1fr 1fr !important; gap: 12px; }
+
+    .box { padding: 15px; }
+    .box-header h3 { font-size: 14px; }
+    .btn-print-main, .btn-submit-form { width: 100%; justify-content: center; }
+    .filter-wrapper { width: 100%; }
+    .filter-wrapper select { flex: 1; min-width: 100px; }
+
+    .table-summary-row.cashbook-summary { flex-wrap: wrap; gap: 15px; }
+}
+
+/* --- Small phones --- */
+@media screen and (max-width: 480px) {
+    .cards, .layout-3-col { grid-template-columns: 1fr; }
+    .form-row-grid { grid-template-columns: 1fr !important; }
+
+    .logo h2 { font-size: 14px; }
+    .logo p { font-size: 10px; }
+    .user-info { display: none; }
+    .navbar .right { gap: 10px; }
+
+    .card-info h2 { font-size: 18px; }
+    .box-header { align-items: flex-start; }
+    .box-header .filter-wrapper { flex-direction: column; align-items: stretch; }
+
+    .content { padding: 12px; }
+}
+
+/* --- Ultra-wide screens: keep content from stretching too thin --- */
+@media screen and (min-width: 1800px) {
+    .content { max-width: 1700px; margin: 0 auto; }
+}
