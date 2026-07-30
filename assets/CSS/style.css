@@ -155,7 +155,7 @@ body {
 .menu-item i { font-size:15px; width:18px; text-align:center; flex-shrink:0; }
 .menu-item:hover { background: var(--bg-sidebar-hover); color:#e2e8f0; }
 .menu-item.active {
-  background: var(--clr-primary);
+  background: radial-gradient(65.14% 924.42% at 50% 50%, #0060fa 0%, #002b70 100%);
   color: #fff;
   box-shadow: 0 4px 12px rgba(37,99,235,.4);
 }
@@ -392,7 +392,7 @@ body {
   border:1px solid var(--border-dk);
   border-radius:var(--r-sm);
   font-size:12px; font-weight:600;
-  background:#f8fafc; color:var(--txt-base);
+  background:#e2ebf5; color:var(--txt-base);
   cursor:pointer; outline:none;
   transition:border-color var(--t);
 }
@@ -403,18 +403,19 @@ body {
    ============================================================ */
 .btn-print-main {
   display:inline-flex; align-items:center; gap:7px;
-  background:var(--clr-primary); color:#ff0000;
+  background:radial-gradient(65.14% 924.42% at 50% 50%, #0060fa 0%, #002b70 100%); color:#ffffff;
   border:none; padding:8px 16px;
   border-radius:var(--r-sm);
   font-size:12px; font-weight:700; cursor:pointer;
   transition:background var(--t), transform var(--t), box-shadow var(--t);
   box-shadow:0 2px 8px rgba(37,99,235,.3);
 }
-.btn-print-main:hover { background:var(--clr-primary-dk); transform:translateY(-1px); }
+.btn-print-main:hover { background:radial-gradient(65.14% 924.42% at 50% 50%, #0060fa 0%, #002b70 100%); transform:translateY(-1px); }
 
 .btn-submit-form {
   display:inline-flex; align-items:center; gap:7px;
-  background:var(--clr-primary); color:#fff;
+  background:radial-gradient(65.14% 924.42% at 50% 50%, #0060fa 0%, #002b70 100%); 
+  color:#fff;
   border:none; padding:10px 20px;
   border-radius:var(--r-sm);
   font-size:13px; font-weight:700; cursor:pointer;
@@ -422,9 +423,8 @@ body {
   white-space:nowrap;
 }
 .btn-submit-form:hover {
-   background:var(--clr-primary-dk); 
+   background: radial-gradient(65.14% 924.42% at 50% 50%, #0060fa 0%, #002b70 100%); 
    transform:translateY(-1px);
-   color: rgb(255, 0, 0);
    }
 
 /* ============================================================
@@ -486,7 +486,7 @@ body {
   display:flex; gap:16px; flex-wrap:wrap;
 }
 .cashbook-summary { justify-content:space-between; }
-.full-summary-box { }
+/* .full-summary-box { } */
 .summary-item { display:flex; flex-direction:column; gap:3px; }
 .summary-item span { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.4px; color:var(--txt-muted); }
 .summary-item strong { font-size:16px; font-weight:800; }
