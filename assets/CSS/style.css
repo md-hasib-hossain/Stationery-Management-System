@@ -421,7 +421,11 @@ body {
   transition:background var(--t), transform var(--t);
   white-space:nowrap;
 }
-.btn-submit-form:hover { background:var(--clr-primary-dk); transform:translateY(-1px); }
+.btn-submit-form:hover {
+   background:var(--clr-primary-dk); 
+   transform:translateY(-1px);
+   color: rgb(255, 0, 0);
+   }
 
 /* ============================================================
    FORMS

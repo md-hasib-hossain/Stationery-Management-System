@@ -68,15 +68,18 @@ document.addEventListener("DOMContentLoaded", function () {
     let partnerWithdrawnAmount = parseFloat(localStorage.getItem('partnerWithdrawnAmount')) || 0;
 
     // --- ONLINE COST DATABASE ENGINE ---
-    let onlineCostData = JSON.parse(localStorage.getItem('onlineCostData'));
+    // let onlineCostData = JSON.parse(localStorage.getItem('onlineCostData'));
+
+    let onlineCostData = [];
+    localStorage.removeItem('onlineCostData');
 
     // --- PHOTOCOPY SERVICE DATABASE ENGINE ---
     let photocopyServiceRecords = JSON.parse(localStorage.getItem('photocopyServiceRecords')) || [
-        { 
+        {
             id: 7001, date: "2026-07-19", totalCopy: 10000, grossAmt: 20000, rimQty: 22.22, rimCost: 7778, netAmt: 12222, serviceCost: 500, finalProfit: 11722,
             expenses: [{ title: "Toner Refill", amount: 300 }, { title: "Technician Tip", amount: 200 }]
         },
-        { 
+        {
             id: 7002, date: "2026-07-18", totalCopy: 5000, grossAmt: 10000, rimQty: 11.11, rimCost: 3889, netAmt: 6111, serviceCost: 500, finalProfit: 5611,
             expenses: [{ title: "Machine Service", amount: 500 }]
         }
@@ -114,12 +117,12 @@ document.addEventListener("DOMContentLoaded", function () {
             mbProfit = mbTransactions.reduce((acc, curr) => {
                 const txYear = curr.date.substring(0, 4);
                 const txMonth = curr.date.substring(5, 7);
-                const isMatch = (selectedMonth === "all" || txMonth === selectedMonth) && 
-                                (selectedYear === "all" || txYear === selectedYear);
+                const isMatch = (selectedMonth === "all" || txMonth === selectedMonth) &&
+                    (selectedYear === "all" || txYear === selectedYear);
                 return isMatch ? acc + (curr.commission || 0) : acc;
             }, 0);
         }
-        
+
         const mbElement = document.getElementById("dash-mobile-profit");
         if (mbElement) mbElement.innerText = "৳ " + mbProfit.toLocaleString('en-IN');
         dashboardTotals.mobileProfit = mbProfit;
@@ -133,8 +136,8 @@ document.addEventListener("DOMContentLoaded", function () {
             psProfit = photocopyServiceRecords.reduce((acc, curr) => {
                 const year = curr.date.substring(0, 4);
                 const month = curr.date.substring(5, 7);
-                const isMatch = (selectedMonth === "all" || month === selectedMonth) && 
-                                (selectedYear === "all" || year === selectedYear);
+                const isMatch = (selectedMonth === "all" || month === selectedMonth) &&
+                    (selectedYear === "all" || year === selectedYear);
                 return isMatch ? acc + (curr.finalProfit || 0) : acc;
             }, 0);
         }
@@ -255,10 +258,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     function formatFinancialDate(dateString) {
-        if(!dateString) return '';
+        if (!dateString) return '';
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const d = new Date(dateString);
-        if(isNaN(d.getTime())) return dateString;
+        if (isNaN(d.getTime())) return dateString;
         return `${String(d.getDate()).padStart(2, '0')}-${months[d.getMonth()]}-${String(d.getFullYear()).slice(-2)}`;
     }
 
@@ -495,7 +498,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("btn-print-partner-report")?.addEventListener("click", function () {
         const mText = getSelectedText("partner-filter-month") || getSelectedText("partnership-filter-month");
         const yText = getSelectedText("partner-filter-year") || getSelectedText("partnership-filter-year");
-        
+
         const printTitle = document.getElementById("print-title-main");
         const printSubtitle = document.getElementById("print-subtitle-main");
         const printMeta = document.getElementById("print-meta-area");
@@ -504,7 +507,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (printTitle) printTitle.innerText = "PARTNERS RECORD LEDGER STATEMENT";
         if (printSubtitle) printSubtitle.innerText = `Statement Period: ${mText} - ${yText}`;
         if (printMeta) printMeta.innerHTML = `<p><strong>Report Type:</strong> Partner Distribution Summary</p><p><strong>Generated Date:</strong> 19 Jul 2026</p>`;
-        
+
         let tableHtml = `
             <table class="print-table">
                 <thead>
@@ -572,15 +575,15 @@ document.addEventListener("DOMContentLoaded", function () {
         const filterMonth = document.getElementById("ps-filter-month")?.value || "all";
         const filterYear = document.getElementById("ps-filter-year")?.value || "all";
         let sl = 1;
-        let totalFilteredProfit = 0; 
+        let totalFilteredProfit = 0;
         if (tableBody) tableBody.innerHTML = "";
         photocopyServiceRecords.forEach((rec) => {
             const year = rec.date.substring(0, 4);
             const month = rec.date.substring(5, 7);
-            const isMatch = (filterMonth === "all" || month === filterMonth) && 
-                            (filterYear === "all" || year === filterYear);
+            const isMatch = (filterMonth === "all" || month === filterMonth) &&
+                (filterYear === "all" || year === filterYear);
             if (isMatch) {
-                totalFilteredProfit += rec.finalProfit; 
+                totalFilteredProfit += rec.finalProfit;
                 if (tableBody) {
                     let expenseDisplayHtml = `<span style="color: #e11d48; font-weight: 700; font-size: 13px;">৳ ${(rec.serviceCost || 0).toLocaleString()}</span>`;
                     if (rec.expenses && rec.expenses.length > 0) {
@@ -621,7 +624,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updateProfitCardsOnly(totalFilteredProfit);
     }
 
-    document.getElementById("btn-save-ps-record")?.addEventListener("click", function() {
+    document.getElementById("btn-save-ps-record")?.addEventListener("click", function () {
         const dateVal = document.getElementById("ps-entry-date")?.value || "2026-07-19";
         const totalCount = parseFloat(document.getElementById("ps-entry-count")?.value) || 0;
         const avgePcs = parseFloat(document.getElementById("ps-entry-avg")?.value) || 0;
@@ -629,14 +632,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const rimPerPcs = parseFloat(document.getElementById("rate-rim-pcs")?.value) || 450;
         const rimPerTk = parseFloat(document.getElementById("rate-rim-tk")?.value) || 350;
         const totalCopy = totalCount - avgePcs;
-        if(totalCopy <= 0) {
+        if (totalCopy <= 0) {
             alert("দুঃখিত, কোনো ডাটা পাওয়া যায়নি! প্রথমে Photocopy Machine ক্যালকুলেটরে রিডিং ইনপুট দিন।");
             return;
         }
         let currentExpensesList = [];
         const titles = document.querySelectorAll(".pm-expense-title");
         const amounts = document.querySelectorAll(".pm-expense-amt");
-        for(let i = 0; i < titles.length; i++) {
+        for (let i = 0; i < titles.length; i++) {
             let titleText = titles[i].value.trim();
             let amountVal = parseFloat(amounts[i].value) || 0;
             if (titleText !== "" || amountVal > 0) {
@@ -647,7 +650,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const rimQty = totalCopy / rimPerPcs;
         const rimCost = Math.round(rimQty * rimPerTk);
         const netAmt = grossAmt - rimCost;
-        const finalProfit = netAmt - serviceCost; 
+        const finalProfit = netAmt - serviceCost;
         const newRecord = {
             id: Math.floor(7000 + Math.random() * 3000),
             date: dateVal, totalCopy, grossAmt, rimQty, rimCost, netAmt, serviceCost, finalProfit, expenses: currentExpensesList
@@ -658,7 +661,7 @@ document.addEventListener("DOMContentLoaded", function () {
         alert("ক্যালকুলেশন সাকসেসফুলি সেভ করা হয়েছে!");
     });
 
-    document.getElementById("main-ps-table")?.addEventListener("click", function(e) {
+    document.getElementById("main-ps-table")?.addEventListener("click", function (e) {
         const deleteBtn = e.target.closest(".btn-delete-ps");
         const printBtn = e.target.closest(".btn-print-ps");
         if (deleteBtn) {
@@ -677,7 +680,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("print-subtitle-main").innerText = `Record ID: #${rec.id}`;
                 document.getElementById("print-meta-area").innerHTML = `<p><strong>Date:</strong> ${formatFinancialDate(rec.date)}</p><p><strong>Status:</strong> Saved Log Entry</p>`;
                 let expenseNotes = `৳ ${(rec.serviceCost || 0).toLocaleString()}`;
-                if(rec.expenses && rec.expenses.length > 0) {
+                if (rec.expenses && rec.expenses.length > 0) {
                     expenseNotes += " (";
                     rec.expenses.forEach((ex, idx) => {
                         expenseNotes += `${ex.title}: ৳${ex.amount}${idx < rec.expenses.length - 1 ? ', ' : ''}`;
@@ -716,7 +719,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    document.getElementById("btn-print-ps-report")?.addEventListener("click", function() {
+    document.getElementById("btn-print-ps-report")?.addEventListener("click", function () {
         const mText = getSelectedText("ps-filter-month");
         const yText = getSelectedText("ps-filter-year");
         document.getElementById("print-title-main").innerText = "PHOTOCOPY SERVICE REPORT STATEMENT";
@@ -801,8 +804,8 @@ document.addEventListener("DOMContentLoaded", function () {
         cashBookData.forEach((entry, index) => {
             const txYear = entry.date.substring(0, 4);
             const txMonth = entry.date.substring(5, 7);
-            const isMatch = (selectedMonth === "all" || txMonth === selectedMonth) && 
-                            (selectedYear === "all" || txYear === selectedYear);
+            const isMatch = (selectedMonth === "all" || txMonth === selectedMonth) &&
+                (selectedYear === "all" || txYear === selectedYear);
             if (isMatch) {
                 let purchaseVal = 0;
                 let salesVal = 0;
@@ -816,7 +819,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         const match = dailySalesData.find(d => entry.remarks.includes(`Stat: ৳${d.stationery}`) && d.date === entry.date);
                         profitVal = match ? match.profit : (salesVal * 0.25);
                     } else {
-                        profitVal = salesVal * 0.25; 
+                        profitVal = salesVal * 0.25;
                     }
                     totalSales += salesVal;
                     totalGrossProfit += profitVal;
@@ -880,23 +883,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const netProfit = totalGrossProfit - totalOtherExpenses;
         const cashInHand = totalSales - totalPurchase;
-        if(document.getElementById("cb-total-purchase")) document.getElementById("cb-total-purchase").innerText = "৳ " + totalPurchase.toLocaleString();
-        if(document.getElementById("cb-total-sales")) document.getElementById("cb-total-sales").innerText = "৳ " + totalSales.toLocaleString();
-        if(document.getElementById("cb-total-profit")) document.getElementById("cb-total-profit").innerText = "৳ " + Math.round(netProfit).toLocaleString();
-        if(document.getElementById("total-debit")) document.getElementById("total-debit").innerText = `৳ ${totalPurchase.toLocaleString()}`;
-        if(document.getElementById("total-credit")) document.getElementById("total-credit").innerText = `৳ ${totalSales.toLocaleString()}`;
-        if(document.getElementById("net-balance")) document.getElementById("net-balance").innerText = `৳ ${cashInHand.toLocaleString()}`;
-        if(document.getElementById("dash-sale")) document.getElementById("dash-sale").innerText = `৳ ${totalSales.toLocaleString()}`;
-        if(document.getElementById("dash-expense")) document.getElementById("dash-expense").innerText = `৳ ${totalPurchase.toLocaleString()}`;
-        if(document.getElementById("dash-cash")) document.getElementById("dash-cash").innerText = `৳ ${cashInHand.toLocaleString()}`;
-        if(document.getElementById("dash-profit")) document.getElementById("dash-profit").innerText = `৳ ${Math.round(netProfit).toLocaleString()}`;
-        
+        if (document.getElementById("cb-total-purchase")) document.getElementById("cb-total-purchase").innerText = "৳ " + totalPurchase.toLocaleString();
+        if (document.getElementById("cb-total-sales")) document.getElementById("cb-total-sales").innerText = "৳ " + totalSales.toLocaleString();
+        if (document.getElementById("cb-total-profit")) document.getElementById("cb-total-profit").innerText = "৳ " + Math.round(netProfit).toLocaleString();
+        if (document.getElementById("total-debit")) document.getElementById("total-debit").innerText = `৳ ${totalPurchase.toLocaleString()}`;
+        if (document.getElementById("total-credit")) document.getElementById("total-credit").innerText = `৳ ${totalSales.toLocaleString()}`;
+        if (document.getElementById("net-balance")) document.getElementById("net-balance").innerText = `৳ ${cashInHand.toLocaleString()}`;
+        if (document.getElementById("dash-sale")) document.getElementById("dash-sale").innerText = `৳ ${totalSales.toLocaleString()}`;
+        if (document.getElementById("dash-expense")) document.getElementById("dash-expense").innerText = `৳ ${totalPurchase.toLocaleString()}`;
+        if (document.getElementById("dash-cash")) document.getElementById("dash-cash").innerText = `৳ ${cashInHand.toLocaleString()}`;
+        if (document.getElementById("dash-profit")) document.getElementById("dash-profit").innerText = `৳ ${Math.round(netProfit).toLocaleString()}`;
+
         dashboardTotals.todayProfit = netProfit;
         updateOverallTotalProfit();
     }
 
-    document.getElementById("cashbook-form")?.addEventListener("submit", function(e) {
-        e.preventDefault();  
+    document.getElementById("cashbook-form")?.addEventListener("submit", function (e) {
+        e.preventDefault();
         const date = document.getElementById("input-date").value;
         const type = document.getElementById("input-type").value;
         const amount = parseFloat(document.getElementById("input-amount").value) || 0;
@@ -906,17 +909,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
         cashBookData.unshift({ date, type: (type === 'credit' ? 'Sales' : (type === 'debit' ? 'Purchase' : type)), amount, remarks });
         localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
-        
+
         updateCashBookUI();
         this.reset();
-        if(document.getElementById("input-date")) document.getElementById("input-date").value = "2026-07-19";
+        if (document.getElementById("input-date")) document.getElementById("input-date").value = "2026-07-19";
     });
 
     const cbTableSelector = document.getElementById("main-cashbook-table");
-    cbTableSelector?.addEventListener("click", function(e) {
+    cbTableSelector?.addEventListener("click", function (e) {
         const deleteBtn = e.target.closest(".btn-delete-cash");
         const printBtn = e.target.closest(".btn-print-cash-single");
-        
+
         if (deleteBtn) {
             const index = parseInt(deleteBtn.getAttribute("data-index"));
             if (confirm("আপনি কি নিশ্চিতভাবে এই রেকর্ডটি ডিলিট করতে চান?")) {
@@ -933,7 +936,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("print-title-main").innerText = "SINGLE TRANSACTION VOUCHER";
                 document.getElementById("print-subtitle-main").innerText = `Log ID: #CB-${index + 1000}`;
                 document.getElementById("print-meta-area").innerHTML = `<p><strong>Date:</strong> ${formatFinancialDate(tx.date)}</p><p><strong>Type:</strong> ${tx.type.toUpperCase()}</p>`;
-                
+
                 let tableHtml = `
                     <table class="print-table">
                         <thead>
@@ -956,7 +959,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    document.getElementById("btn-print-ledger")?.addEventListener("click", function() {
+    document.getElementById("btn-print-ledger")?.addEventListener("click", function () {
         const mText = getSelectedText("filter-month") || getSelectedText("cb-filter-month");
         const yText = getSelectedText("filter-year") || getSelectedText("cb-filter-year");
 
@@ -1241,7 +1244,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (dsForm) {
         dsForm.addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const dateVal = dsDateInput.value;
             const purposeVal = dsPurposeInput.value.trim();
             const stationeryVal = parseFloat(dsStationeryInput.value) || 0;
@@ -1277,7 +1280,7 @@ document.addEventListener("DOMContentLoaded", function () {
             renderDailySalesTable();
             updateCashBookUI();
             this.reset();
-            
+
             if (dsDateInput) dsDateInput.value = "2026-07-19";
             alert("ডেইলি সেলস ডেটা সফলভাবে সেভ এবং ক্যাশ বুকে যুক্ত করা হয়েছে!");
         });
@@ -1312,7 +1315,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 totalProfitSum += entry.profit;
 
                 const tr = document.createElement('tr');
-                tr.style.borderBottom = "1px solid #cbd5e1"; 
+                tr.style.borderBottom = "1px solid #cbd5e1";
                 tr.innerHTML = `
                     <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; vertical-align: middle;">${serial++}</td>
                     <td style="padding: 12px; text-align: center; border: 1px solid #e2e8f0; vertical-align: middle;">${formatFinancialDate(entry.date)}</td>
@@ -1372,7 +1375,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     document.getElementById("print-title-main").innerText = "DAILY STATIONERY SALE VOUCHER";
                     document.getElementById("print-subtitle-main").innerText = `Voucher ID: #DS-${rec.id}`;
                     document.getElementById("print-meta-area").innerHTML = `<p><strong>Date:</strong> ${formatFinancialDate(rec.date)}</p><p><strong>Purpose:</strong> ${rec.purpose || 'N/A'}</p>`;
-                    
+
                     let tableHtml = `
                         <table class="print-table">
                             <thead>
@@ -1400,7 +1403,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     const btnPrintDailyReport = document.getElementById("btn-print-ds-report") || document.getElementById("btn-print-daily-report");
-    btnPrintDailyReport?.addEventListener("click", function() {
+    btnPrintDailyReport?.addEventListener("click", function () {
         const mText = getSelectedText("sale-filter-month") || getSelectedText("daily-report-filter-month");
         const yText = getSelectedText("sale-filter-year") || getSelectedText("daily-report-filter-year");
 
@@ -1434,7 +1437,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const dateParts = entry.date.split('-');
             const txYear = dateParts[0];
             const txMonth = dateParts[1];
-            
+
             if ((selectedMonth === "all" || txMonth === selectedMonth) && (selectedYear === "all" || txYear === selectedYear)) {
                 totalStationery += entry.stationery;
                 totalProfit += entry.profit;
@@ -1678,7 +1681,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // --- MOBILE BANKING LOGIC ---
-    const fmtBDT = (num) => "৳ " + Number(num || 0).toLocaleString('en-IN', {maximumFractionDigits: 0});
+    const fmtBDT = (num) => "৳ " + Number(num || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
     function updateMobileBankingUI() {
         const tbody = document.querySelector("#main-mb-table tbody");
@@ -1693,9 +1696,9 @@ document.addEventListener("DOMContentLoaded", function () {
         mbTransactions.forEach((tx) => {
             const txYear = tx.date.substring(0, 4);
             const txMonth = tx.date.substring(5, 7);
-            
-            const isMatch = (selectedMonth === "all" || txMonth === selectedMonth) && 
-                            (selectedYear === "all" || txYear === selectedYear);
+
+            const isMatch = (selectedMonth === "all" || txMonth === selectedMonth) &&
+                (selectedYear === "all" || txYear === selectedYear);
 
             if (isMatch) {
                 totalProfit += tx.commission;
@@ -1710,7 +1713,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <button class="btn-delete-row btn-delete-mb" data-id="${tx.id}"><i class="fas fa-trash-can"></i></button>
                     </td>
                 `;
-                tbody.appendChild(tr); 
+                tbody.appendChild(tr);
                 sl++;
             }
         });
@@ -1722,7 +1725,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updateProfitCardsOnly(undefined, totalProfit);
     }
 
-    document.getElementById("mb-form")?.addEventListener("submit", function(e) {
+    document.getElementById("mb-form")?.addEventListener("submit", function (e) {
         e.preventDefault();
         const date = document.getElementById("mb-date").value;
         const details = document.getElementById("mb-details").value;
@@ -1731,13 +1734,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const newTx = { id: Math.floor(9000 + Math.random() * 1000), date, details, commission };
         mbTransactions.unshift(newTx);
         localStorage.setItem('mbTransactions', JSON.stringify(mbTransactions));
-        
+
         updateMobileBankingUI();
         this.reset();
         document.getElementById("mb-date").value = "2026-07-19";
     });
 
-    document.getElementById("main-mb-table")?.addEventListener("click", function(e) {
+    document.getElementById("main-mb-table")?.addEventListener("click", function (e) {
         const deleteBtn = e.target.closest(".btn-delete-mb");
         if (deleteBtn) {
             const id = parseInt(deleteBtn.getAttribute("data-id"));
@@ -1752,7 +1755,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("mb-filter-month")?.addEventListener("change", updateMobileBankingUI);
     document.getElementById("mb-filter-year")?.addEventListener("change", updateMobileBankingUI);
 
-    document.getElementById("btn-print-mb-report")?.addEventListener("click", function() {
+    document.getElementById("btn-print-mb-report")?.addEventListener("click", function () {
         const mText = getSelectedText("mb-filter-month");
         const yText = getSelectedText("mb-filter-year");
 
@@ -1779,8 +1782,8 @@ document.addEventListener("DOMContentLoaded", function () {
         mbTransactions.forEach(tx => {
             const txYear = tx.date.substring(0, 4);
             const txMonth = tx.date.substring(5, 7);
-            
-            if((selectedMonth === "all" || txMonth === selectedMonth) && (selectedYear === "all" || txYear === selectedYear)) {
+
+            if ((selectedMonth === "all" || txMonth === selectedMonth) && (selectedYear === "all" || txYear === selectedYear)) {
                 totalProfit += tx.commission;
                 tableHtml += `
                     <tr>
@@ -1811,54 +1814,54 @@ document.addEventListener("DOMContentLoaded", function () {
         const dateVal = document.getElementById("pm-date")?.value || "2026-07-19";
         const totalCount = parseFloat(document.getElementById("pm-total-count")?.value) || 0;
         const avgePcs = parseFloat(document.getElementById("pm-avge-pcs")?.value) || 0;
-        
+
         let totalExpenseSum = 0;
         document.querySelectorAll(".pm-expense-amt").forEach(input => {
             totalExpenseSum += parseFloat(input.value) || 0;
         });
-        
+
         const serviceCost = totalExpenseSum;
-        if(document.getElementById("pm-service-cost")) {
+        if (document.getElementById("pm-service-cost")) {
             document.getElementById("pm-service-cost").innerText = serviceCost > 0 ? "৳ " + serviceCost.toLocaleString() : "0";
         }
-        
+
         const rimPerPcs = parseFloat(document.getElementById("rate-rim-pcs")?.value) || 450;
         const rimPerTk = parseFloat(document.getElementById("rate-rim-tk")?.value) || 350;
 
         const totalCopy = totalCount - avgePcs;
-        if(document.getElementById("pm-total-copy")) {
+        if (document.getElementById("pm-total-copy")) {
             document.getElementById("pm-total-copy").innerText = totalCopy > 0 ? totalCopy.toLocaleString() : "0";
         }
 
         const totalAmount = totalCopy > 0 ? totalCopy * 2 : 0;
-        if(document.getElementById("pm-total-amount")) {
+        if (document.getElementById("pm-total-amount")) {
             document.getElementById("pm-total-amount").innerText = "৳ " + totalAmount.toLocaleString();
         }
 
         const totalRim = totalCopy > 0 ? totalCopy / rimPerPcs : 0;
-        if(document.getElementById("pm-total-rim")) {
+        if (document.getElementById("pm-total-rim")) {
             document.getElementById("pm-total-rim").innerText = totalRim > 0 ? totalRim.toFixed(2) : "0";
         }
 
         const totalRimTk = Math.round(totalRim * rimPerTk);
-        if(document.getElementById("pm-total-rim-tk")) {
+        if (document.getElementById("pm-total-rim-tk")) {
             document.getElementById("pm-total-rim-tk").innerText = "৳ " + totalRimTk.toLocaleString();
         }
 
         const netAmount = totalAmount - totalRimTk;
-        if(document.getElementById("pm-net-amount")) {
+        if (document.getElementById("pm-net-amount")) {
             document.getElementById("pm-net-amount").innerText = "৳ " + (netAmount > 0 ? netAmount.toLocaleString() : "0");
         }
 
         const finalTotal = netAmount - serviceCost;
-        if(document.getElementById("pm-final-total")) {
+        if (document.getElementById("pm-final-total")) {
             document.getElementById("pm-final-total").innerText = "৳ " + (finalTotal > 0 ? Math.round(finalTotal).toLocaleString() : "0");
         }
 
-        if(document.getElementById("ps-entry-date")) document.getElementById("ps-entry-date").value = dateVal;
-        if(document.getElementById("ps-entry-count")) document.getElementById("ps-entry-count").value = totalCount;
-        if(document.getElementById("ps-entry-avg")) document.getElementById("ps-entry-avg").value = avgePcs;
-        if(document.getElementById("ps-entry-service")) document.getElementById("ps-entry-service").value = serviceCost;
+        if (document.getElementById("ps-entry-date")) document.getElementById("ps-entry-date").value = dateVal;
+        if (document.getElementById("ps-entry-count")) document.getElementById("ps-entry-count").value = totalCount;
+        if (document.getElementById("ps-entry-avg")) document.getElementById("ps-entry-avg").value = avgePcs;
+        if (document.getElementById("ps-entry-service")) document.getElementById("ps-entry-service").value = serviceCost;
     }
 
     document.getElementById("pm-date")?.addEventListener("change", calculatePhotocopyMachine);
@@ -1867,9 +1870,9 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("rate-rim-pcs")?.addEventListener("input", calculatePhotocopyMachine);
     document.getElementById("rate-rim-tk")?.addEventListener("input", calculatePhotocopyMachine);
 
-    document.getElementById("btn-add-pm-expense")?.addEventListener("click", function() {
+    document.getElementById("btn-add-pm-expense")?.addEventListener("click", function () {
         const tbody = document.getElementById("pm-expense-tbody");
-        if(!tbody) return;
+        if (!tbody) return;
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="text" class="pm-expense-title" placeholder="Expense Title" style="width: 100%; padding: 8px 12px; border: none; outline: none;"></td>
@@ -1884,7 +1887,7 @@ document.addEventListener("DOMContentLoaded", function () {
         tr.querySelector(".pm-expense-amt").addEventListener("input", calculatePhotocopyMachine);
     });
 
-    document.getElementById("pm-expense-tbody")?.addEventListener("click", function(e) {
+    document.getElementById("pm-expense-tbody")?.addEventListener("click", function (e) {
         const removeBtn = e.target.closest(".btn-remove-pm-exp");
         if (removeBtn) {
             removeBtn.closest("tr").remove();
@@ -1914,12 +1917,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function addOnlineMasterRow(date = '2026-07-19', particulars = '', onlineWork = '', printSale = '', printCost = '') {
         const tbody = document.getElementById("oc-master-tbody");
-        if(!tbody) return;
-        
+        if (!tbody) return;
+
         const rowId = "oc_row_" + Math.floor(Math.random() * 100000);
         const tr = document.createElement("tr");
         tr.id = rowId;
-        
+
         tr.innerHTML = `
             <td><input type="date" class="oc-row-date" value="${date}" onchange="calculateOnlineCostAll()"></td>
             <td><input type="text" class="oc-row-particulars" placeholder="Details description..." value="${particulars}"></td>
@@ -1944,7 +1947,7 @@ document.addEventListener("DOMContentLoaded", function () {
         calculateOnlineCostAll();
     }
 
-    window.calculateOnlineCostAll = function() {
+    window.calculateOnlineCostAll = function () {
         let grossOnlineRaw = 0, grossPrintRaw = 0, grossCostRaw = 0;
         const selectedMonth = document.getElementById("oc-filter-month")?.value || "all";
         const selectedYear = document.getElementById("oc-filter-year")?.value || "all";
@@ -1953,9 +1956,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const rowDate = row.querySelector(".oc-row-date")?.value || "";
             const txYear = rowDate.substring(0, 4);
             const txMonth = rowDate.substring(5, 7);
-            
+
             const isMatch = (selectedMonth === "all" || txMonth === selectedMonth) && (selectedYear === "all" || txYear === selectedYear);
-                            
+
             if (!isMatch) { row.style.display = "none"; return; } else { row.style.display = ""; }
 
             const onlineWorkVal = parseFloat(row.querySelector(".oc-row-online-work")?.value) || 0;
@@ -1972,25 +1975,25 @@ document.addEventListener("DOMContentLoaded", function () {
         const sharePrintNet = grossPrintRaw * 0.70;
         const finalCalculatedProfit = shareOnlineNet + sharePrintNet - grossCostRaw;
 
-        if(document.getElementById("oc-tot-online-raw")) document.getElementById("oc-tot-online-raw").innerText = fmtBDT(grossOnlineRaw);
-        if(document.getElementById("oc-tot-print-raw")) document.getElementById("oc-tot-print-raw").innerText = fmtBDT(grossPrintRaw);
-        if(document.getElementById("oc-tot-cost-raw")) document.getElementById("oc-tot-cost-raw").innerText = fmtBDT(grossCostRaw);
-        if(document.getElementById("oc-tot-margin-net")) document.getElementById("oc-tot-margin-net").innerText = fmtBDT(finalCalculatedProfit);
-        
-        if(document.getElementById("oc-formula-online")) document.getElementById("oc-formula-online").innerText = fmtBDT(shareOnlineNet);
-        if(document.getElementById("oc-formula-print")) document.getElementById("oc-formula-print").innerText = fmtBDT(sharePrintNet);
-        if(document.getElementById("oc-formula-cost")) document.getElementById("oc-formula-cost").innerText = "- ৳ " + grossCostRaw.toLocaleString();
-        if(document.getElementById("oc-formula-final")) document.getElementById("oc-formula-final").innerText = fmtBDT(finalCalculatedProfit);
+        if (document.getElementById("oc-tot-online-raw")) document.getElementById("oc-tot-online-raw").innerText = fmtBDT(grossOnlineRaw);
+        if (document.getElementById("oc-tot-print-raw")) document.getElementById("oc-tot-print-raw").innerText = fmtBDT(grossPrintRaw);
+        if (document.getElementById("oc-tot-cost-raw")) document.getElementById("oc-tot-cost-raw").innerText = fmtBDT(grossCostRaw);
+        if (document.getElementById("oc-tot-margin-net")) document.getElementById("oc-tot-margin-net").innerText = fmtBDT(finalCalculatedProfit);
 
-        if(document.getElementById("oc-kpi-online-net")) document.getElementById("oc-kpi-online-net").innerText = fmtBDT(shareOnlineNet);
-        if(document.getElementById("oc-kpi-print-net")) document.getElementById("oc-kpi-print-net").innerText = fmtBDT(sharePrintNet);
-        if(document.getElementById("oc-kpi-prod-cost")) document.getElementById("oc-kpi-prod-cost").innerText = fmtBDT(grossCostRaw);
-        if(document.getElementById("oc-kpi-final-profit")) document.getElementById("oc-kpi-final-profit").innerText = fmtBDT(finalCalculatedProfit);
+        if (document.getElementById("oc-formula-online")) document.getElementById("oc-formula-online").innerText = fmtBDT(shareOnlineNet);
+        if (document.getElementById("oc-formula-print")) document.getElementById("oc-formula-print").innerText = fmtBDT(sharePrintNet);
+        if (document.getElementById("oc-formula-cost")) document.getElementById("oc-formula-cost").innerText = "- ৳ " + grossCostRaw.toLocaleString();
+        if (document.getElementById("oc-formula-final")) document.getElementById("oc-formula-final").innerText = fmtBDT(finalCalculatedProfit);
 
-        if(document.getElementById("dash-online-net")) document.getElementById("dash-online-net").innerText = fmtBDT(shareOnlineNet);
-        if(document.getElementById("dash-print-net")) document.getElementById("dash-print-net").innerText = fmtBDT(sharePrintNet);
-        if(document.getElementById("dash-total-costing")) document.getElementById("dash-total-costing").innerText = fmtBDT(grossCostRaw);
-        if(document.getElementById("dash-final-net")) document.getElementById("dash-final-net").innerText = fmtBDT(finalCalculatedProfit);
+        if (document.getElementById("oc-kpi-online-net")) document.getElementById("oc-kpi-online-net").innerText = fmtBDT(shareOnlineNet);
+        if (document.getElementById("oc-kpi-print-net")) document.getElementById("oc-kpi-print-net").innerText = fmtBDT(sharePrintNet);
+        if (document.getElementById("oc-kpi-prod-cost")) document.getElementById("oc-kpi-prod-cost").innerText = fmtBDT(grossCostRaw);
+        if (document.getElementById("oc-kpi-final-profit")) document.getElementById("oc-kpi-final-profit").innerText = fmtBDT(finalCalculatedProfit);
+
+        if (document.getElementById("dash-online-net")) document.getElementById("dash-online-net").innerText = fmtBDT(shareOnlineNet);
+        if (document.getElementById("dash-print-net")) document.getElementById("dash-print-net").innerText = fmtBDT(sharePrintNet);
+        if (document.getElementById("dash-total-costing")) document.getElementById("dash-total-costing").innerText = fmtBDT(grossCostRaw);
+        if (document.getElementById("dash-final-net")) document.getElementById("dash-final-net").innerText = fmtBDT(finalCalculatedProfit);
 
         dashboardTotals.finalNetIncome = finalCalculatedProfit;
         updateOverallTotalProfit();
@@ -2003,7 +2006,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("oc-master-tbody")?.addEventListener("input", saveOnlineCostToStorage);
     document.getElementById("oc-master-tbody")?.addEventListener("change", saveOnlineCostToStorage);
 
-    document.getElementById("oc-master-tbody")?.addEventListener("click", function(e) {
+    document.getElementById("oc-master-tbody")?.addEventListener("click", function (e) {
         const deleteBtn = e.target.closest(".btn-delete-oc-row");
         const printMonthlyBtn = e.target.closest(".btn-oc-row-print-monthly");
         const printYearlyBtn = e.target.closest(".btn-oc-row-print-yearly");
@@ -2061,7 +2064,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    document.getElementById("btn-print-oc-monthly")?.addEventListener("click", function() {
+    document.getElementById("btn-print-oc-monthly")?.addEventListener("click", function () {
         const mText = getSelectedText("oc-filter-month");
         const yText = getSelectedText("oc-filter-year");
 
@@ -2092,7 +2095,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const rowDate = row.querySelector(".oc-row-date")?.value || "";
             const txYear = rowDate.substring(0, 4);
             const txMonth = rowDate.substring(5, 7);
-            
+
             if ((selectedMonth === "all" || txMonth === selectedMonth) && (selectedYear === "all" || txYear === selectedYear)) {
                 const particulars = row.querySelector(".oc-row-particulars")?.value || "N/A";
                 const onlineWorkVal = parseFloat(row.querySelector(".oc-row-online-work")?.value) || 0;
@@ -2151,14 +2154,24 @@ document.addEventListener("DOMContentLoaded", function () {
         saveOnlineCostToStorage();
     });
 
+    // if (Array.isArray(onlineCostData) && onlineCostData.length > 0) {
+    //     onlineCostData.forEach(item => {
+    //         addOnlineMasterRow(item.date, item.particulars, item.onlineWork, item.printSale, item.printCost);
+    //     });
+    // } else {
+    //     addOnlineMasterRow('2026-07-02', 'Logo Design & Vector Work', 4000, 0, 0);
+    //     addOnlineMasterRow('2026-07-06', 'T-Shirt Sublimation Printing', 0, 8500, 3200);
+    //     saveOnlineCostToStorage();
+    // }
+
+
+
     if (Array.isArray(onlineCostData) && onlineCostData.length > 0) {
         onlineCostData.forEach(item => {
             addOnlineMasterRow(item.date, item.particulars, item.onlineWork, item.printSale, item.printCost);
         });
     } else {
-        addOnlineMasterRow('2026-07-02', 'Logo Design & Vector Work', 4000, 0, 0);
-        addOnlineMasterRow('2026-07-06', 'T-Shirt Sublimation Printing', 0, 8500, 3200);
-        saveOnlineCostToStorage();
+        // কোনো Sample Data থাকবে না
     }
 
     // --- MINI SUMMARY ENGINE ---
@@ -2174,7 +2187,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const btnClearMsData = document.getElementById('btn-clear-ms-data');
 
     if (msForm) {
-        msForm.addEventListener('submit', function(e) {
+        msForm.addEventListener('submit', function (e) {
             e.preventDefault();
             const newEntry = {
                 id: Date.now(),
@@ -2184,20 +2197,20 @@ document.addEventListener("DOMContentLoaded", function () {
             };
             miniSummaryData.push(newEntry);
             localStorage.setItem('miniSummaryData', JSON.stringify(miniSummaryData));
-            
+
             renderMiniSummaryTable();
-            updateCashBookUI(); 
-            
+            updateCashBookUI();
+
             msPurposeInput.value = '';
             msAmountInput.value = '';
         });
     }
 
-    if (msFilterMonth) msFilterMonth.addEventListener('change', function() {
+    if (msFilterMonth) msFilterMonth.addEventListener('change', function () {
         renderMiniSummaryTable();
         updateCashBookUI();
     });
-    if (msFilterYear) msFilterYear.addEventListener('change', function() {
+    if (msFilterYear) msFilterYear.addEventListener('change', function () {
         renderMiniSummaryTable();
         updateCashBookUI();
     });
@@ -2205,19 +2218,19 @@ document.addEventListener("DOMContentLoaded", function () {
     function renderMiniSummaryTable() {
         if (!msTableBody) return;
         msTableBody.innerHTML = '';
-        
+
         const selectedMonth = msFilterMonth?.value || 'all';
         const selectedYear = msFilterYear?.value || 'all';
         let totalExpense = 0, serial = 1;
-        
+
         miniSummaryData.forEach(entry => {
             const dateParts = entry.date.split('-');
             const entryYear = dateParts[0];
             const entryMonth = dateParts[1];
-            
+
             const matchMonth = (selectedMonth === 'all' || selectedMonth === entryMonth);
             const matchYear = (selectedYear === 'all' || selectedYear === entryYear);
-            
+
             if (matchMonth && matchYear) {
                 totalExpense += entry.amount;
                 const tr = document.createElement('tr');
@@ -2235,18 +2248,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 msTableBody.appendChild(tr);
             }
         });
-        
+
         if (msTotalAmountEl) msTotalAmountEl.textContent = `৳ ${totalExpense.toLocaleString()}`;
     }
 
-    msTableBody?.addEventListener('click', function(e) {
+    msTableBody?.addEventListener('click', function (e) {
         const deleteBtn = e.target.closest('.btn-delete-ms');
         if (deleteBtn) {
             const idToDelete = parseInt(deleteBtn.getAttribute('data-id'));
             if (confirm('আপনি কি নিশ্চিত যে এই এন্ট্রিটি ডিলিট করতে চান?')) {
                 miniSummaryData = miniSummaryData.filter(entry => entry.id !== idToDelete);
                 localStorage.setItem('miniSummaryData', JSON.stringify(miniSummaryData));
-                
+
                 renderMiniSummaryTable();
                 updateCashBookUI();
             }
@@ -2254,11 +2267,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     if (btnClearMsData) {
-        btnClearMsData.addEventListener('click', function() {
+        btnClearMsData.addEventListener('click', function () {
             if (confirm('আপনি কি নিশ্চিতভাবে সমস্ত মিনি সামারি ডাটা মুছে ফেলতে চান? এটি ড্যাশবোর্ডের খরচও আপডেট করে দেবে।')) {
                 miniSummaryData = [];
                 localStorage.removeItem('miniSummaryData');
-                
+
                 renderMiniSummaryTable();
                 updateCashBookUI();
                 alert('সমস্ত মিনি সামারি রেকর্ড সফলভাবে মুছে ফেলা হয়েছে!');
@@ -2267,13 +2280,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (btnPrintMsReport) {
-        btnPrintMsReport.addEventListener('click', function() {
+        btnPrintMsReport.addEventListener('click', function () {
             const printTitle = document.getElementById('print-title-main');
             const printMeta = document.getElementById('print-meta-area');
             const printTableWrapper = document.getElementById('print-dynamic-table-wrapper');
-            
+
             if (!printTableWrapper) return;
-            
+
             if (printTitle) printTitle.textContent = "MINI SUMMARY EXPENSE REPORT";
             if (printMeta) {
                 printMeta.innerHTML = `
@@ -2282,11 +2295,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     <p><strong>Print Date:</strong> 19 Jul 2026</p>
                 `;
             }
-            
+
             const tableClone = document.getElementById('main-ms-table')?.cloneNode(true);
             if (tableClone) {
                 tableClone.querySelectorAll('th:last-child, td:last-child').forEach(el => el.remove());
-                
+
                 let totalAmount = 0;
                 miniSummaryData.forEach(entry => totalAmount += entry.amount);
 
@@ -2353,16 +2366,42 @@ document.addEventListener("DOMContentLoaded", function () {
         sections.push({ name: 'Cash Book (Manual Entries)', icon: 'fa-book', revenue: cbRevenue, cost: cbCost, profit: cbProfit });
 
         // 2. Daily Sale
-        let dsRevenue = 0, dsCost = 0, dsProfit = 0;
-        dailySalesData.forEach(entry => {
-            if (entry.date !== dateStr) return;
-            const stationery = entry.stationery || 0;
-            const profitVal = entry.profit || 0;
-            dsRevenue += stationery;
-            dsProfit += profitVal;
-            dsCost += (stationery - profitVal);
-        });
-        sections.push({ name: 'Daily Sale', icon: 'fa-cart-shopping', revenue: dsRevenue, cost: dsCost, profit: dsProfit });
+        // let dsRevenue = 0, dsCost = 0, dsProfit = 0;
+        // dailySalesData.forEach(entry => {
+        //     if (entry.date !== dateStr) return;
+        //     const stationery = entry.stationery || 0;
+        //     const profitVal = entry.profit || 0;
+        //     dsRevenue += stationery;
+        //     dsProfit += profitVal;
+        //     dsCost += (stationery - profitVal);
+        // });
+        // sections.push({ name: 'Daily Sale', icon: 'fa-cart-shopping', revenue: dsRevenue, cost: dsCost, profit: dsProfit });
+
+    // 2. Daily Sale
+let dsRevenue = 0;
+let dsCost = 0;
+let dsProfit = 0;
+
+dailySalesData.forEach(entry => {
+    if (entry.date !== dateStr) return;
+
+    dsRevenue += entry.stationery || 0;
+    dsProfit += entry.profit || 0;
+
+    // Purchase Management-এ Cost দেখানো হবে,
+    // তাই Daily Sale-এ Cost আর দেখানো হবে না।
+    dsCost = 0;
+});
+
+sections.push({
+    name: 'Daily Sale',
+    icon: 'fa-cart-shopping',
+    revenue: dsRevenue,
+    cost: dsCost,
+    profit: dsProfit
+});
+
+
 
         // 3. Expense Management
         let expCost = 0;
@@ -2371,12 +2410,38 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         sections.push({ name: 'Expense Management', icon: 'fa-wallet', revenue: 0, cost: expCost, profit: -expCost });
 
+
+
+
+        // 4. Purchase Management
+        // let purCost = 0;
+        // purchaseData.forEach(entry => {
+        //     if (entry.date === dateStr) purCost += entry.amount || 0;
+        // });
+        // sections.push({ name: 'Purchase Management', icon: 'fa-bag-shopping', revenue: 0, cost: purCost, profit: -purCost });
+
         // 4. Purchase Management
         let purCost = 0;
         purchaseData.forEach(entry => {
-            if (entry.date === dateStr) purCost += entry.amount || 0;
+            if (entry.date === dateStr) {
+                purCost += entry.amount || 0;
+            }
         });
-        sections.push({ name: 'Purchase Management', icon: 'fa-bag-shopping', revenue: 0, cost: purCost, profit: -purCost });
+
+        // Stock Purchase শুধু দেখাবে, Profit Calculation-এ যোগ হবে না
+        sections.push({
+            name: 'Purchase Management',
+            icon: 'fa-bag-shopping',
+            revenue: 0,
+            cost: purCost,
+            profit: 0
+        });
+
+
+
+
+
+
 
         // 5. Online Cost & Production
         const oc = getOnlineCostTotalsForDate(dateStr);
