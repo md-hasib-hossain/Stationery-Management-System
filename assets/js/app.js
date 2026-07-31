@@ -74,6 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
     localStorage.removeItem('onlineCostData');
 
     // --- PHOTOCOPY SERVICE DATABASE ENGINE ---
+    let pmCombinedData = null;
     let photocopyServiceRecords = JSON.parse(localStorage.getItem('photocopyServiceRecords')) || [
         {
             id: 7001, date: "2026-07-19", totalCopy: 10000, grossAmt: 20000, rimQty: 22.22, rimCost: 7778, netAmt: 12222, serviceCost: 500, finalProfit: 11722,
@@ -625,17 +626,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     document.getElementById("btn-save-ps-record")?.addEventListener("click", function () {
-        const dateVal = document.getElementById("ps-entry-date")?.value || "2026-07-19";
-        const totalCount = parseFloat(document.getElementById("ps-entry-count")?.value) || 0;
-        const avgePcs = parseFloat(document.getElementById("ps-entry-avg")?.value) || 0;
-        const serviceCost = parseFloat(document.getElementById("ps-entry-service")?.value) || 0;
-        const rimPerPcs = parseFloat(document.getElementById("rate-rim-pcs")?.value) || 450;
-        const rimPerTk = parseFloat(document.getElementById("rate-rim-tk")?.value) || 350;
-        const totalCopy = totalCount - avgePcs;
-        if (totalCopy <= 0) {
-            alert("দুঃখিত, কোনো ডাটা পাওয়া যায়নি! প্রথমে Photocopy Machine ক্যালকুলেটরে রিডিং ইনপুট দিন।");
+        if (typeof calculatePhotocopyMachine === "function") calculatePhotocopyMachine();
+        if (!pmCombinedData || pmCombinedData.totalCopy <= 0) {
+            alert("দুঃখিত, কোনো ডাটা পাওয়া যায়নি! প্রথমে Photocopy Machine ক্যালকুলেটরে রিডিং ইনপুট দিন।");
             return;
         }
+        const dateVal = pmCombinedData.date;
+        const totalCopy = pmCombinedData.totalCopy;
+        const grossAmt = pmCombinedData.grossAmt;
+        const rimQty = pmCombinedData.rimQty;
+        const rimCost = pmCombinedData.rimCost;
+        const netAmt = pmCombinedData.netAmt;
+        const serviceCost = pmCombinedData.serviceCost;
+        const finalProfit = pmCombinedData.finalProfit;
         let currentExpensesList = [];
         const titles = document.querySelectorAll(".pm-expense-title");
         const amounts = document.querySelectorAll(".pm-expense-amt");
@@ -646,11 +649,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 currentExpensesList.push({ title: titleText || "General Maintenance", amount: amountVal });
             }
         }
-        const grossAmt = totalCopy * 2;
-        const rimQty = totalCopy / rimPerPcs;
-        const rimCost = Math.round(rimQty * rimPerTk);
-        const netAmt = grossAmt - rimCost;
-        const finalProfit = netAmt - serviceCost;
         const newRecord = {
             id: Math.floor(7000 + Math.random() * 3000),
             date: dateVal, totalCopy, grossAmt, rimQty, rimCost, netAmt, serviceCost, finalProfit, expenses: currentExpensesList
@@ -1809,66 +1807,97 @@ document.addEventListener("DOMContentLoaded", function () {
         window.print();
     });
 
-    // --- PHOTOCOPY MACHINE CALCULATION ---
+    // --- PHOTOCOPY MACHINE CALCULATION (A4 + LG SIZE BREAKDOWN) ---
+    const PM_RATE_A4 = 2; // ৳ per copy for A4 size
+    const PM_RATE_LG = 3; // ৳ per copy for LG size
+
+    function setPmText(id, text) {
+        const el = document.getElementById(id);
+        if (el) el.innerText = text;
+    }
+
     function calculatePhotocopyMachine() {
         const dateVal = document.getElementById("pm-date")?.value || "2026-07-19";
-        const totalCount = parseFloat(document.getElementById("pm-total-count")?.value) || 0;
-        const avgePcs = parseFloat(document.getElementById("pm-avge-pcs")?.value) || 0;
 
+        // ---- A4 SIZE ----
+        const a4TotalCount = parseFloat(document.getElementById("pm-a4-total-count")?.value) || 0;
+        const a4AvgePcs = parseFloat(document.getElementById("pm-a4-avge-pcs")?.value) || 0;
+        const a4RimPerPcs = parseFloat(document.getElementById("rate-a4-rim-pcs")?.value) || 480;
+        const a4RimPerTk = parseFloat(document.getElementById("rate-a4-rim-tk")?.value) || 350;
+
+        const a4TotalCopy = a4TotalCount - a4AvgePcs;
+        const a4TotalAmount = a4TotalCopy > 0 ? a4TotalCopy * PM_RATE_A4 : 0;
+        const a4TotalRim = a4TotalCopy > 0 ? a4TotalCopy / a4RimPerPcs : 0;
+        const a4TotalRimTk = Math.round(a4TotalRim * a4RimPerTk);
+        const a4NetAmount = a4TotalAmount - a4TotalRimTk;
+
+        setPmText("pm-a4-total-copy", a4TotalCopy > 0 ? a4TotalCopy.toLocaleString() : "0");
+        setPmText("pm-a4-total-amount", "৳ " + Math.round(a4TotalAmount).toLocaleString());
+        setPmText("pm-a4-total-rim", a4TotalRim > 0 ? Math.round(a4TotalRim).toLocaleString() : "0");
+        setPmText("pm-a4-total-rim-tk", "৳ " + a4TotalRimTk.toLocaleString());
+        setPmText("pm-a4-net-amount", "৳ " + (a4NetAmount > 0 ? Math.round(a4NetAmount).toLocaleString() : "0"));
+
+        // ---- LG SIZE ----
+        const lgTotalCount = parseFloat(document.getElementById("pm-lg-total-count")?.value) || 0;
+        const lgAvgePcs = parseFloat(document.getElementById("pm-lg-avge-pcs")?.value) || 0;
+        const lgRimPerPcs = parseFloat(document.getElementById("rate-lg-rim-pcs")?.value) || 500;
+        const lgRimPerTk = parseFloat(document.getElementById("rate-lg-rim-tk")?.value) || 450;
+
+        const lgTotalCopy = lgTotalCount - lgAvgePcs;
+        const lgTotalAmount = lgTotalCopy > 0 ? lgTotalCopy * PM_RATE_LG : 0;
+        const lgTotalRim = lgTotalCopy > 0 ? lgTotalCopy / lgRimPerPcs : 0;
+        const lgTotalRimTk = Math.round(lgTotalRim * lgRimPerTk);
+        const lgNetAmount = lgTotalAmount - lgTotalRimTk;
+
+        setPmText("pm-lg-total-copy", lgTotalCopy > 0 ? lgTotalCopy.toLocaleString() : "0");
+        setPmText("pm-lg-total-amount", "৳ " + Math.round(lgTotalAmount).toLocaleString());
+        setPmText("pm-lg-total-rim", lgTotalRim > 0 ? Math.round(lgTotalRim).toLocaleString() : "0");
+        setPmText("pm-lg-total-rim-tk", "৳ " + lgTotalRimTk.toLocaleString());
+        setPmText("pm-lg-net-amount", "৳ " + (lgNetAmount > 0 ? Math.round(lgNetAmount).toLocaleString() : "0"));
+
+        // ---- SERVICE EXPENSE (auto-summed, unchanged behavior) ----
         let totalExpenseSum = 0;
         document.querySelectorAll(".pm-expense-amt").forEach(input => {
             totalExpenseSum += parseFloat(input.value) || 0;
         });
-
         const serviceCost = totalExpenseSum;
-        if (document.getElementById("pm-service-cost")) {
-            document.getElementById("pm-service-cost").innerText = serviceCost > 0 ? "৳ " + serviceCost.toLocaleString() : "0";
-        }
+        setPmText("pm-service-cost", serviceCost > 0 ? "৳ " + serviceCost.toLocaleString() : "0");
 
-        const rimPerPcs = parseFloat(document.getElementById("rate-rim-pcs")?.value) || 450;
-        const rimPerTk = parseFloat(document.getElementById("rate-rim-tk")?.value) || 350;
+        // ---- COMBINED GROSS / NET PROFIT ----
+        const grossProfit = a4NetAmount + lgNetAmount;
+        const netProfit = grossProfit - serviceCost;
+        setPmText("pm-gross-profit", "৳ " + Math.round(grossProfit).toLocaleString());
+        setPmText("pm-net-profit", "৳ " + Math.round(netProfit).toLocaleString());
 
-        const totalCopy = totalCount - avgePcs;
-        if (document.getElementById("pm-total-copy")) {
-            document.getElementById("pm-total-copy").innerText = totalCopy > 0 ? totalCopy.toLocaleString() : "0";
-        }
-
-        const totalAmount = totalCopy > 0 ? totalCopy * 2 : 0;
-        if (document.getElementById("pm-total-amount")) {
-            document.getElementById("pm-total-amount").innerText = "৳ " + totalAmount.toLocaleString();
-        }
-
-        const totalRim = totalCopy > 0 ? totalCopy / rimPerPcs : 0;
-        if (document.getElementById("pm-total-rim")) {
-            document.getElementById("pm-total-rim").innerText = totalRim > 0 ? totalRim.toFixed(2) : "0";
-        }
-
-        const totalRimTk = Math.round(totalRim * rimPerTk);
-        if (document.getElementById("pm-total-rim-tk")) {
-            document.getElementById("pm-total-rim-tk").innerText = "৳ " + totalRimTk.toLocaleString();
-        }
-
-        const netAmount = totalAmount - totalRimTk;
-        if (document.getElementById("pm-net-amount")) {
-            document.getElementById("pm-net-amount").innerText = "৳ " + (netAmount > 0 ? netAmount.toLocaleString() : "0");
-        }
-
-        const finalTotal = netAmount - serviceCost;
-        if (document.getElementById("pm-final-total")) {
-            document.getElementById("pm-final-total").innerText = "৳ " + (finalTotal > 0 ? Math.round(finalTotal).toLocaleString() : "0");
-        }
+        // ---- COMBINED DATA (used by Photocopy Service save/history) ----
+        pmCombinedData = {
+            date: dateVal,
+            totalCount: a4TotalCount + lgTotalCount,
+            avgePcs: a4AvgePcs + lgAvgePcs,
+            totalCopy: a4TotalCopy + lgTotalCopy,
+            grossAmt: Math.round(a4TotalAmount + lgTotalAmount),
+            rimQty: a4TotalRim + lgTotalRim,
+            rimCost: a4TotalRimTk + lgTotalRimTk,
+            netAmt: Math.round(grossProfit),
+            serviceCost: serviceCost,
+            finalProfit: Math.round(netProfit)
+        };
 
         if (document.getElementById("ps-entry-date")) document.getElementById("ps-entry-date").value = dateVal;
-        if (document.getElementById("ps-entry-count")) document.getElementById("ps-entry-count").value = totalCount;
-        if (document.getElementById("ps-entry-avg")) document.getElementById("ps-entry-avg").value = avgePcs;
+        if (document.getElementById("ps-entry-count")) document.getElementById("ps-entry-count").value = pmCombinedData.totalCount;
+        if (document.getElementById("ps-entry-avg")) document.getElementById("ps-entry-avg").value = pmCombinedData.avgePcs;
         if (document.getElementById("ps-entry-service")) document.getElementById("ps-entry-service").value = serviceCost;
     }
 
     document.getElementById("pm-date")?.addEventListener("change", calculatePhotocopyMachine);
-    document.getElementById("pm-total-count")?.addEventListener("input", calculatePhotocopyMachine);
-    document.getElementById("pm-avge-pcs")?.addEventListener("input", calculatePhotocopyMachine);
-    document.getElementById("rate-rim-pcs")?.addEventListener("input", calculatePhotocopyMachine);
-    document.getElementById("rate-rim-tk")?.addEventListener("input", calculatePhotocopyMachine);
+    document.getElementById("pm-a4-total-count")?.addEventListener("input", calculatePhotocopyMachine);
+    document.getElementById("pm-a4-avge-pcs")?.addEventListener("input", calculatePhotocopyMachine);
+    document.getElementById("rate-a4-rim-pcs")?.addEventListener("input", calculatePhotocopyMachine);
+    document.getElementById("rate-a4-rim-tk")?.addEventListener("input", calculatePhotocopyMachine);
+    document.getElementById("pm-lg-total-count")?.addEventListener("input", calculatePhotocopyMachine);
+    document.getElementById("pm-lg-avge-pcs")?.addEventListener("input", calculatePhotocopyMachine);
+    document.getElementById("rate-lg-rim-pcs")?.addEventListener("input", calculatePhotocopyMachine);
+    document.getElementById("rate-lg-rim-tk")?.addEventListener("input", calculatePhotocopyMachine);
 
     document.getElementById("btn-add-pm-expense")?.addEventListener("click", function () {
         const tbody = document.getElementById("pm-expense-tbody");

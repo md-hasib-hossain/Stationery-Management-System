@@ -1036,113 +1036,136 @@
                         <div class="box-header"
                             style="border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
                             <h2 style="font-size: 22px; font-weight: 700; color: #1e293b;">Photocopy Machine</h2>
-                           
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <label style="font-size:13px; font-weight:600; color:#334155;">Date</label>
+                                <input type="date" id="pm-date" value="2026-07-19"
+                                    style="padding: 8px 12px;color: white; border: 1px solid #cbd5e1; border-radius: 4px; background: radial-gradient(65.14% 924.42% at 50% 50%, #0060fa 0%, #002b70 100%);; outline: none; font-weight: 600;">
+                            </div>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; align-items: start;">
+
+                            <!-- A4 SIZE COLUMN -->
                             <div>
+                                <h3 style="text-align:center; font-size:15px; font-weight:700; color:#1e293b; border-bottom:2px solid #1e293b; display:inline-block; padding-bottom:4px; margin: 0 0 12px 0;">A4 size</h3>
                                 <table class="photo-machine-table"
-                                    style="width: 100%; border-collapse: collapse; font-size: 14px; border: 1px solid #cbd5e1;">
+                                    style="width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid #cbd5e1;">
                                     <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 600;">Date
-                                        </td>
-                                        <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="date"
-                                                id="pm-date" value="2026-07-19"
-                                                style="width: 100%; padding: 12px; border: none; background: #fef9c3; outline: none; font-weight: 600;">
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 500;">Total
-                                            Count</td>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 500;">Total Count</td>
                                         <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number"
-                                                id="pm-total-count" value="12000"
-                                                style="width: 100%; padding: 12px; border: none; background: #d0d6dd; text-align: center; outline: none; font-weight: bold;">
+                                                id="pm-a4-total-count" value="19000"
+                                                style="width: 100%; padding: 10px; border: none; background: #d0d6dd; text-align: center; outline: none; font-weight: bold;">
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 500;">Avge.PCS
-                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 700;">Rim Per PCS</td>
                                         <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number"
-                                                id="pm-avge-pcs" value="5000"
-                                                style="width: 100%; padding: 12px; border: none; background: #f1f5f9; text-align: center; outline: none; font-weight: bold;">
+                                                id="rate-a4-rim-pcs" value="480"
+                                                style="width: 100%; padding: 10px; border: none; outline: none; text-align: center; font-weight: bold;">
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td
-                                            style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700; color: red;">
-                                            Total Copy</td>
-                                        <td id="pm-total-copy"
-                                            style="padding: 12px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: red;">
-                                            7,000</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 500;">Total
-                                            Amount</td>
-                                        <td id="pm-total-amount"
-                                            style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">৳
-                                            14,000</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 500;">Total
-                                            Rim</td>
-                                        <td id="pm-total-rim"
-                                            style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">15.56
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 500;">Avge.PCS</td>
+                                        <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number"
+                                                id="pm-a4-avge-pcs" value="8500"
+                                                style="width: 100%; padding: 10px; border: none; background: #f1f5f9; text-align: center; outline: none; font-weight: bold;">
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 700;">Rim Per Tk</td>
+                                        <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number"
+                                                id="rate-a4-rim-tk" value="350"
+                                                style="width: 100%; padding: 10px; border: none; outline: none; text-align: center; font-weight: bold;">
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 500;">Total
-                                            Rim Tk</td>
-                                        <td id="pm-total-rim-tk"
-                                            style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">৳
-                                            5,444</td>
+                                        <td colspan="2" style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 700; color: red;">Total Copy</td>
+                                        <td colspan="2" id="pm-a4-total-copy" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: red;">10,500</td>
                                     </tr>
                                     <tr>
-                                        <td
-                                            style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700; color: red;">
-                                            Net Amount</td>
-                                        <td id="pm-net-amount"
-                                            style="padding: 12px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: red;">
-                                            ৳ 8,556</td>
+                                        <td colspan="2" style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 500;">Total Amount</td>
+                                        <td colspan="2" id="pm-a4-total-amount" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center;">৳ 21,000</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700;">Service
-                                            Cost</td>
-                                        <td id="pm-service-cost"
-                                            style="padding: 12px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: var(--color-blue); background: #eff6ff;">
-                                            0</td>
+                                        <td colspan="2" style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 500;">Total Rim</td>
+                                        <td colspan="2" id="pm-a4-total-rim" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center;">22</td>
                                     </tr>
                                     <tr>
-                                        <td
-                                            style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700; color: red;">
-                                            Total Amount</td>
-                                        <td id="pm-final-total"
-                                            style="padding: 12px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: red; font-size: 16px;">
-                                            ৳ 8,556</td>
+                                        <td colspan="2" style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 500;">Total Rim Tk</td>
+                                        <td colspan="2" id="pm-a4-total-rim-tk" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center;">৳ 7,656</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 700; color: red;">Net Amount</td>
+                                        <td colspan="2" id="pm-a4-net-amount" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: red;">৳ 13,344</td>
                                     </tr>
                                 </table>
                             </div>
 
+                            <!-- LG SIZE COLUMN -->
                             <div>
-                                <table
-                                    style="width: 100%; border-collapse: collapse; font-size: 14px; border: 1px solid #cbd5e1; margin-bottom: 20px;">
+                                <h3 style="text-align:center; font-size:15px; font-weight:700; color:#1e293b; border-bottom:2px solid #1e293b; display:inline-block; padding-bottom:4px; margin: 0 0 12px 0;">LG size</h3>
+                                <table class="photo-machine-table"
+                                    style="width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid #cbd5e1;">
                                     <tr>
-                                        <td
-                                            style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700; width: 50%;">
-                                            Rim Per PCS</td>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 500;">Total Count</td>
                                         <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number"
-                                                id="rate-rim-pcs" value="450"
-                                                style="width: 100%; padding: 12px; border: none; outline: none; text-align: center; font-weight: bold;">
+                                                id="pm-lg-total-count" value="4000"
+                                                style="width: 100%; padding: 10px; border: none; background: #d0d6dd; text-align: center; outline: none; font-weight: bold;">
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 700;">Rim Per PCS</td>
+                                        <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number"
+                                                id="rate-lg-rim-pcs" value="500"
+                                                style="width: 100%; padding: 10px; border: none; outline: none; text-align: center; font-weight: bold;">
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 700;">Rim Per
-                                            Tk</td>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 500;">Avge.PCS</td>
                                         <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number"
-                                                id="rate-rim-tk" value="350"
-                                                style="width: 100%; padding: 12px; border: none; outline: none; text-align: center; font-weight: bold;">
+                                                id="pm-lg-avge-pcs" value="1000"
+                                                style="width: 100%; padding: 10px; border: none; background: #f1f5f9; text-align: center; outline: none; font-weight: bold;">
                                         </td>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 700;">Rim Per Tk</td>
+                                        <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="number"
+                                                id="rate-lg-rim-tk" value="450"
+                                                style="width: 100%; padding: 10px; border: none; outline: none; text-align: center; font-weight: bold;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 700; color: red;">Total Copy</td>
+                                        <td colspan="2" id="pm-lg-total-copy" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: red;">3,000</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 500;">Total Amount</td>
+                                        <td colspan="2" id="pm-lg-total-amount" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center;">৳ 9,000</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 500;">Total Rim</td>
+                                        <td colspan="2" id="pm-lg-total-rim" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center;">6</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 500;">Total Rim Tk</td>
+                                        <td colspan="2" id="pm-lg-total-rim-tk" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center;">৳ 2,700</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 700; color: red;">Net Amount</td>
+                                        <td colspan="2" id="pm-lg-net-amount" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: red;">৳ 6,300</td>
                                     </tr>
                                 </table>
 
+                                <!-- COMBINED PROFIT SUMMARY -->
+                                <table style="width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid #cbd5e1; margin-top: 18px;">
+                                    <tr>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 700;">Service Cost</td>
+                                        <td id="pm-service-cost" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: white; background: radial-gradient(65.14% 924.42% at 50% 50%, #0060fa 0%, #002b70 100%);">0</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 700;">Gross Profit</td>
+                                        <td id="pm-gross-profit" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; background: radial-gradient(65.14% 924.42% at 50% 50%, #0060fa 0%, #002b70 100%);color: white;">৳ 19,644</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 700;">Net Profit</td>
+                                        <td id="pm-net-profit" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; background: radial-gradient(65.14% 924.42% at 50% 50%, #0060fa 0%, #002b70 100%);color: white;">৳ 4,644</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <!-- SERVICE EXPENSE COLUMN -->
+                            <div>
                                 <div style="border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden;">
                                     <div
                                         style="background: #f8fafc; padding: 10px 15px; font-weight: 700; font-size: 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1;">
