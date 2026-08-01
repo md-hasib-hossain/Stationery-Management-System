@@ -681,7 +681,7 @@ body {
 }
 
 #view-photocopy-machine .pm-card {
-  background: linear-gradient(180deg, #1c2029 0%, #101218 100%);
+  background: #f0f4f8;
   border-radius: var(--r-lg);
   padding: 22px;
   color: var(--pm-text);
@@ -695,16 +695,16 @@ body {
   padding-bottom: 16px; margin-bottom: 20px;
   border-bottom: 1px solid rgba(255,255,255,.08);
 }
-#view-photocopy-machine .pm-title { font-size: 20px; font-weight: 700; color: #fff; margin:0; }
+#view-photocopy-machine .pm-title { font-size: 20px; font-weight: 700; color: #0f172a; margin:0; }
 #view-photocopy-machine .pm-topbar-right { display: flex; align-items: center; gap: 10px; }
 #view-photocopy-machine .pm-date-label { font-size: 13px; color: var(--pm-muted); font-weight: 600; }
 #view-photocopy-machine .pm-date-input {
-  background: var(--pm-panel-2); color: #fff; border: 1px solid var(--pm-border);
+  background: radial-gradient(65.14% 924.42% at 50% 50% 50%, #0060fa 0%, #002b70 100%); color: #fff; border: 1px solid var(--pm-border);
   border-radius: 8px; padding: 8px 12px; font-weight: 600; outline: none;
   color-scheme: dark; font-family: inherit;
 }
 #view-photocopy-machine .pm-menu-btn {
-  background: var(--pm-panel-2); border: 1px solid var(--pm-border); color: var(--pm-muted);
+  background: radial-gradient(65.14% 924.42% at 50% 50% 50%, #0060fa 0%, #002b70 100%); border: 1px solid var(--pm-border); color: var(--pm-muted);
   width: 34px; height: 34px; border-radius: 8px; cursor: pointer; transition: var(--t);
 }
 #view-photocopy-machine .pm-menu-btn:hover { color: #fff; border-color: #3b4150; }
@@ -714,7 +714,7 @@ body {
   display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 24px;
 }
 #view-photocopy-machine .pm-summary-card {
-  background: var(--pm-panel); border: 1px solid var(--pm-border); border-radius: 10px;
+  background: rgba(193, 246, 205, 0.263); border: 1px solid var(--pm-border); border-radius: 10px;
   padding: 14px 16px; display: flex; flex-direction: column; gap: 6px;
 }
 #view-photocopy-machine .pm-summary-label { font-size: 12px; color: var(--pm-muted); font-weight: 500; }
@@ -728,7 +728,7 @@ body {
   display: grid; grid-template-columns: repeat(3,1fr); gap: 26px; align-items: start;
 }
 #view-photocopy-machine .pm-col-title {
-  font-size: 14px; font-weight: 700; color: #fff;
+  font-size: 14px; font-weight: 700; color: #0f172a;
   border-bottom: 2px solid #3a4150; display: inline-block;
   padding-bottom: 6px; margin: 0 0 14px 0;
 }
@@ -743,24 +743,25 @@ body {
 #view-photocopy-machine .pm-field { padding: 10px 12px; border-right: 1px solid var(--pm-border); }
 #view-photocopy-machine .pm-field:last-child { border-right: none; }
 #view-photocopy-machine .pm-field label {
-  display: block; font-size: 11px; color: var(--pm-muted); margin-bottom: 6px; font-weight: 600;
+  display: block; font-size: 11px; color: #262627; margin-bottom: 6px; font-weight: 600;
 }
 #view-photocopy-machine .pm-input {
-  width: 100%; background: transparent; border: none; outline: none;
-  color: #fff; font-weight: 700; font-size: 14px; padding: 6px 8px;
+  width: 100%; background:radial-gradient(65.14% 924.42% at 50% 50%, #0060fa 0%, #002b70 100%);
+   border: none; outline: none;
+  color: #f8f4f4; font-weight: 700; font-size: 14px; padding: 6px 8px;
   border-radius: 6px; text-align: center; font-family: inherit;
 }
-#view-photocopy-machine .pm-input-highlight { background: #252b36; }
-#view-photocopy-machine .pm-input-muted { background: var(--pm-panel-2); }
-#view-photocopy-machine .pm-input:focus { background: #2a3140; }
+#view-photocopy-machine .pm-input-highlight { background: radial-gradient(65.14% 924.42% at 50% 50% 50%, #0060fa 0%, #002b70 100%); }
+#view-photocopy-machine .pm-input-muted { background: radial-gradient(65.14% 924.42% at 50% 50% 50%, #0060fa 0%, #002b70 100%); }
+#view-photocopy-machine .pm-input:focus { background: radial-gradient(65.14% 924.42% at 50% 50% 50%, #0060fa 0%, #002b70 100%);; }
 
 #view-photocopy-machine .pm-stat {
   display: flex; justify-content: space-between; gap: 10px;
-  padding: 10px 14px; font-size: 13px; color: #c7ccd6;
+  padding: 10px 14px; font-size: 13px; color: #0f0f0f;
   border-bottom: 1px solid var(--pm-border);
 }
 #view-photocopy-machine .pm-stat:last-child { border-bottom: none; }
-#view-photocopy-machine .pm-stat span:last-child { font-weight: 700; color: #fff; }
+#view-photocopy-machine .pm-stat span:last-child { font-weight: 700; color: #272727; }
 #view-photocopy-machine .pm-stat-accent span { color: var(--pm-red) !important; }
 #view-photocopy-machine .pm-stat-highlight {
   background: linear-gradient(135deg, var(--pm-blue) 0%, var(--pm-blue-dk) 100%);
