@@ -1859,19 +1859,205 @@
                         </div>
                     </div>
                 </div>
+                <!-- USERS MANAGEMENT VIEW -->
                 <div id="view-users" class="page-view">
+                    <div class="box mb-25">
+                        <div class="box-header">
+                            <h3><i class="fas fa-user-plus text-blue"></i> <span id="user-form-title">Add New
+                                    User</span></h3>
+                        </div>
+                        <form id="user-form">
+                            <div class="form-row-grid" style="grid-template-columns: 1.3fr 1fr 1fr 1fr;">
+                                <div class="input-block">
+                                    <label>Full Name</label>
+                                    <input type="text" id="user-name" placeholder="e.g. Rahim Ahmed" required>
+                                </div>
+                                <div class="input-block">
+                                    <label>Username</label>
+                                    <input type="text" id="user-username" placeholder="e.g. rahim.ahmed" required>
+                                </div>
+                                <div class="input-block">
+                                    <label>Contact Number</label>
+                                    <input type="text" id="user-contact" placeholder="01XXXXXXXXX">
+                                </div>
+                                <div class="input-block">
+                                    <label>Role</label>
+                                    <select id="user-role" required>
+                                        <option value="Administrator">Administrator</option>
+                                        <option value="Manager">Manager</option>
+                                        <option value="Cashier">Cashier</option>
+                                        <option value="Staff">Staff</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row-grid"
+                                style="grid-template-columns: 1fr 1fr 1fr auto; margin-top:16px;">
+                                <div class="input-block">
+                                    <label>Status</label>
+                                    <select id="user-status">
+                                        <option value="Active">Active</option>
+                                        <option value="Inactive">Inactive</option>
+                                    </select>
+                                </div>
+                                <div class="input-block">
+                                    <label>Access PIN (optional)</label>
+                                    <input type="text" id="user-pin" placeholder="4-digit PIN" maxlength="4"
+                                        inputmode="numeric">
+                                </div>
+                                <div></div>
+                                <div class="input-block" style="flex-direction:row; gap:10px; align-items:flex-end;">
+                                    <button type="button" id="btn-cancel-user-edit" class="btn-outline"
+                                        style="display:none;">Cancel</button>
+                                    <button type="submit" class="btn-submit-form" id="btn-save-user">
+                                        <i class="fas fa-save"></i> Save User
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
                     <div class="box">
-                        <h2>Users Settings</h2>
+                        <div class="box-header">
+                            <h3><i class="fas fa-users text-blue"></i> System Users</h3>
+                            <span style="font-size:12px; color:var(--txt-muted); font-weight:600;"
+                                id="user-count-note">0 users</span>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center;">SL</th>
+                                        <th>User</th>
+                                        <th>Role</th>
+                                        <th>Contact</th>
+                                        <th style="text-align:center;">Status</th>
+                                        <th style="text-align:center;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-tbody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
+
+                <!-- SETTINGS VIEW -->
                 <div id="view-settings" class="page-view">
-                    <div class="box">
-                        <h2>System Settings</h2>
+                    <div class="box mb-25">
+                        <div class="box-header">
+                            <h3><i class="fas fa-building text-blue"></i> Business Information</h3>
+                        </div>
+                        <form id="settings-form">
+                            <div class="settings-form-grid">
+                                <div class="input-block">
+                                    <label>Business Name</label>
+                                    <input type="text" id="set-biz-name" placeholder="Stationery Management System">
+                                </div>
+                                <div class="input-block">
+                                    <label>Owner Name</label>
+                                    <input type="text" id="set-owner-name" placeholder="Owner full name">
+                                </div>
+                                <div class="input-block">
+                                    <label>Phone Number</label>
+                                    <input type="text" id="set-phone" placeholder="01XXXXXXXXX">
+                                </div>
+                                <div class="input-block">
+                                    <label>Email Address</label>
+                                    <input type="email" id="set-email" placeholder="shop@example.com">
+                                </div>
+                                <div class="input-block full-span">
+                                    <label>Shop Address</label>
+                                    <textarea id="set-address" placeholder="Full shop address"></textarea>
+                                </div>
+                                <div class="input-block">
+                                    <label>Currency Symbol</label>
+                                    <input type="text" id="set-currency" placeholder="৳" maxlength="3">
+                                </div>
+                                <div class="input-block">
+                                    <label>Financial Year Starts</label>
+                                    <select id="set-fy-start">
+                                        <option value="01">January</option>
+                                        <option value="07" selected>July</option>
+                                    </select>
+                                </div>
+                                <div class="input-block full-span">
+                                    <label>Report / Invoice Footer Note</label>
+                                    <input type="text" id="set-footer-note"
+                                        placeholder="© 2026 Stationery Management System. All rights reserved.">
+                                </div>
+                            </div>
+                            <div class="settings-actions">
+                                <span class="settings-saved-note" id="settings-saved-note" style="display:none;"><i
+                                        class="fas fa-circle-check"></i> Settings saved</span>
+                                <button type="button" id="btn-reset-settings" class="btn-outline"><i
+                                        class="fas fa-rotate-left"></i> Reset to Default</button>
+                                <button type="submit" class="btn-submit-form"><i class="fas fa-save"></i> Save
+                                    Settings</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
+
+                <!-- BACKUP VIEW -->
                 <div id="view-backup" class="page-view">
-                    <div class="box">
-                        <h2>Backup Database</h2>
+                    <div class="box mb-25">
+                        <div class="box-header">
+                            <h3><i class="fas fa-database text-blue"></i> Data Overview</h3>
+                            <span class="last-backup-note" id="last-backup-note">No backup taken yet</span>
+                        </div>
+                        <div class="backup-stats-grid" id="backup-stats-grid"></div>
+                    </div>
+
+                    <div class="box mb-25">
+                        <div class="box-header">
+                            <h3><i class="fas fa-cloud-arrow-up text-blue"></i> Backup &amp; Restore</h3>
+                        </div>
+                        <div class="backup-action-grid">
+                            <div class="backup-action-card export">
+                                <div class="b-icon-lg"><i class="fas fa-download"></i></div>
+                                <h4>Export Full Backup</h4>
+                                <p>Download a complete .json copy of every module — Cash Book, Sales, Expenses,
+                                    Purchase, Partnership, Photocopy, Mobile Banking, Users and Settings.</p>
+                                <button type="button" id="btn-export-backup" class="btn-submit-form"><i
+                                        class="fas fa-file-export"></i> Download Backup (.json)</button>
+                            </div>
+                            <div class="backup-action-card restore">
+                                <div class="b-icon-lg"><i class="fas fa-upload"></i></div>
+                                <h4>Restore From Backup</h4>
+                                <p>Select a previously exported .json backup file to restore all data. This will
+                                    overwrite existing data on this device.</p>
+                                <label for="restore-file-input" class="file-drop-label"><i
+                                        class="fas fa-file-arrow-up"></i> <span id="restore-file-name">Choose backup
+                                        file...</span></label>
+                                <input type="file" id="restore-file-input" accept="application/json"
+                                    style="display:none;">
+                                <button type="button" id="btn-restore-backup" class="btn-outline" disabled><i
+                                        class="fas fa-rotate"></i> Restore Data</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="danger-zone">
+                        <div class="box-header">
+                            <h3><i class="fas fa-triangle-exclamation"></i> Danger Zone</h3>
+                        </div>
+                        <div class="danger-row">
+                            <div>
+                                <div class="d-title">Clear Transactional Data</div>
+                                <div class="d-desc">Removes all Cash Book, Sales, Expense, Purchase and Report
+                                    entries. Users and Settings will be kept.</div>
+                            </div>
+                            <button type="button" id="btn-clear-transactions" class="btn-danger"><i
+                                    class="fas fa-broom"></i> Clear Data</button>
+                        </div>
+                        <div class="danger-row">
+                            <div>
+                                <div class="d-title">Reset Entire Application</div>
+                                <div class="d-desc">Permanently deletes everything — all modules, users and settings
+                                    — and restores factory defaults.</div>
+                            </div>
+                            <button type="button" id="btn-factory-reset" class="btn-danger"><i
+                                    class="fas fa-trash-can"></i> Factory Reset</button>
+                        </div>
                     </div>
                 </div>
             </div>

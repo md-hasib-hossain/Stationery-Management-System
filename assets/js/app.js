@@ -96,6 +96,25 @@ document.addEventListener("DOMContentLoaded", function () {
     // Mini Summary Data
     let miniSummaryData = JSON.parse(localStorage.getItem('miniSummaryData')) || [];
 
+    // --- USERS MANAGEMENT DATABASE ENGINE ---
+    let usersData = JSON.parse(localStorage.getItem('usersData')) || [
+        { id: 1001, name: 'Admin', username: 'admin', contact: '', role: 'Administrator', status: 'Active', pin: '' }
+    ];
+    localStorage.setItem('usersData', JSON.stringify(usersData));
+
+    // --- BUSINESS / SYSTEM SETTINGS ENGINE ---
+    const defaultBusinessSettings = {
+        bizName: 'Stationery',
+        ownerName: '',
+        phone: '',
+        email: '',
+        address: '',
+        currency: '৳',
+        fyStart: '07',
+        footerNote: '© 2026 Stationery Management System. All rights reserved.'
+    };
+    let businessSettings = Object.assign({}, defaultBusinessSettings, JSON.parse(localStorage.getItem('businessSettings')) || {});
+
     // --- SHARED TOTALS STORE FOR "TOTAL PROFIT" CARD ---
     let dashboardTotals = { todayProfit: 0, finalNetIncome: 0, photocopyProfit: 0, mobileProfit: 0 };
 
@@ -222,6 +241,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (targetViewId === "partnership" || targetViewId === "partnership-management") { renderPartnershipTable(); updatePartnershipSplitUI(); }
         if (targetViewId === "cash-book") updateCashBookUI();
         if (targetViewId === "photocopy-service") updatePhotocopyServiceUI();
+        if (targetViewId === "users") renderUsersTable();
+        if (targetViewId === "settings") loadSettingsIntoForm();
+        if (targetViewId === "backup") renderBackupOverview();
     }
 
     // Navigation System for Sidebar
@@ -229,7 +251,12 @@ document.addEventListener("DOMContentLoaded", function () {
     menuItems.forEach((item) => {
         item.addEventListener("click", function () {
             const targetViewId = this.getAttribute("data-target");
-            if (targetViewId === "logout") return;
+            if (targetViewId === "logout") {
+                if (confirm("আপনি কি সিস্টেম থেকে লগ-আউট করতে চান?")) {
+                    alert("আপনি সফলভাবে লগ-আউট হয়েছেন। ধন্যবাদ!");
+                }
+                return;
+            }
             const menuText = this.querySelector("span")?.innerText || "Dashboard";
             switchPage(targetViewId, menuText);
         });
@@ -3000,9 +3027,372 @@ sections.push({
         window.print();
     });
 
+    // ============================================================
+    // USERS MANAGEMENT MODULE
+    // ============================================================
+    const userForm = document.getElementById('user-form');
+    const userNameInput = document.getElementById('user-name');
+    const userUsernameInput = document.getElementById('user-username');
+    const userContactInput = document.getElementById('user-contact');
+    const userRoleInput = document.getElementById('user-role');
+    const userStatusInput = document.getElementById('user-status');
+    const userPinInput = document.getElementById('user-pin');
+    const usersTbody = document.getElementById('users-tbody');
+    const userCountNote = document.getElementById('user-count-note');
+    const userFormTitle = document.getElementById('user-form-title');
+    const btnSaveUser = document.getElementById('btn-save-user');
+    const btnCancelUserEdit = document.getElementById('btn-cancel-user-edit');
+    let editingUserId = null;
+
+    function roleBadgeClass(role) {
+        if (role === 'Administrator') return 'badge-role-admin';
+        if (role === 'Manager') return 'badge-role-manager';
+        if (role === 'Cashier') return 'badge-role-cashier';
+        return 'badge-role-staff';
+    }
+
+    function getInitials(name) {
+        if (!name) return '?';
+        const parts = name.trim().split(/\s+/);
+        return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
+    }
+
+    function renderUsersTable() {
+        if (!usersTbody) return;
+        usersTbody.innerHTML = '';
+
+        usersData.forEach((u, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="text-align:center;">${index + 1}</td>
+                <td>
+                    <div class="user-cell">
+                        <div class="user-avatar">${getInitials(u.name)}</div>
+                        <div>
+                            <div class="u-name">${u.name}</div>
+                            <div class="u-username">@${u.username}</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="badge ${roleBadgeClass(u.role)}">${u.role}</span></td>
+                <td>${u.contact || '-'}</td>
+                <td style="text-align:center;">
+                    <span class="badge ${u.status === 'Active' ? 'badge-active' : 'badge-inactive'}">${u.status}</span>
+                </td>
+                <td style="text-align:center;">
+                    <div class="action-cell" style="justify-content:center;">
+                        <button type="button" class="btn-print-row btn-edit-user" data-id="${u.id}" title="Edit">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button type="button" class="btn-delete-row btn-delete-user" data-id="${u.id}" title="Delete">
+                            <i class="fas fa-trash-can"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            usersTbody.appendChild(tr);
+        });
+
+        if (userCountNote) userCountNote.innerText = `${usersData.length} user${usersData.length !== 1 ? 's' : ''}`;
+    }
+
+    function resetUserForm() {
+        userForm?.reset();
+        editingUserId = null;
+        if (userFormTitle) userFormTitle.innerText = 'Add New User';
+        if (btnSaveUser) btnSaveUser.innerHTML = '<i class="fas fa-save"></i> Save User';
+        if (btnCancelUserEdit) btnCancelUserEdit.style.display = 'none';
+    }
+
+    if (userForm) {
+        userForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const name = userNameInput.value.trim();
+            const username = userUsernameInput.value.trim();
+            const contact = userContactInput.value.trim();
+            const role = userRoleInput.value;
+            const status = userStatusInput.value;
+            const pin = userPinInput.value.trim();
+
+            if (!name || !username) {
+                alert('দয়া করে নাম এবং ইউজারনেম উভয়ই লিখুন।');
+                return;
+            }
+
+            const usernameTaken = usersData.some(u => u.username.toLowerCase() === username.toLowerCase() && u.id !== editingUserId);
+            if (usernameTaken) {
+                alert('এই ইউজারনেমটি ইতিমধ্যে ব্যবহৃত হয়েছে। অন্য একটি ইউজারনেম দিন।');
+                return;
+            }
+
+            if (editingUserId) {
+                const idx = usersData.findIndex(u => u.id === editingUserId);
+                if (idx !== -1) {
+                    usersData[idx] = { ...usersData[idx], name, username, contact, role, status, pin };
+                }
+                alert('ইউজারের তথ্য সফলভাবে আপডেট করা হয়েছে!');
+            } else {
+                usersData.push({
+                    id: Math.floor(1000 + Math.random() * 9000),
+                    name, username, contact, role, status, pin
+                });
+                alert('নতুন ইউজার সফলভাবে যুক্ত করা হয়েছে!');
+            }
+
+            localStorage.setItem('usersData', JSON.stringify(usersData));
+            renderUsersTable();
+            resetUserForm();
+        });
+    }
+
+    btnCancelUserEdit?.addEventListener('click', resetUserForm);
+
+    usersTbody?.addEventListener('click', function (e) {
+        const editBtn = e.target.closest('.btn-edit-user');
+        const deleteBtn = e.target.closest('.btn-delete-user');
+
+        if (editBtn) {
+            const id = parseInt(editBtn.getAttribute('data-id'));
+            const u = usersData.find(x => x.id === id);
+            if (!u) return;
+            editingUserId = id;
+            userNameInput.value = u.name;
+            userUsernameInput.value = u.username;
+            userContactInput.value = u.contact || '';
+            userRoleInput.value = u.role;
+            userStatusInput.value = u.status;
+            userPinInput.value = u.pin || '';
+            if (userFormTitle) userFormTitle.innerText = 'Edit User';
+            if (btnSaveUser) btnSaveUser.innerHTML = '<i class="fas fa-save"></i> Update User';
+            if (btnCancelUserEdit) btnCancelUserEdit.style.display = 'inline-flex';
+            userForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        if (deleteBtn) {
+            const id = parseInt(deleteBtn.getAttribute('data-id'));
+            if (usersData.length <= 1) {
+                alert('সিস্টেমে অন্তত একজন ইউজার থাকা আবশ্যক। এই ইউজারকে মুছে ফেলা যাবে না।');
+                return;
+            }
+            if (confirm('আপনি কি এই ইউজারকে সিস্টেম থেকে মুছে ফেলতে চান?')) {
+                usersData = usersData.filter(u => u.id !== id);
+                localStorage.setItem('usersData', JSON.stringify(usersData));
+                renderUsersTable();
+                if (editingUserId === id) resetUserForm();
+            }
+        }
+    });
+
+    // ============================================================
+    // SETTINGS MODULE
+    // ============================================================
+    const settingsForm = document.getElementById('settings-form');
+    const settingsSavedNote = document.getElementById('settings-saved-note');
+
+    function loadSettingsIntoForm() {
+        document.getElementById('set-biz-name').value = businessSettings.bizName || '';
+        document.getElementById('set-owner-name').value = businessSettings.ownerName || '';
+        document.getElementById('set-phone').value = businessSettings.phone || '';
+        document.getElementById('set-email').value = businessSettings.email || '';
+        document.getElementById('set-address').value = businessSettings.address || '';
+        document.getElementById('set-currency').value = businessSettings.currency || '৳';
+        document.getElementById('set-fy-start').value = businessSettings.fyStart || '07';
+        document.getElementById('set-footer-note').value = businessSettings.footerNote || '';
+        if (settingsSavedNote) settingsSavedNote.style.display = 'none';
+    }
+
+    function applyBusinessSettingsToUI() {
+        const logoTitle = document.querySelector('.logo h2');
+        if (logoTitle && businessSettings.bizName) logoTitle.innerText = businessSettings.bizName;
+
+        const printTitle = document.getElementById('print-title-main');
+        const printSubtitle = document.getElementById('print-subtitle-main');
+        if (printSubtitle && businessSettings.bizName) {
+            let subtitleText = businessSettings.bizName;
+            if (businessSettings.address) subtitleText += ' | ' + businessSettings.address;
+            if (businessSettings.phone) subtitleText += ' | ' + businessSettings.phone;
+            printSubtitle.innerText = subtitleText;
+        }
+
+        const footerP = document.querySelector('.main-footer p');
+        if (footerP && businessSettings.footerNote) footerP.innerText = businessSettings.footerNote;
+    }
+
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            businessSettings = {
+                bizName: document.getElementById('set-biz-name').value.trim() || 'Stationery',
+                ownerName: document.getElementById('set-owner-name').value.trim(),
+                phone: document.getElementById('set-phone').value.trim(),
+                email: document.getElementById('set-email').value.trim(),
+                address: document.getElementById('set-address').value.trim(),
+                currency: document.getElementById('set-currency').value.trim() || '৳',
+                fyStart: document.getElementById('set-fy-start').value,
+                footerNote: document.getElementById('set-footer-note').value.trim() || defaultBusinessSettings.footerNote
+            };
+
+            localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
+            applyBusinessSettingsToUI();
+
+            if (settingsSavedNote) {
+                settingsSavedNote.style.display = 'inline-flex';
+                setTimeout(() => { settingsSavedNote.style.display = 'none'; }, 3000);
+            }
+        });
+    }
+
+    document.getElementById('btn-reset-settings')?.addEventListener('click', function () {
+        if (confirm('সব সেটিংস ডিফল্ট মানে ফিরিয়ে আনতে চান?')) {
+            businessSettings = Object.assign({}, defaultBusinessSettings);
+            localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
+            loadSettingsIntoForm();
+            applyBusinessSettingsToUI();
+        }
+    });
+
+    // ============================================================
+    // BACKUP & RESTORE MODULE
+    // ============================================================
+    const BACKUP_KEYS = [
+        'cashBookData', 'expenseData', 'dailySalesData', 'purchaseData',
+        'partnershipData', 'partnerWithdrawnAmount', 'partnerNamesData', 'partnerShareValues',
+        'photocopyServiceRecords', 'mbTransactions', 'miniSummaryData',
+        'usersData', 'businessSettings'
+    ];
+
+    function renderBackupOverview() {
+        const grid = document.getElementById('backup-stats-grid');
+        if (grid) {
+            const stats = [
+                { icon: 'fa-book', label: 'Cash Book', count: cashBookData.length },
+                { icon: 'fa-wallet', label: 'Expenses', count: expenseData.length },
+                { icon: 'fa-cart-shopping', label: 'Daily Sales', count: dailySalesData.length },
+                { icon: 'fa-bag-shopping', label: 'Purchases', count: purchaseData.length },
+                { icon: 'fa-handshake', label: 'Partnership', count: partnershipData.length },
+                { icon: 'fa-copy', label: 'Photocopy Records', count: photocopyServiceRecords.length },
+                { icon: 'fa-mobile-screen-button', label: 'Mobile Banking', count: mbTransactions.length },
+                { icon: 'fa-users', label: 'System Users', count: usersData.length }
+            ];
+            grid.innerHTML = stats.map(s => `
+                <div class="backup-stat-card">
+                    <div class="b-icon"><i class="fas ${s.icon}"></i></div>
+                    <div>
+                        <div class="b-label">${s.label}</div>
+                        <div class="b-value">${s.count}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        const lastBackupNote = document.getElementById('last-backup-note');
+        if (lastBackupNote) {
+            const lastBackup = localStorage.getItem('lastBackupTime');
+            lastBackupNote.innerText = lastBackup
+                ? `Last backup: ${new Date(lastBackup).toLocaleString('en-GB')}`
+                : 'No backup taken yet';
+        }
+    }
+
+    document.getElementById('btn-export-backup')?.addEventListener('click', function () {
+        const backupPayload = {
+            meta: {
+                app: 'Stationery Management System',
+                businessName: businessSettings.bizName || 'Stationery',
+                exportedAt: new Date().toISOString(),
+                version: 1
+            },
+            data: {}
+        };
+        BACKUP_KEYS.forEach(key => {
+            const raw = localStorage.getItem(key);
+            backupPayload.data[key] = raw ? JSON.parse(raw) : null;
+        });
+
+        const blob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const dateStamp = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `stationery-backup-${dateStamp}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        localStorage.setItem('lastBackupTime', new Date().toISOString());
+        renderBackupOverview();
+        alert('ব্যাকআপ ফাইলটি সফলভাবে ডাউনলোড হয়েছে!');
+    });
+
+    const restoreFileInput = document.getElementById('restore-file-input');
+    const restoreFileName = document.getElementById('restore-file-name');
+    const btnRestoreBackup = document.getElementById('btn-restore-backup');
+    let pendingRestoreFile = null;
+
+    restoreFileInput?.addEventListener('change', function () {
+        const file = this.files && this.files[0];
+        if (file) {
+            pendingRestoreFile = file;
+            if (restoreFileName) restoreFileName.innerText = file.name;
+            if (btnRestoreBackup) btnRestoreBackup.disabled = false;
+        }
+    });
+
+    btnRestoreBackup?.addEventListener('click', function () {
+        if (!pendingRestoreFile) return;
+        if (!confirm('এই ব্যাকআপ থেকে ডাটা রিস্টোর করলে বর্তমান সব ডাটা মুছে নতুন ডাটা বসবে। আপনি কি নিশ্চিত?')) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                const parsed = JSON.parse(e.target.result);
+                const dataBlock = parsed.data || parsed;
+
+                BACKUP_KEYS.forEach(key => {
+                    if (Object.prototype.hasOwnProperty.call(dataBlock, key) && dataBlock[key] !== null) {
+                        localStorage.setItem(key, JSON.stringify(dataBlock[key]));
+                    }
+                });
+
+                alert('ডাটা সফলভাবে রিস্টোর করা হয়েছে! পেজটি এখন রিলোড হবে।');
+                location.reload();
+            } catch (err) {
+                alert('ব্যাকআপ ফাইলটি সঠিক নয় অথবা ফাইলটি পড়া যায়নি। দয়া করে সঠিক .json ফাইল নির্বাচন করুন।');
+            }
+        };
+        reader.readAsText(pendingRestoreFile);
+    });
+
+    document.getElementById('btn-clear-transactions')?.addEventListener('click', function () {
+        if (confirm('সমস্ত লেনদেনের তথ্য (ক্যাশ বুক, বিক্রয়, খরচ, ক্রয়, রিপোর্ট) স্থায়ীভাবে মুছে ফেলা হবে। ইউজার এবং সেটিংস অক্ষত থাকবে। আপনি কি নিশ্চিত?')) {
+            const transactionalKeys = [
+                'cashBookData', 'expenseData', 'dailySalesData', 'purchaseData',
+                'partnershipData', 'partnerWithdrawnAmount', 'partnerNamesData', 'partnerShareValues',
+                'photocopyServiceRecords', 'mbTransactions', 'miniSummaryData'
+            ];
+            transactionalKeys.forEach(key => localStorage.removeItem(key));
+            alert('সমস্ত লেনদেনের ডাটা মুছে ফেলা হয়েছে। পেজটি এখন রিলোড হবে।');
+            location.reload();
+        }
+    });
+
+    document.getElementById('btn-factory-reset')?.addEventListener('click', function () {
+        if (confirm('সতর্কতা: এটি সম্পূর্ণ সিস্টেম রিসেট করবে — সকল মডিউল, ইউজার এবং সেটিংস স্থায়ীভাবে মুছে যাবে। আপনি কি নিশ্চিত?')) {
+            if (confirm('এই কাজটি ফিরিয়ে আনা যাবে না। শেষবারের মতো নিশ্চিত করুন — সম্পূর্ণ ডাটা মুছে ফেলতে চান?')) {
+                localStorage.clear();
+                alert('সিস্টেমটি ফ্যাক্টরি রিসেট করা হয়েছে। পেজটি এখন রিলোড হবে।');
+                location.reload();
+            }
+        }
+    });
+
     // --- INITIAL RENDER CALLS ---
     updateCashBookUI();
     renderDailyReport();
     renderMonthlyReport();
     renderYearlyReport();
+    applyBusinessSettingsToUI();
 });
