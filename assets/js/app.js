@@ -319,6 +319,13 @@ document.addEventListener("DOMContentLoaded", function () {
             partner2: (partner2NameInput?.value.trim()) || 'Partner 2'
         };
         localStorage.setItem('partnerNamesData', JSON.stringify(partnerNamesData));
+        window.StationeryAPI?.partnerships.saveSettings({
+            partner1_name: partnerNamesData.partner1,
+            partner2_name: partnerNamesData.partner2,
+            partner1_share: partnerShareValues?.partner1 ?? null,
+            partner2_share: partnerShareValues?.partner2 ?? null,
+            withdrawn_amount: partnerWithdrawnAmount || 0
+        }).catch((err) => console.warn('Partnership settings DB sync failed:', err.message));
     }
     partner1NameInput?.addEventListener('input', savePartnerNames);
     partner2NameInput?.addEventListener('input', savePartnerNames);
@@ -333,6 +340,13 @@ document.addEventListener("DOMContentLoaded", function () {
             partner2: (partner2ShareInput?.value !== '' && partner2ShareInput?.value !== undefined) ? (parseFloat(partner2ShareInput.value) || 0) : null
         };
         localStorage.setItem('partnerShareValues', JSON.stringify(partnerShareValues));
+        window.StationeryAPI?.partnerships.saveSettings({
+            partner1_name: partnerNamesData?.partner1 || 'Partner 1',
+            partner2_name: partnerNamesData?.partner2 || 'Partner 2',
+            partner1_share: partnerShareValues.partner1,
+            partner2_share: partnerShareValues.partner2,
+            withdrawn_amount: partnerWithdrawnAmount || 0
+        }).catch((err) => console.warn('Partnership settings DB sync failed:', err.message));
     }
     partner1ShareInput?.addEventListener('input', savePartnerShareValues);
     partner2ShareInput?.addEventListener('input', savePartnerShareValues);
@@ -374,7 +388,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const partner1Name = (partner1NameInput?.value.trim()) || 'Partner 1';
         const partner2Name = (partner2NameInput?.value.trim()) || 'Partner 2';
         if (!confirm(`${partner1Name}: ৳ ${partner1Amt.toLocaleString()}\n${partner2Name}: ৳ ${partner2Amt.toLocaleString()}\n\nএই এমাউন্ট সেটেল করে সেভ করতে চান?`)) return;
-        partnershipData.unshift({
+        const psEntry = {
             id: Math.floor(8000 + Math.random() * 2000),
             date: dateVal,
             partner1Name: partner1Name,
@@ -382,8 +396,13 @@ document.addEventListener("DOMContentLoaded", function () {
             partner2Name: partner2Name,
             partner2Amount: partner2Amt,
             remarks: noteVal
-        });
+        };
+        partnershipData.unshift(psEntry);
         localStorage.setItem('partnershipData', JSON.stringify(partnershipData));
+        window.StationeryAPI?.partnerships.create(psEntry).then((saved) => {
+            psEntry.id = saved.id;
+            localStorage.setItem('partnershipData', JSON.stringify(partnershipData));
+        }).catch((err) => console.warn('Partnership DB sync failed:', err.message));
         renderPartnershipTable();
         partnerWithdrawnAmount += totalToSettle;
         localStorage.setItem('partnerWithdrawnAmount', JSON.stringify(partnerWithdrawnAmount));
@@ -391,6 +410,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (partner2ShareInput) partner2ShareInput.value = '';
         partnerShareValues = { partner1: null, partner2: null };
         localStorage.setItem('partnerShareValues', JSON.stringify(partnerShareValues));
+        window.StationeryAPI?.partnerships.saveSettings({
+            partner1_name: partner1NameInput?.value.trim() || 'Partner 1',
+            partner2_name: partner2NameInput?.value.trim() || 'Partner 2',
+            partner1_share: null,
+            partner2_share: null,
+            withdrawn_amount: partnerWithdrawnAmount
+        }).catch((err) => console.warn('Partnership settings DB sync failed:', err.message));
         updateOverallTotalProfit();
         if (partnerSettleNoteInput) partnerSettleNoteInput.value = '';
         alert("প্রফিট সফলভাবে সেভ করা হয়েছে!");
@@ -401,6 +427,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (confirm('আপনি কি Withdrawn এমাউন্ট রিসেট করতে চান? এটি করলে Available Total Profit আবার পূর্ণ পরিমাণে দেখাবে।')) {
             partnerWithdrawnAmount = 0;
             localStorage.removeItem('partnerWithdrawnAmount');
+            window.StationeryAPI?.partnerships.saveSettings({
+                partner1_name: partnerNamesData?.partner1 || 'Partner 1',
+                partner2_name: partnerNamesData?.partner2 || 'Partner 2',
+                partner1_share: partnerShareValues?.partner1 ?? null,
+                partner2_share: partnerShareValues?.partner2 ?? null,
+                withdrawn_amount: 0
+            }).catch((err) => console.warn('Partnership settings DB sync failed:', err.message));
             updateOverallTotalProfit();
         }
     });
@@ -477,9 +510,12 @@ document.addEventListener("DOMContentLoaded", function () {
         if (deleteBtn) {
             const index = parseInt(deleteBtn.getAttribute('data-index'));
             if (confirm('আপনি কি এই পার্টনারশিপ সেটেলমেন্ট রেকর্ডটি (উভয় পার্টনার সহ) মুছে ফেলতে চান?')) {
-                partnershipData.splice(index, 1);
+                const [removedPs] = partnershipData.splice(index, 1);
                 localStorage.setItem('partnershipData', JSON.stringify(partnershipData));
                 renderPartnershipTable();
+                if (removedPs && removedPs.id) {
+                    window.StationeryAPI?.partnerships.remove(removedPs.id).catch((err) => console.warn('Partnership DB delete failed:', err.message));
+                }
             }
         }
         if (printBtn) {
@@ -682,6 +718,10 @@ document.addEventListener("DOMContentLoaded", function () {
         };
         photocopyServiceRecords.unshift(newRecord);
         localStorage.setItem('photocopyServiceRecords', JSON.stringify(photocopyServiceRecords));
+        window.StationeryAPI?.photocopy.create(newRecord).then((saved) => {
+            newRecord.id = saved.id;
+            localStorage.setItem('photocopyServiceRecords', JSON.stringify(photocopyServiceRecords));
+        }).catch((err) => console.warn('Photocopy DB sync failed:', err.message));
         updatePhotocopyServiceUI();
         alert("ক্যালকুলেশন সাকসেসফুলি সেভ করা হয়েছে!");
     });
@@ -695,6 +735,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 photocopyServiceRecords = photocopyServiceRecords.filter(r => r.id !== idToDelete);
                 localStorage.setItem('photocopyServiceRecords', JSON.stringify(photocopyServiceRecords));
                 updatePhotocopyServiceUI();
+                window.StationeryAPI?.photocopy.remove(idToDelete).catch((err) => console.warn('Photocopy DB delete failed:', err.message));
             }
         }
         if (printBtn) {
@@ -932,8 +973,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (amount <= 0) return alert("সঠিক অ্যামাউন্ট ইনপুট দিন।");
 
-        cashBookData.unshift({ date, type: (type === 'credit' ? 'Sales' : (type === 'debit' ? 'Purchase' : type)), amount, remarks });
+        const cbEntry = { date, type: (type === 'credit' ? 'Sales' : (type === 'debit' ? 'Purchase' : type)), amount, remarks };
+        cashBookData.unshift(cbEntry);
         localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
+        window.StationeryAPI?.cashBook.create(cbEntry).then((saved) => {
+            cbEntry.id = saved.id;
+            localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
+        }).catch((err) => console.warn('Cash book DB sync failed:', err.message));
 
         updateCashBookUI();
         this.reset();
@@ -948,9 +994,12 @@ document.addEventListener("DOMContentLoaded", function () {
         if (deleteBtn) {
             const index = parseInt(deleteBtn.getAttribute("data-index"));
             if (confirm("আপনি কি নিশ্চিতভাবে এই রেকর্ডটি ডিলিট করতে চান?")) {
-                cashBookData.splice(index, 1);
+                const [removedCb] = cashBookData.splice(index, 1);
                 localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
                 updateCashBookUI();
+                if (removedCb && removedCb.id) {
+                    window.StationeryAPI?.cashBook.remove(removedCb.id).catch((err) => console.warn('Cash book DB delete failed:', err.message));
+                }
             }
         }
 
@@ -1080,14 +1129,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
             expenseData.unshift(newExpenseRecord);
             localStorage.setItem('expenseData', JSON.stringify(expenseData));
+            window.StationeryAPI?.expenses.create(newExpenseRecord).then((saved) => {
+                newExpenseRecord.id = saved.id;
+                localStorage.setItem('expenseData', JSON.stringify(expenseData));
+            }).catch((err) => console.warn('Expense DB sync failed:', err.message));
 
-            cashBookData.unshift({
+            const cbEntryExp = {
                 date: dateVal,
                 type: 'Purchase',
                 amount: amountVal,
                 remarks: `[Expense] ${categoryVal} | Note: ${noteVal}`
-            });
+            };
+            cashBookData.unshift(cbEntryExp);
             localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
+            window.StationeryAPI?.cashBook.create(cbEntryExp).then((saved) => {
+                cbEntryExp.id = saved.id;
+                localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
+            }).catch((err) => console.warn('Cash book DB sync failed:', err.message));
 
             renderExpenseTable();
             updateCashBookUI();
@@ -1155,10 +1213,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (deleteBtn) {
             const index = parseInt(deleteBtn.getAttribute('data-index'));
             if (confirm('আপনি কি এই খরচের রেকর্ডটি মুছে ফেলতে চান?')) {
-                expenseData.splice(index, 1);
+                const [removedExp] = expenseData.splice(index, 1);
                 localStorage.setItem('expenseData', JSON.stringify(expenseData));
                 renderExpenseTable();
                 updateCashBookUI();
+                if (removedExp && removedExp.id) {
+                    window.StationeryAPI?.expenses.remove(removedExp.id).catch((err) => console.warn('Expense DB delete failed:', err.message));
+                }
             }
         }
 
@@ -1293,14 +1354,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
             dailySalesData.unshift(newSaleRecord);
             localStorage.setItem('dailySalesData', JSON.stringify(dailySalesData));
+            window.StationeryAPI?.dailySales.create(newSaleRecord).then((saved) => {
+                newSaleRecord.id = saved.id;
+                localStorage.setItem('dailySalesData', JSON.stringify(dailySalesData));
+            }).catch((err) => console.warn('Daily sales DB sync failed:', err.message));
 
-            cashBookData.unshift({
+            const cbEntryDs = {
                 date: dateVal,
                 type: 'Sales',
                 amount: stationeryVal,
                 remarks: `[Daily Sale] ${purposeVal} | Stat: ৳${stationeryVal} | ${noteVal}`
-            });
+            };
+            cashBookData.unshift(cbEntryDs);
             localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
+            window.StationeryAPI?.cashBook.create(cbEntryDs).then((saved) => {
+                cbEntryDs.id = saved.id;
+                localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
+            }).catch((err) => console.warn('Cash book DB sync failed:', err.message));
 
             renderDailySalesTable();
             updateCashBookUI();
@@ -1386,10 +1456,13 @@ document.addEventListener("DOMContentLoaded", function () {
             if (deleteBtn) {
                 const index = parseInt(deleteBtn.getAttribute('data-index'));
                 if (confirm('আপনি কি এই সেলস রেকর্ডটি মুছে ফেলতে চান?')) {
-                    dailySalesData.splice(index, 1);
+                    const [removedDs] = dailySalesData.splice(index, 1);
                     localStorage.setItem('dailySalesData', JSON.stringify(dailySalesData));
                     renderDailySalesTable();
                     updateCashBookUI();
+                    if (removedDs && removedDs.id) {
+                        window.StationeryAPI?.dailySales.remove(removedDs.id).catch((err) => console.warn('Daily sales DB delete failed:', err.message));
+                    }
                 }
             }
 
@@ -1533,14 +1606,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
             purchaseData.unshift(newPurchaseRecord);
             localStorage.setItem('purchaseData', JSON.stringify(purchaseData));
+            window.StationeryAPI?.purchases.create(newPurchaseRecord).then((saved) => {
+                newPurchaseRecord.id = saved.id;
+                localStorage.setItem('purchaseData', JSON.stringify(purchaseData));
+            }).catch((err) => console.warn('Purchase DB sync failed:', err.message));
 
-            cashBookData.unshift({
+            const cbEntryPur = {
                 date: dateVal,
                 type: 'Purchase',
                 amount: amountVal,
                 remarks: `[Purchase] ${itemVal} | Note: ${noteVal}`
-            });
+            };
+            cashBookData.unshift(cbEntryPur);
             localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
+            window.StationeryAPI?.cashBook.create(cbEntryPur).then((saved) => {
+                cbEntryPur.id = saved.id;
+                localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
+            }).catch((err) => console.warn('Cash book DB sync failed:', err.message));
 
             renderPurchaseTable();
             updateCashBookUI();
@@ -1608,9 +1690,12 @@ document.addEventListener("DOMContentLoaded", function () {
         if (deleteBtn) {
             const index = parseInt(deleteBtn.getAttribute('data-index'));
             if (confirm('আপনি কি এই ক্রয়ের রেকর্ডটি মুছে ফেলতে চান?')) {
-                purchaseData.splice(index, 1);
+                const [removedPur] = purchaseData.splice(index, 1);
                 localStorage.setItem('purchaseData', JSON.stringify(purchaseData));
                 renderPurchaseTable();
+                if (removedPur && removedPur.id) {
+                    window.StationeryAPI?.purchases.remove(removedPur.id).catch((err) => console.warn('Purchase DB delete failed:', err.message));
+                }
             }
         }
 
@@ -1759,6 +1844,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const newTx = { id: Math.floor(9000 + Math.random() * 1000), date, details, commission };
         mbTransactions.unshift(newTx);
         localStorage.setItem('mbTransactions', JSON.stringify(mbTransactions));
+        window.StationeryAPI?.mobileBanking.create(newTx).then((saved) => {
+            newTx.id = saved.id;
+            localStorage.setItem('mbTransactions', JSON.stringify(mbTransactions));
+        }).catch((err) => console.warn('Mobile banking DB sync failed:', err.message));
 
         updateMobileBankingUI();
         this.reset();
@@ -1773,6 +1862,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 mbTransactions = mbTransactions.filter(t => t.id !== id);
                 localStorage.setItem('mbTransactions', JSON.stringify(mbTransactions));
                 updateMobileBankingUI();
+                window.StationeryAPI?.mobileBanking.remove(id).catch((err) => console.warn('Mobile banking DB delete failed:', err.message));
             }
         }
     });
@@ -2256,6 +2346,10 @@ document.addEventListener("DOMContentLoaded", function () {
             };
             miniSummaryData.push(newEntry);
             localStorage.setItem('miniSummaryData', JSON.stringify(miniSummaryData));
+            window.StationeryAPI?.miniSummary.create(newEntry).then((saved) => {
+                newEntry.id = saved.id;
+                localStorage.setItem('miniSummaryData', JSON.stringify(miniSummaryData));
+            }).catch((err) => console.warn('Mini summary DB sync failed:', err.message));
 
             renderMiniSummaryTable();
             updateCashBookUI();
@@ -2321,6 +2415,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 renderMiniSummaryTable();
                 updateCashBookUI();
+                window.StationeryAPI?.miniSummary.remove(idToDelete).catch((err) => console.warn('Mini summary DB delete failed:', err.message));
             }
         }
     });
@@ -2330,6 +2425,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (confirm('আপনি কি নিশ্চিতভাবে সমস্ত মিনি সামারি ডাটা মুছে ফেলতে চান? এটি ড্যাশবোর্ডের খরচও আপডেট করে দেবে।')) {
                 miniSummaryData = [];
                 localStorage.removeItem('miniSummaryData');
+                window.StationeryAPI?.miniSummary.removeAll().catch((err) => console.warn('Mini summary DB clear failed:', err.message));
 
                 renderMiniSummaryTable();
                 updateCashBookUI();
@@ -3131,12 +3227,19 @@ sections.push({
                 if (idx !== -1) {
                     usersData[idx] = { ...usersData[idx], name, username, contact, role, status, pin };
                 }
+                window.StationeryAPI?.users.update(editingUserId, { name, username, contact, role, status, pin })
+                    .catch((err) => console.warn('User DB update failed:', err.message));
                 alert('ইউজারের তথ্য সফলভাবে আপডেট করা হয়েছে!');
             } else {
-                usersData.push({
+                const newUser = {
                     id: Math.floor(1000 + Math.random() * 9000),
                     name, username, contact, role, status, pin
-                });
+                };
+                usersData.push(newUser);
+                window.StationeryAPI?.users.create({ name, username, contact, role, status, pin }).then((saved) => {
+                    newUser.id = saved.id;
+                    localStorage.setItem('usersData', JSON.stringify(usersData));
+                }).catch((err) => console.warn('User DB create failed:', err.message));
                 alert('নতুন ইউজার সফলভাবে যুক্ত করা হয়েছে!');
             }
 
@@ -3179,6 +3282,7 @@ sections.push({
                 usersData = usersData.filter(u => u.id !== id);
                 localStorage.setItem('usersData', JSON.stringify(usersData));
                 renderUsersTable();
+                window.StationeryAPI?.users.remove(id).catch((err) => console.warn('User DB delete failed:', err.message));
                 if (editingUserId === id) resetUserForm();
             }
         }
@@ -3236,6 +3340,7 @@ sections.push({
 
             localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
             applyBusinessSettingsToUI();
+            window.StationeryAPI?.settings.save(businessSettings).catch((err) => console.warn('Settings DB sync failed:', err.message));
 
             if (settingsSavedNote) {
                 settingsSavedNote.style.display = 'inline-flex';
@@ -3250,6 +3355,7 @@ sections.push({
             localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
             loadSettingsIntoForm();
             applyBusinessSettingsToUI();
+            window.StationeryAPI?.settings.reset().catch((err) => console.warn('Settings DB reset failed:', err.message));
         }
     });
 
@@ -3374,6 +3480,7 @@ sections.push({
                 'photocopyServiceRecords', 'mbTransactions', 'miniSummaryData'
             ];
             transactionalKeys.forEach(key => localStorage.removeItem(key));
+            window.StationeryAPI?.backup.clearTransactions().catch((err) => console.warn('Clear transactions DB sync failed:', err.message));
             alert('সমস্ত লেনদেনের ডাটা মুছে ফেলা হয়েছে। পেজটি এখন রিলোড হবে।');
             location.reload();
         }
@@ -3383,6 +3490,7 @@ sections.push({
         if (confirm('সতর্কতা: এটি সম্পূর্ণ সিস্টেম রিসেট করবে — সকল মডিউল, ইউজার এবং সেটিংস স্থায়ীভাবে মুছে যাবে। আপনি কি নিশ্চিত?')) {
             if (confirm('এই কাজটি ফিরিয়ে আনা যাবে না। শেষবারের মতো নিশ্চিত করুন — সম্পূর্ণ ডাটা মুছে ফেলতে চান?')) {
                 localStorage.clear();
+                window.StationeryAPI?.backup.factoryReset().catch((err) => console.warn('Factory reset DB sync failed:', err.message));
                 alert('সিস্টেমটি ফ্যাক্টরি রিসেট করা হয়েছে। পেজটি এখন রিলোড হবে।');
                 location.reload();
             }
@@ -3395,4 +3503,111 @@ sections.push({
     renderMonthlyReport();
     renderYearlyReport();
     applyBusinessSettingsToUI();
+
+    // --- SYNC WITH BACKEND DATABASE ---
+    // Best-effort: if the Node/Express + MySQL backend (backend/server.js) is
+    // reachable, pull the latest data from the real database and use it as
+    // the source of truth. If it isn't running, the app keeps working from
+    // the localStorage cache above (offline mode).
+    (async function syncWithDatabase() {
+        if (!window.StationeryAPI) return;
+        const online = await window.StationeryAPI.isServerOnline();
+        if (!online) {
+            console.warn('Backend not reachable at ' + (window.API_BASE_URL || 'http://localhost:5000/api') + ' — running on local browser storage only. Start the backend (node server.js) to use the MySQL database.');
+            return;
+        }
+
+        try {
+            const [
+                cbRows, expRows, dsRows, purRows, mbRows, msRows,
+                partnerRows, partnerSettings, psRows, usersRows, settingsRow
+            ] = await Promise.all([
+                window.StationeryAPI.cashBook.getAll(),
+                window.StationeryAPI.expenses.getAll(),
+                window.StationeryAPI.dailySales.getAll(),
+                window.StationeryAPI.purchases.getAll(),
+                window.StationeryAPI.mobileBanking.getAll(),
+                window.StationeryAPI.miniSummary.getAll(),
+                window.StationeryAPI.partnerships.getAll(),
+                window.StationeryAPI.partnerships.getSettings(),
+                window.StationeryAPI.photocopy.getAll(),
+                window.StationeryAPI.users.getAll(),
+                window.StationeryAPI.settings.get()
+            ]);
+
+            cashBookData = cbRows.map(window.StationeryAPI.normalizeCashBook);
+            localStorage.setItem('cashBookData', JSON.stringify(cashBookData));
+
+            expenseData = expRows.map(window.StationeryAPI.normalizeExpense);
+            localStorage.setItem('expenseData', JSON.stringify(expenseData));
+
+            dailySalesData = dsRows.map(window.StationeryAPI.normalizeSale);
+            localStorage.setItem('dailySalesData', JSON.stringify(dailySalesData));
+
+            purchaseData = purRows.map(window.StationeryAPI.normalizePurchase);
+            localStorage.setItem('purchaseData', JSON.stringify(purchaseData));
+
+            mbTransactions = mbRows.map(window.StationeryAPI.normalizeMb);
+            localStorage.setItem('mbTransactions', JSON.stringify(mbTransactions));
+
+            miniSummaryData = msRows.map(window.StationeryAPI.normalizeMs);
+            localStorage.setItem('miniSummaryData', JSON.stringify(miniSummaryData));
+
+            partnershipData = partnerRows;
+            localStorage.setItem('partnershipData', JSON.stringify(partnershipData));
+
+            if (partnerSettings) {
+                partnerNamesData = {
+                    partner1: partnerSettings.partner1_name || 'Partner 1',
+                    partner2: partnerSettings.partner2_name || 'Partner 2'
+                };
+                localStorage.setItem('partnerNamesData', JSON.stringify(partnerNamesData));
+                if (partner1NameInput) partner1NameInput.value = partnerNamesData.partner1;
+                if (partner2NameInput) partner2NameInput.value = partnerNamesData.partner2;
+
+                partnerShareValues = { partner1: partnerSettings.partner1_share, partner2: partnerSettings.partner2_share };
+                localStorage.setItem('partnerShareValues', JSON.stringify(partnerShareValues));
+                if (partner1ShareInput) partner1ShareInput.value = partnerShareValues.partner1 !== null ? partnerShareValues.partner1 : '';
+                if (partner2ShareInput) partner2ShareInput.value = partnerShareValues.partner2 !== null ? partnerShareValues.partner2 : '';
+
+                partnerWithdrawnAmount = partnerSettings.withdrawn_amount || 0;
+                localStorage.setItem('partnerWithdrawnAmount', JSON.stringify(partnerWithdrawnAmount));
+            }
+
+            photocopyServiceRecords = psRows;
+            localStorage.setItem('photocopyServiceRecords', JSON.stringify(photocopyServiceRecords));
+
+            if (Array.isArray(usersRows) && usersRows.length > 0) {
+                usersData = usersRows;
+                localStorage.setItem('usersData', JSON.stringify(usersData));
+            }
+
+            if (settingsRow) {
+                businessSettings = Object.assign({}, defaultBusinessSettings, settingsRow);
+                localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
+            }
+
+            // Re-render every screen with the fresh data pulled from MySQL
+            updateCashBookUI();
+            renderExpenseTable();
+            renderDailySalesTable();
+            renderPurchaseTable();
+            updateMobileBankingUI();
+            renderMiniSummaryTable();
+            renderPartnershipTable();
+            updatePartnershipSplitUI();
+            updatePhotocopyServiceUI();
+            renderUsersTable();
+            loadSettingsIntoForm();
+            applyBusinessSettingsToUI();
+            renderDailyReport();
+            renderMonthlyReport();
+            renderYearlyReport();
+            updateOverallTotalProfit();
+
+            console.log('%c✅ Connected to MySQL database — live data loaded.', 'color:#16a34a;font-weight:bold;');
+        } catch (err) {
+            console.warn('Database sync failed, continuing with local data:', err.message);
+        }
+    })();
 });
