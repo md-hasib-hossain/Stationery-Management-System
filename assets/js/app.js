@@ -1862,12 +1862,15 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         const serviceCost = totalExpenseSum;
         setPmText("pm-service-cost", serviceCost > 0 ? "৳ " + serviceCost.toLocaleString() : "0");
+        setPmText("pm-service-cost-top", "৳ " + Math.round(serviceCost).toLocaleString());
 
         // ---- COMBINED GROSS / NET PROFIT ----
         const grossProfit = a4NetAmount + lgNetAmount;
         const netProfit = grossProfit - serviceCost;
         setPmText("pm-gross-profit", "৳ " + Math.round(grossProfit).toLocaleString());
         setPmText("pm-net-profit", "৳ " + Math.round(netProfit).toLocaleString());
+        setPmText("pm-gross-profit-top", "৳ " + Math.round(grossProfit).toLocaleString());
+        setPmText("pm-net-profit-top", "৳ " + Math.round(netProfit).toLocaleString());
 
         // ---- COMBINED DATA (used by Photocopy Service save/history) ----
         pmCombinedData = {
@@ -1904,11 +1907,11 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!tbody) return;
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td style="border: 1px solid #cbd5e1; padding: 0;"><input type="text" class="pm-expense-title" placeholder="Expense Title" style="width: 100%; padding: 8px 12px; border: none; outline: none;"></td>
-            <td style="border: 1px solid #cbd5e1; padding: 0;">
-                <div style="display: flex; align-items: center;">
-                    <input type="number" class="pm-expense-amt" placeholder="Amount" style="width: 100%; padding: 8px 12px; border: none; outline: none; text-align: right;">
-                    <button type="button" class="btn-remove-pm-exp" style="border: none; background: #fff1f2; color: #e11d48; padding: 8px 10px; cursor: pointer;"><i class="fas fa-trash-can"></i></button>
+            <td><input type="text" class="pm-expense-title" placeholder="Expense title"></td>
+            <td>
+                <div class="pm-expense-amt-wrap">
+                    <input type="number" class="pm-expense-amt" placeholder="Amount">
+                    <button type="button" class="btn-remove-pm-exp"><i class="fas fa-trash-can"></i></button>
                 </div>
             </td>
         `;
