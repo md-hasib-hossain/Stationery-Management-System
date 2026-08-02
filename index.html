@@ -14,6 +14,33 @@
 </head>
 
 <body>
+    <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCdo9Ha62gjr2wVowoWVH2-rHZVWNseol0",
+    authDomain: "mimi-book-house-stationery.firebaseapp.com",
+    projectId: "mimi-book-house-stationery",
+    storageBucket: "mimi-book-house-stationery.firebasestorage.app",
+    messagingSenderId: "1054201673953",
+    appId: "1:1054201673953:web:292d4a1300551419645fa0"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Global এ রাখুন যেন সব জায়গা থেকে ব্যবহার করা যায়
+  window.db = db;
+  window.collection = collection;
+  window.addDoc = addDoc;
+  window.getDocs = getDocs;
+  window.deleteDoc = deleteDoc;
+  window.doc = doc;
+  window.onSnapshot = onSnapshot;
+
+  console.log("✅ Firebase Connected!");
+</script>
 
     <!-- Sidebar Start -->
     <div class="sidebar">
